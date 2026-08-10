@@ -104,48 +104,57 @@ const filtered = computed(() => {
     />
 
     <div class="flex flex-wrap gap-4 mb-5">
-      <div class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
+      <dl class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
         <div>
-          <div class="text-sm text-gray-500 dark:text-gray-400">
+          <dt class="text-sm text-gray-500 dark:text-gray-400">
             Instance
-          </div>
-          <div
+          </dt>
+          <dd
             class="text-lg font-semibold mt-0.5"
             :class="health?.status ? (health.status === 'UP' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400') : ''"
           >
             {{ health?.status === 'UP' ? 'Online' : (health?.status || '…') }}
-          </div>
+          </dd>
         </div>
-      </div>
-      <div class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
+      </dl>
+      <dl class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
         <div>
-          <div class="text-sm text-gray-500 dark:text-gray-400">
+          <dt class="text-sm text-gray-500 dark:text-gray-400">
             Failures
-          </div><div class="text-lg font-semibold mt-0.5 tabular-nums">
+          </dt><dd class="text-lg font-semibold mt-0.5 tabular-nums">
             {{ instanceStatus.failuresCount }}
-          </div>
+          </dd>
         </div>
-        <span
+        <div
           class="text-sm rounded-full px-2 py-0.5"
           :class="instanceStatus.failuresCount > 0 ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200'"
-        >{{ instanceStatus.failuresCount > 0 ? 'review' : 'clean' }}</span>
-      </div>
-      <div class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
-        <div>
-          <div class="text-sm text-gray-500 dark:text-gray-400">
-            Uptime
-          </div><div class="text-lg font-semibold mt-0.5 tabular-nums">
-            {{ prettyUptime(instanceStatus.uptime / 1000) }}
-          </div>
+        >
+          <dt class="sr-only">Review status</dt>
+          <dd>{{ instanceStatus.failuresCount > 0 ? 'review' : 'clean' }}</dd>
         </div>
-      </div>
+      </dl>
+      <dl class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
+        <div>
+          <dt class="text-sm text-gray-500 dark:text-gray-400">
+            Uptime
+          </dt><dd class="text-lg font-semibold mt-0.5 tabular-nums">
+            {{ prettyUptime(instanceStatus.uptime / 1000) }}
+          </dd>
+        </div>
+      </dl>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300">
+    <section
+      class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300"
+      aria-labelledby="recorded-failures-heading"
+    >
       <div class="mb-0 px-4.5 py-4 border-b border-gray-200 dark:border-gray-800 flex items-start justify-between gap-3 min-w-0 <sm:flex-col">
         <div class="min-w-0">
           <div class="flex flex-wrap items-baseline gap-2">
-            <h2 class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100">
+            <h2
+              id="recorded-failures-heading"
+              class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100"
+            >
               Recorded failures
             </h2>
             <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap"><b class="text-gray-800 dark:text-gray-100 font-semibold tabular-nums">{{ failures.length }}</b> unique</span>
@@ -162,6 +171,7 @@ const filtered = computed(() => {
           <svg
             viewBox="0 0 24 24"
             class="w-4 h-4 flex-shrink-0 text-gray-400"
+            aria-hidden="true"
           ><path
             fill="none"
             stroke="currentColor"
@@ -173,6 +183,7 @@ const filtered = computed(() => {
             v-model="query"
             class="flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"
             placeholder="Filter by type or path…"
+            aria-label="Filter failures by type or path"
           >
         </div>
       </div>
@@ -184,6 +195,7 @@ const filtered = computed(() => {
       <div
         v-else
         class="px-4.5 py-10 text-center text-gray-500 dark:text-gray-400"
+        :role="failuresError ? 'alert' : 'status'"
       >
         <p v-if="failuresError">
           <b class="text-green-600 dark:text-green-400">Cannot load failures.</b> Check the connection and try again.
@@ -195,12 +207,18 @@ const filtered = computed(() => {
           <b class="text-green-600 dark:text-green-400">All clear.</b> No exceptions recorded since the last restart.
         </p>
       </div>
-    </div>
+    </section>
 
-    <div class="mt-5 bg-white dark:bg-gray-900 rounded-lg p-5">
+    <section
+      class="mt-5 bg-white dark:bg-gray-900 rounded-lg p-5"
+      aria-labelledby="resource-usage-heading"
+    >
       <div class="mb-3 flex items-start justify-between gap-3 min-w-0 <sm:flex-col">
         <div class="min-w-0">
-          <h2 class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100">
+          <h2
+            id="resource-usage-heading"
+            class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100"
+          >
             Resource usage
           </h2>
           <p class="mt-0.5 truncate text-sm leading-5 text-gray-500 dark:text-gray-400 <md:whitespace-normal <md:overflow-visible">
@@ -209,6 +227,6 @@ const filtered = computed(() => {
         </div>
       </div>
       <StatusSnapshotsChart :selected-tab="selectedTab" />
-    </div>
+    </section>
   </div>
 </template>

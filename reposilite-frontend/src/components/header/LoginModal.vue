@@ -48,25 +48,38 @@ export default {
       v-model="showLogin"
       v-bind="$attrs"
       class="flex justify-center items-center"
+      aria-labelledby="login-dialog-title"
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
-        <p class="font-bold text-xl pb-4">Login with access token</p>
+        <h2 id="login-dialog-title" class="font-bold text-xl pb-4">Login with access token</h2>
         <form class="flex flex-col w-96 <sm:w-65" @submit.prevent="signin(name, secret)">
-          <input placeholder="Name" v-model="name" type="text" class="input"/>
-          <input placeholder="Secret" v-model="secret" type="password" class="input"/>
+          <label class="sr-only" for="login-name">Name</label>
+          <input id="login-name" placeholder="Name" v-model="name" type="text" autocomplete="username" class="input"/>
+          <label class="sr-only" for="login-secret">Secret</label>
+          <input id="login-secret" placeholder="Secret" v-model="secret" type="password" autocomplete="current-password" class="input"/>
           <div class="text-right mt-1">
-            <button @click="close()" class="text-blue-400 text-xs">← Back to index</button>
+            <button type="button" @click="close()" class="text-blue-400 text-xs">← Back to index</button>
           </div>
-          <button class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer">Sign in</button>
+          <button type="submit" class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer">Sign in</button>
         </form>
-        <button class="absolute top-0 right-0 mt-5 mr-5" @click="close()">
-          <CloseIcon class="w-6 h-6" />
+        <button
+          type="button"
+          class="absolute top-0 right-0 mt-5 mr-5"
+          aria-label="Close login dialog"
+          title="Close"
+          @click="close()"
+        >
+          <CloseIcon class="w-6 h-6" aria-hidden="true" />
         </button>
       </div>
     </VueFinalModal>
-    <div @click="showLogin = true">
+    <button
+      type="button"
+      class="mx-2 py-1.5 rounded-full font-bold px-6 text-sm max-h-35px min-w-93px default-button"
+      @click="showLogin = true"
+    >
       <slot name="button"></slot>
-    </div>
+    </button>
   </div>
 </template>
 

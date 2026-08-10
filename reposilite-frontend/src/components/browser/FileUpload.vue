@@ -99,7 +99,7 @@ const uploadFiles = () => {
 </script>
 
 <template>
-  <div id="browser-upload">
+  <section id="browser-upload" aria-label="File upload">
     <div 
       :class="[ isEnabled ? 'rounded-t-3xl rounded-b' : 'rounded-3xl' ]"
       class="
@@ -108,7 +108,12 @@ const uploadFiles = () => {
         dark:bg-black dark:border-gray-800 dark:hover:(transition-colors duration-400 bg-gray-900)
       "
     >
+      <label
+        for="file-upload-input"
+        class="sr-only"
+      >Select files to upload</label>
       <FileUpload
+        input-id="file-upload-input"
         class="btn btn-primary flex text-left"
         post-action="/upload/post"
         :multiple="true"
@@ -131,35 +136,41 @@ const uploadFiles = () => {
         </div>
       </FileUpload>
       <div v-if="isEnabled">
-        <div class="-mt-2 pb-2">
-          <div v-for="file in files" :key="file.name" class="pt-1 px-6 flex">
-            <span @click="removeFile(file)" class="pt-0.85">
-              <CloseIcon class="w-5 h-5 pb-1 text-purple-400" />
-            </span>
+        <ul class="-mt-2 pb-2">
+          <li v-for="file in files" :key="file.name" class="pt-1 px-6 flex">
+            <button
+              type="button"
+              class="pt-0.85"
+              :aria-label="`Remove ${file.name}`"
+              :title="`Remove ${file.name}`"
+              @click="removeFile(file)"
+            >
+              <CloseIcon class="w-5 h-5 pb-1 text-purple-400" aria-hidden="true" />
+            </button>
             <span class="px-2">{{file.name}}</span>
-          </div>
-        </div>
+          </li>
+        </ul>
         <div class="px-6 pb-4">
-          <div>
+          <label class="block">
             <input type="checkbox" v-model="checksumsEnabled" class="mb-1 ml-1 dark:bg-gray-900" />
-            <span class="pl-3" @click="checksumsEnabled = !checksumsEnabled" >Generate default checksums</span>
-          </div>
-          <div>
+            <span class="pl-3">Generate default checksums</span>
+          </label>
+          <label class="block">
             <input type="checkbox" v-model="stubPomEnabled" class="mb-1 ml-1 dark:bg-gray-900" />
-            <span class="pl-3" @click="stubPomEnabled = !stubPomEnabled" >Generate stub POM file</span>
-          </div>
+            <span class="pl-3">Generate stub POM file</span>
+          </label>
           <div v-if="stubPomEnabled" class="pom-form mt-4 border px-3 pb-3 pt-1 bg-gray-100 dark:bg-black dark:border-gray-800 rounded">
             <div>
-              <label>Group</label>
-              <input v-model="groupId" placeholder="com.dzikoysk" required/>
+              <label for="pom-group">Group</label>
+              <input id="pom-group" v-model="groupId" placeholder="com.dzikoysk" required/>
             </div>
             <div>
-              <label>Artifact</label>
-              <input v-model="artifactId" placeholder="reposilite" required/>
+              <label for="pom-artifact">Artifact</label>
+              <input id="pom-artifact" v-model="artifactId" placeholder="reposilite" required/>
             </div>
             <div>
-              <label>Version</label>
-              <input v-model="version" placeholder="3.0.0" required/>
+              <label for="pom-version">Version</label>
+              <input id="pom-version" v-model="version" placeholder="3.0.0" required/>
             </div>
           </div>
         </div>
@@ -167,13 +178,16 @@ const uploadFiles = () => {
     </div>
     <div v-if="isEnabled" class="flex flex-col">
       <div class="flex">
+        <label for="upload-destination" class="sr-only">Upload destination</label>
         <input
+          id="upload-destination"
           class="flex-1 mt-2 mr-2 rounded px-6 border-dashed dark:bg-gray-900 dark:border-gray-800 border"
           v-model="to"
           placeholder="E.g. path/to/deploy"
           @change="customDestination = true"
         />
         <button
+          type="button"
           @click.prevent="uploadFiles"
           class="
             border text-sm py-1.5 h-9 px-4 mt-2 border-dashed rounded
@@ -185,9 +199,9 @@ const uploadFiles = () => {
           <span class="font-bold text-purple-400">↝</span>
         </button>
       </div>
-      <span v-if="!pathMatchesPom" class="px-6 text-yellow-500">⚠ Warning: Path does not match artifact coordinates</span>
+      <span v-if="!pathMatchesPom" class="px-6 text-yellow-500" role="alert">⚠ Warning: Path does not match artifact coordinates</span>
     </div>
-  </div>
+  </section>
 </template>
 
 <style>

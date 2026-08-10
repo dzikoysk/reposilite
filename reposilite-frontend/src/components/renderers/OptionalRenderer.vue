@@ -1,18 +1,29 @@
 <template>
   <div>
-    <div class="label">
+    <label
+      :for="`${control.id}-present`"
+      class="label"
+    >
       {{ control.label }}
       <input
+        :id="`${control.id}-present`"
         type="checkbox"
         :checked="present"
         class="mx-4 mb-1"
+        :aria-describedby="control.description ? `${control.id}-description` : undefined"
         @change="toggle"
-      />
-    </div>
-    <div class="description">
+      >
+    </label>
+    <div
+      :id="`${control.id}-description`"
+      class="description"
+    >
       {{ control.description }}
     </div>
-    <div v-if="present && control.visible" class="optional-panel">
+    <div
+      v-if="present && control.visible"
+      class="optional-panel"
+    >
       <DispatchRenderer
         :visible="control.visible"
         :enabled="control.enabled"

@@ -17,7 +17,7 @@
 <script setup>
 import {ref, toRaw, watch} from 'vue'
 import {JsonForms} from '@jsonforms/vue'
-import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
+import {TabPanels, TabPanel} from 'vue3-tabs'
 import { useConfiguration } from '../../store/configuration'
 import download from 'downloadjs'
 import FactoryResetModal from './FactoryResetModal.vue'
@@ -103,6 +103,7 @@ const formsConfiguration = {
         >
           <button
             v-if="hasChanged"
+            type="button"
             class="h-8 whitespace-nowrap rounded-md bg-blue-700 px-3 text-sm text-white hover:bg-blue-800 dark:hover:bg-blue-600 cursor-pointer"
             :class="{ '!bg-gray-500 cursor-not-allowed': !isValid }"
             :disabled="!isValid"
@@ -112,6 +113,7 @@ const formsConfiguration = {
           </button>
           <button
             v-if="hasChanged"
+            type="button"
             class="h-8 whitespace-nowrap rounded-md bg-red-600 px-3 text-sm text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 cursor-pointer"
             @click.prevent="reload(fetchConfiguration)"
           >
@@ -119,6 +121,7 @@ const formsConfiguration = {
           </button>
           <button
             v-if="!hasChanged"
+            type="button"
             class="h-8 whitespace-nowrap rounded-md bg-gray-800 px-3 text-sm text-white hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
             :class="{ '!bg-gray-500 cursor-not-allowed': !isValid }"
             :disabled="!isValid"
@@ -126,38 +129,41 @@ const formsConfiguration = {
           >
             Download as JSON
           </button>
-          <FactoryResetModal :callback="factoryReset">
-            <template #button>
-              <button class="h-8 whitespace-nowrap rounded-md bg-red-600 px-3 text-sm text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 cursor-pointer">
-                Factory reset
-              </button>
-            </template>
-          </FactoryResetModal>
+          <FactoryResetModal :callback="factoryReset" />
         </div>
       </template>
     </ViewHeader>
     <div class="overflow-hidden rounded-lg bg-gray-100 dark:bg-black">
-      <Tabs
+      <div
         v-if="domains.length > 1"
-        v-model="selectedDomain"
-        class="domain-tabs overflow-x-auto pt-2"
+        class="tabs domain-tabs overflow-x-auto pt-2"
+        role="tablist"
+        aria-label="Configuration domains"
       >
-        <Tab
+        <button
           v-for="domain in domains"
+          :id="`domain-tab-${domain}`"
           :key="`config:${domain}`"
+          type="button"
+          role="tab"
           class="item cursor-pointer whitespace-nowrap rounded-t-md bg-transparent px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300"
           :class="{ 'domain-tab-active': selectedDomain === domain }"
-          :val="domain"
-          :label="schemas[domain]?.title"
-          :indicator="false"
-        />
-      </Tabs>
+          :aria-selected="selectedDomain === domain"
+          :aria-controls="`domain-panel-${domain}`"
+          @click="selectedDomain = domain"
+        >
+          <span class="tab block">{{ schemas[domain]?.title }}</span>
+        </button>
+      </div>
       <TabPanels v-model="selectedDomain">
         <TabPanel
           v-for="domain in domains"
+          :id="`domain-panel-${domain}`"
           :key="`config_tab:${domain}`"
           :val="domain"
           class="settings-panel"
+          role="tabpanel"
+          :aria-labelledby="`domain-tab-${domain}`"
         >
           <JsonForms
             v-if="configurations[domain]"

@@ -36,9 +36,12 @@ onKeyStroke('Escape', () => {
     class="relative inline-flex"
   >
     <button
+      id="version-sponsors-trigger"
+      type="button"
       class="flex flex-col items-start bg-transparent border-0 p-0 text-left cursor-pointer"
       aria-haspopup="dialog"
       :aria-expanded="open"
+      aria-controls="version-sponsors-dialog"
       title="View sponsors"
       @click="open = !open"
     >
@@ -55,25 +58,34 @@ onKeyStroke('Escape', () => {
     </button>
     <div
       v-if="open"
+      id="version-sponsors-dialog"
       class="absolute right-0 top-full z-50 mt-3 w-96 max-w-[calc(100vw-2rem)] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-5 py-4 text-left shadow-xl"
       role="dialog"
-      aria-label="Sponsors"
+      aria-labelledby="version-sponsors-heading"
     >
       <div class="flex items-start justify-between gap-4">
         <div>
-          <h1 class="text-base font-semibold text-gray-900 dark:text-white">
+          <h2
+            id="version-sponsors-heading"
+            class="text-base font-semibold text-gray-900 dark:text-white"
+          >
             Sponsors
-          </h1>
+          </h2>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             This release was sponsored by:
           </p>
         </div>
         <button
+          type="button"
           class="shrink-0 text-gray-400 hover:text-gray-700 dark:hover:text-gray-100"
           title="Close"
+          aria-label="Close sponsors"
           @click="open = false"
         >
-          <CloseIcon class="h-5 w-5" />
+          <CloseIcon
+            class="h-5 w-5"
+            aria-hidden="true"
+          />
         </button>
       </div>
       <div class="my-4 space-y-2">

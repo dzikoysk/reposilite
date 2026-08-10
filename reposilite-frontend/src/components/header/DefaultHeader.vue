@@ -32,9 +32,11 @@ const { title } = usePlaceholders()
 <template>
   <header class="bg-gray-100 dark:bg-black dark:text-white">
     <div class="container mx-auto flex flex-row py-10 justify-between <sm:(pb-2 pt-5 px-5 justify-start)">
-      <h1 @click="logoClickCallback" class="text-xl font-medium py-1 <sm:w-1/2">
-        <router-link :to="'/'">{{ title }}</router-link>
-      </h1>
+      <p class="text-xl font-medium py-1 <sm:w-1/2">
+        <router-link :to="'/'" @click="logoClickCallback">
+          {{ title }}
+        </router-link>
+      </p>
       <MenuPanel class="mt-0.5"/>
     </div>
     <HeaderHero class="pt-2 pb-10 <sm:pb-4" />

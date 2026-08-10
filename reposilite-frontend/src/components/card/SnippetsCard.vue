@@ -128,12 +128,16 @@ const selectTab = (tab) =>
 </script>
 
 <template>
-  <div class="bg-white dark:bg-gray-900 shadow-lg p-7 rounded-xl border-gray-100 dark:border-black">
+  <section
+    class="bg-white dark:bg-gray-900 shadow-lg p-7 rounded-xl border-gray-100 dark:border-black"
+    :aria-busy="loading"
+    aria-labelledby="snippet-card-title"
+  >
     <div class="flex flex-row justify-between">
-      <h1 class="font-bold flex items-center w-full">
-        <span v-if="loading" class="h-4 w-36 rounded bg-gray-200 dark:bg-gray-700 skeleton-bars" />
+      <h2 id="snippet-card-title" class="font-bold flex items-center w-full">
+        <span v-if="loading" class="h-4 w-36 rounded bg-gray-200 dark:bg-gray-700 skeleton-bars" aria-hidden="true" />
         <template v-else>{{title}}</template>
-      </h1>
+      </h2>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
 
@@ -147,17 +151,20 @@ const selectTab = (tab) =>
     <div class="mt-6">
       <transition :name="transitionName" mode="out-in">
         <div :key="selectedTab" class="relative">
-          <span
+          <button
             v-if="isCopySupported && !loading"
-            @click="copy"
+            type="button"
             class="absolute top-2 right-2 z-10 flex items-center cursor-pointer select-none rounded-md p-1 bg-gray-100 dark:bg-gray-800 text-gray-400 hover:(text-gray-600 bg-gray-200) dark:hover:(text-gray-200 bg-gray-700) transition-colors duration-200"
+            :aria-label="copied ? 'Snippet copied' : 'Copy snippet'"
+            :title="copied ? 'Snippet copied' : 'Copy snippet'"
+            @click="copy"
           >
-            <span v-if="copied" class="text-ssm font-normal text-green-500 mr-1.5">Copied</span>
-            <CopiedIcon v-if="copied" class="text-green-500" />
-            <CopyIcon v-else />
-          </span>
+            <span v-if="copied" class="text-ssm font-normal text-green-500 mr-1.5" role="status">Copied</span>
+            <CopiedIcon v-if="copied" class="text-green-500" aria-hidden="true" />
+            <CopyIcon v-else aria-hidden="true" />
+          </button>
           <div class="card-editor overflow-auto font-mono text-ssm h-29 relative py-3 px-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-            <div v-if="loading" class="skeleton-bars space-y-2.5 pt-1">
+            <div v-if="loading" class="skeleton-bars space-y-2.5 pt-1" aria-hidden="true">
               <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 80%" />
               <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 55%" />
               <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 68%" />
@@ -185,15 +192,15 @@ const selectTab = (tab) =>
         </div>
       </transition>
     </div>
-  </div>
+  </section>
 </template>
 
 <style>
-#card-menu div {
+#card-menu button {
   border-top-left-radius: 10%;
   border-top-right-radius: 10%;
 }
-#card-menu div:hover {
+#card-menu button:hover {
   @apply bg-gray-100 dark:bg-gray-800;
   transition: background-color 0.5s;
 }

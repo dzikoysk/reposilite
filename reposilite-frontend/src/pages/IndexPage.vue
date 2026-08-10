@@ -20,7 +20,7 @@ import { useSession } from '../store/session'
 import useQualifier from '../store/qualifier'
 import DefaultHeader from '../components/header/DefaultHeader.vue'
 import FileBrowserView from '../components/browser/FileBrowserView.vue'
-import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
+import {TabPanels, TabPanel} from 'vue3-tabs'
 import { property } from '../helpers/vue-extensions'
 
 const ConsoleView = defineAsyncComponent(() => import('../components/console/ConsoleView.vue'))
@@ -72,43 +72,51 @@ const selectHomepage = () =>
 <template>
   <div>
     <DefaultHeader :logoClickCallback="selectHomepage" />
-    <div class="bg-gray-100 dark:bg-black overflow-y-visible">
+    <main
+      id="main-content"
+      class="bg-gray-100 dark:bg-black overflow-y-visible"
+    >
       <div class="container mx-auto <sm:px-0">
-        <Tabs 
-          v-model="selectedTab"
-          @update:modelValue="createTabClick"
+        <div
+          class="tabs"
+          role="tablist"
+          aria-label="Main views"
         >
-          <template 
-            v-for="(tab, i) in menuTabs" 
+          <button
+            v-for="(tab, i) in menuTabs"
+            :id="`main-tab-${tab.toLowerCase()}`"
             :key="`menu${i}`"
+            type="button"
+            role="tab"
+            class="item main-menu-tab font-normal <sm:w-1/3"
+            :class="{
+              'main-menu-tab-active': selectedTab === tab,
+              'dashboard': tab === 'Dashboard'
+            }"
+            :aria-selected="selectedTab === tab"
+            :aria-controls="`main-panel-${tab.toLowerCase()}`"
+            @click="selectedTab = tab; createTabClick(tab)"
           >
-            <Tab
-              v-if="tab !== 'Dashboard'"
-              class="item main-menu-tab font-normal <sm:w-1/3"
-              :class="{ 'main-menu-tab-active': selectedTab === tab }"
-              :val="tab"
-              :label="tab"
-              :indicator="false"
-            />
-            <Tab
-              v-if="tab === 'Dashboard'"
-              class="item main-menu-tab font-normal dashboard <sm:w-1/3"
-              :class="{ 'main-menu-tab-active': selectedTab === tab }"
-              :val="tab"
-              :label="tab"
-              :indicator="false"
-            />
-          </template>
-        </Tabs>
+            <span class="tab block">{{ tab }}</span>
+          </button>
+        </div>
       </div>
       <hr class="dark:border-gray-700">
       <div class="overflow-auto">
         <TabPanels v-model="selectedTab">
-          <TabPanel :val="'Overview'">
+          <TabPanel
+            id="main-panel-overview"
+            role="tabpanel"
+            aria-labelledby="main-tab-overview"
+            :val="'Overview'"
+          >
             <FileBrowserView v-if="selectedTab == 'Overview'" :qualifier="qualifier" ref=""/>
           </TabPanel>
           <TabPanel
             v-show="isManager"
+            id="main-panel-dashboard"
+            role="tabpanel"
+            aria-labelledby="main-tab-dashboard"
             :val="'Dashboard'"
           >
             <DashboardView
@@ -119,12 +127,18 @@ const selectHomepage = () =>
           </TabPanel>
           <TabPanel
             v-show="isManager"
+            id="main-panel-statistics"
+            role="tabpanel"
+            aria-labelledby="main-tab-statistics"
             :val="'Statistics'"
           >
             <StatisticsView v-if="selectedTab == 'Statistics'" />
           </TabPanel>
           <TabPanel
             v-show="isManager"
+            id="main-panel-diagnostics"
+            role="tabpanel"
+            aria-labelledby="main-tab-diagnostics"
             :val="'Diagnostics'"
           >
             <DiagnosticsView
@@ -134,6 +148,9 @@ const selectHomepage = () =>
           </TabPanel>
           <TabPanel
             v-show="isManager"
+            id="main-panel-console"
+            role="tabpanel"
+            aria-labelledby="main-tab-console"
             :val="'Console'"
           >
             <ConsoleView
@@ -143,6 +160,9 @@ const selectHomepage = () =>
           </TabPanel>
           <TabPanel
             v-show="isManager"
+            id="main-panel-tokens"
+            role="tabpanel"
+            aria-labelledby="main-tab-tokens"
             :val="'Tokens'"
           >
             <TokensView
@@ -152,6 +172,9 @@ const selectHomepage = () =>
           </TabPanel>
           <TabPanel
             v-show="isManager"
+            id="main-panel-settings"
+            role="tabpanel"
+            aria-labelledby="main-tab-settings"
             :val="'Settings'"
           >
             <SettingsView
@@ -161,14 +184,25 @@ const selectHomepage = () =>
           </TabPanel>
         </TabPanels>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <style>
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+}
 .tabs .tab {
   cursor: pointer;
+  padding: 10px 20px;
   text-transform: capitalize;
+}
+.tabs .active {
+  border-width: 0;
+  border-bottom-width: 2px;
+  border-style: solid;
+  border-color: #000;
 }
 .tabs .item:hover {
   @apply bg-gray-150 dark:bg-gray-900;

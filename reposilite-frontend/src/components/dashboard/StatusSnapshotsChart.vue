@@ -82,7 +82,10 @@ const chartOptions = {
 </script>
 
 <template>
-  <div v-if="statusSnapshots">
+  <figure v-if="statusSnapshots">
+    <figcaption class="sr-only">
+      Runtime memory and thread usage over time
+    </figcaption>
     <VueApexCharts 
       class="dark:text-black"
       width="100%"
@@ -91,5 +94,5 @@ const chartOptions = {
       :options="chartOptions"
       :series="statusSnapshotsSeries"
     />
-  </div>
+  </figure>
 </template>

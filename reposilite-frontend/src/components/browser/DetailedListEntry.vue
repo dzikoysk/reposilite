@@ -58,37 +58,47 @@ const defaultMode = computed(() => !props.compactMode)
 </script>
 
 <template>
-  <div class="browser-entry" :class="{ 'default-entry': defaultMode, 'compact-entry': compactMode }">
+  <div class="browser-entry pointer-events-none" :class="{ 'default-entry': defaultMode, 'compact-entry': compactMode }">
     <div class="flex flex-row max-w-full">
       <div v-if="file.type == 'DIRECTORY'" :class="{ 'default-icon': defaultMode, 'compact-icon': compactMode }">⚫</div>
       <div v-else :class="{ 'default-icon': defaultMode, 'compact-icon': compactMode }">⚪</div>
       <div :class="{ 'default-filename': defaultMode, 'compact-filename': compactMode }">{{file.name}}</div>
     </div>
     <div class="entry-details flex flex-1 justify-end">
-      <div class="entry-menu hidden flex flex-row justify-end">
-        <EyeIcon
+      <div class="entry-menu relative z-10 hidden flex flex-row justify-end pointer-events-auto">
+        <button
           v-if="file.hasOwnProperty('contentLength') && isHumanReadable" 
+          type="button"
           :title="`Click to view ${file.name} file content in a new tab`"
-          id="view-button"
-          class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)" 
+          :aria-label="`View ${file.name} file content in a new tab`"
+          class="w-6 h-6 p-0 mr-6 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
           @click.left.prevent="openUrl(url)"
           v-on:click.stop
-        />
-        <JavaDocsIcon
+        >
+          <EyeIcon class="px-1 pt-0.4" aria-hidden="true" />
+        </button>
+        <button
           v-if="isJavaDocsAvailable()"
+          type="button"
           :title="`Click to view ${file.name} javadocs in a new tab`"
-          id="javadoc-button"
-          class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
+          :aria-label="`View ${file.name} Javadocs in a new tab`"
+          class="w-6 h-6 p-0 mr-6 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
           @click.left.prevent="openUrl(getJavaDocsUrl())"
           v-on:click.stop
-        />
-        <TrashIcon
+        >
+          <JavaDocsIcon class="px-1 pt-0.4" aria-hidden="true" />
+        </button>
+        <button
           v-if="qualifier.path.length > 1 && hasPermissionTo(`/${qualifier.path}`, 'route:write')"
-          id="delete-button"
-          class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
+          type="button"
+          class="w-6 h-6 p-0 mr-6 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
+          :aria-label="`Delete ${file.name}`"
+          :title="`Delete ${file.name}`"
           @click.left.prevent="openDeleteEntryModal(file.name)"
           v-on:click.stop
-        />
+        >
+          <TrashIcon class="px-1 pt-0.4" aria-hidden="true" />
+        </button>
       </div>
       <div v-if="file.hasOwnProperty('contentLength')" class="pr-6">
         {{ prettyBytes(file.contentLength) }}
@@ -98,8 +108,23 @@ const defaultMode = computed(() => !props.compactMode)
 </template>
 
 <style>
-.browser-entry:hover > .entry-details .entry-menu {
+#browser-list li:hover .entry-menu,
+#browser-list li:focus-within .entry-menu {
   display: flex;
+}
+
+#browser-list li:hover .default-entry {
+  @apply transition-color bg-gray-200 duration-500;
+}
+.dark #browser-list li:hover .default-entry {
+  @apply bg-gray-800;
+}
+
+#browser-list li:hover .compact-entry {
+  @apply transition-colors duration-200 bg-purple-400 text-white;
+}
+.dark #browser-list li:hover .compact-entry {
+  @apply bg-purple-600;
 }
 
 .default-entry {

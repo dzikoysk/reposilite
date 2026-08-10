@@ -38,30 +38,53 @@ export default {
       v-model="showAdjustments"
       v-bind="$attrs"
       class="flex justify-center iems-center"
+      aria-labelledby="adjustments-dialog-title"
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <div>
-          <h1 class="font-bold pb-4">File browser adjustments</h1>
+          <h2 id="adjustments-dialog-title" class="font-bold pb-4">File browser adjustments</h2>
           <hr class>
           <div class="flex justify-between pt-6">
-            <p class="pr-7">Sort files from newest to oldest</p>
-            <Toggle v-model="reversedFileOrder" class="ml-10"/>
+            <p id="reverse-file-order-label" class="pr-7">Sort files from newest to oldest</p>
+            <Toggle
+              id="reverse-file-order"
+              v-model="reversedFileOrder"
+              class="ml-10"
+              labelledby="reverse-file-order-label"
+            />
           </div>
           <div class="flex justify-between pt-6">
-            <p class="pr-7">
+            <p id="display-hash-files-label" class="pr-7">
               Display utility files such as 
               <span class="font-italic font-mono bg-gray-200 dark:bg-black px-2 py-0.5 m-2 rounded-lg">.asc/.md5/.sha1/.sha256/.sha512</span>
             </p>
-            <Toggle v-model="displayHashFiles" class="ml-10"/>
+            <Toggle
+              id="display-hash-files"
+              v-model="displayHashFiles"
+              class="ml-10"
+              labelledby="display-hash-files-label"
+            />
           </div>
         </div>
-        <button class="absolute top-0 right-0 mt-5 mr-9" @click="showAdjustments = false">
-          <CloseIcon class="w-6 h-6" />
+        <button
+          type="button"
+          class="absolute top-0 right-0 mt-5 mr-9"
+          aria-label="Close file browser adjustments"
+          title="Close"
+          @click="showAdjustments = false"
+        >
+          <CloseIcon class="w-6 h-6" aria-hidden="true" />
         </button>
       </div>
     </VueFinalModal>
-    <div @click="showAdjustments = true">
+    <button
+      type="button"
+      class="w-9 bg-white dark:bg-gray-900 pl-2 pt-1.3 pb-1 pr-2 cursor-pointer rounded-full default-button"
+      aria-label="Open file browser adjustments"
+      title="File browser adjustments"
+      @click="showAdjustments = true"
+    >
       <slot name="button"></slot>
-    </div>
+    </button>
   </div>
 </template>

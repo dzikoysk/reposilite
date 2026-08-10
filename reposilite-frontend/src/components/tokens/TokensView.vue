@@ -139,6 +139,7 @@ const runConfirm = (token) => {
           <svg
             viewBox="0 0 24 24"
             class="w-4 h-4 flex-shrink-0 text-gray-400"
+            aria-hidden="true"
           ><path
             fill="none"
             stroke="currentColor"
@@ -150,9 +151,11 @@ const runConfirm = (token) => {
             v-model="query"
             class="flex-1 bg-transparent text-gray-700 outline-none placeholder-gray-500 dark:text-gray-200 dark:placeholder-gray-400"
             placeholder="Search tokens, routes…"
+            aria-label="Search tokens and routes"
           >
         </div>
         <button
+          type="button"
           class="h-9 whitespace-nowrap rounded-md bg-blue-700 px-3.5 font-medium text-white hover:bg-blue-800 <sm:w-full"
           @click="startCreate"
         >
@@ -168,31 +171,42 @@ const runConfirm = (token) => {
           v-model="draft.name"
           class="h-8 min-w-48 flex-1 rounded-md border border-gray-300 bg-white px-3 text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
           placeholder="Token name (e.g. ci-bot)"
+          aria-label="Token name"
           @keyup.enter="create"
         >
-        <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
+        <div
+          class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700"
+          role="group"
+          aria-label="Token type"
+        >
           <button
+            type="button"
             class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
             :class="{ 'bg-blue-600 text-white': draft.type === 'PERSISTENT' }"
+            :aria-pressed="draft.type === 'PERSISTENT'"
             @click="draft.type = 'PERSISTENT'"
           >
             persistent
           </button>
           <button
+            type="button"
             class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
             :class="{ 'bg-blue-600 text-white': draft.type === 'TEMPORARY' }"
+            :aria-pressed="draft.type === 'TEMPORARY'"
             @click="draft.type = 'TEMPORARY'"
           >
             temporary
           </button>
         </div>
         <button
+          type="button"
           class="h-8 rounded-md bg-blue-700 px-3 font-medium text-white hover:bg-blue-800"
           @click="create"
         >
           Generate
         </button>
         <button
+          type="button"
           class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
           @click="close"
         >
@@ -203,8 +217,10 @@ const runConfirm = (token) => {
       <div
         v-if="secret"
         class="border-b border-gray-200 bg-blue-50 px-4.5 py-3 text-blue-900 dark:border-gray-800 dark:bg-blue-900 dark:text-blue-100"
+        role="status"
       >
         New secret for <strong>{{ secret.name }}</strong>: <code class="px-1 font-mono">{{ secret.value }}</code> — copy it now. <button
+          type="button"
           class="ml-2 underline"
           @click="secret = null"
         >
@@ -213,7 +229,7 @@ const runConfirm = (token) => {
       </div>
 
       <template
-        v-for="token in filtered"
+        v-for="(token, tokenIndex) in filtered"
         :key="tid(token)"
       >
         <div
@@ -237,30 +253,47 @@ const runConfirm = (token) => {
           <span class="flex items-center gap-1">
             <template v-if="isConfirming(token)">
               <button
+                type="button"
                 class="text-xs font-medium text-red-600 dark:text-red-400"
                 @click="runConfirm(token)"
               >{{ confirming.action === 'revoke' ? 'Revoke' : 'Regenerate' }}</button>
               <button
+                type="button"
                 class="text-xs text-gray-500 dark:text-gray-400"
                 @click="confirming = null"
               >Cancel</button>
             </template>
             <template v-else>
               <button
+                type="button"
                 class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-100"
                 title="Edit token"
+                :aria-label="`Edit ${token.name} token`"
                 @click="editToken(token)"
-              ><PencilIcon class="h-4 w-4" /></button>
+              ><PencilIcon
+                class="h-4 w-4"
+                aria-hidden="true"
+              /></button>
               <button
+                type="button"
                 class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-100"
                 title="Regenerate secret"
+                :aria-label="`Regenerate ${token.name} secret`"
                 @click="ask(token, 'regenerate')"
-              ><RefreshIcon class="h-4 w-4" /></button>
+              ><RefreshIcon
+                class="h-4 w-4"
+                aria-hidden="true"
+              /></button>
               <button
+                type="button"
                 class="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-500"
                 title="Revoke token"
+                :aria-label="`Revoke ${token.name} token`"
                 @click="ask(token, 'revoke')"
-              ><TrashIcon class="h-4 w-4" /></button>
+              ><TrashIcon
+                class="h-4 w-4"
+                aria-hidden="true"
+              /></button>
             </template>
           </span>
         </div>
@@ -273,18 +306,25 @@ const runConfirm = (token) => {
             v-model="draft.description"
             class="h-8 min-w-48 flex-1 rounded-md border border-gray-300 bg-white px-3 text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
             placeholder="Description"
+            :aria-label="`Description for ${token.name}`"
           >
           <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
             <button
+              type="button"
               class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
               :class="{ 'bg-blue-600 text-white': draft.manager }"
+              :aria-pressed="draft.manager"
               @click="draft.manager = !draft.manager"
             >
               manager
             </button>
           </div>
-          <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">expires</span>
+          <label
+            :for="`token-expiry-${tokenIndex}`"
+            class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"
+          >expires</label>
           <input
+            :id="`token-expiry-${tokenIndex}`"
             v-model="draft.expiresAt"
             class="h-8 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
             type="date"
@@ -292,18 +332,21 @@ const runConfirm = (token) => {
           >
           <button
             v-if="draft.expiresAt"
+            type="button"
             class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
             @click="draft.expiresAt = ''"
           >
             clear
           </button>
           <button
+            type="button"
             class="h-8 rounded-md bg-blue-700 px-3 font-medium text-white hover:bg-blue-800"
             @click="saveToken(token)"
           >
             Save
           </button>
           <button
+            type="button"
             class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
             @click="close"
           >
@@ -324,15 +367,25 @@ const runConfirm = (token) => {
               <span class="truncate text-gray-500 dark:text-gray-500">{{ routeLabel(route) }}</span>
               <span class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 <sm:opacity-100">
                 <button
+                  type="button"
                   class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-100"
                   title="Edit"
+                  :aria-label="`Edit ${route.path} route`"
                   @click="editRoute(token, route)"
-                ><PencilIcon class="h-4 w-4" /></button>
+                ><PencilIcon
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                /></button>
                 <button
+                  type="button"
                   class="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-500"
                   title="Remove"
+                  :aria-label="`Remove ${route.path} route`"
                   @click="removeRoute(token, route.path)"
-                ><TrashIcon class="h-4 w-4" /></button>
+                ><TrashIcon
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                /></button>
               </span>
             </div>
             <div
@@ -342,30 +395,41 @@ const runConfirm = (token) => {
               <input
                 v-model="draft.path"
                 class="h-8 min-w-48 flex-1 rounded-md border border-gray-300 bg-white px-3 font-mono text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
+                :aria-label="`Route path for ${token.name}`"
               >
-              <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
+              <div
+                class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700"
+                role="group"
+                :aria-label="`Permissions for ${draft.path}`"
+              >
                 <button
+                  type="button"
                   class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
                   :class="{ 'bg-blue-600 text-white': draft.read }"
+                  :aria-pressed="draft.read"
                   @click="draft.read = !draft.read"
                 >
                   read
                 </button>
                 <button
+                  type="button"
                   class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
                   :class="{ 'bg-blue-600 text-white': draft.write }"
+                  :aria-pressed="draft.write"
                   @click="draft.write = !draft.write"
                 >
                   write
                 </button>
               </div>
               <button
+                type="button"
                 class="h-8 rounded-md bg-blue-700 px-3 font-medium text-white hover:bg-blue-800"
                 @click="persistRoute(token)"
               >
                 Save
               </button>
               <button
+                type="button"
                 class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
                 @click="close"
               >
@@ -374,13 +438,14 @@ const runConfirm = (token) => {
             </div>
           </template>
 
-          <div
+          <button
             v-if="!isOpen(`newroute:${tid(token)}`)"
+            type="button"
             class="flex min-h-11.5 cursor-pointer items-center gap-2 border-b border-gray-200 py-2 pl-9.5 pr-4.5 text-blue-600 hover:bg-gray-50 hover:text-blue-700 dark:border-gray-800 dark:text-blue-300 dark:hover:bg-gray-800 dark:hover:text-blue-200 <sm:flex-wrap <sm:items-start <sm:py-3 <sm:pl-4.5"
             @click="addRoute(token)"
           >
             <span class="whitespace-nowrap">+ Add route</span>
-          </div>
+          </button>
           <div
             v-else
             class="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-100 py-3 pl-9.5 pr-4.5 dark:border-gray-800 dark:bg-gray-800 <sm:pl-4.5"
@@ -389,30 +454,41 @@ const runConfirm = (token) => {
               v-model="draft.path"
               class="h-8 min-w-48 flex-1 rounded-md border border-gray-300 bg-white px-3 font-mono text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
               placeholder="/releases/com/example/artifact"
+              :aria-label="`New route path for ${token.name}`"
             >
-            <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
+            <div
+              class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700"
+              role="group"
+              aria-label="New route permissions"
+            >
               <button
+                type="button"
                 class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
                 :class="{ 'bg-blue-600 text-white': draft.read }"
+                :aria-pressed="draft.read"
                 @click="draft.read = !draft.read"
               >
                 read
               </button>
               <button
+                type="button"
                 class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
                 :class="{ 'bg-blue-600 text-white': draft.write }"
+                :aria-pressed="draft.write"
                 @click="draft.write = !draft.write"
               >
                 write
               </button>
             </div>
             <button
+              type="button"
               class="h-8 rounded-md bg-blue-700 px-3 font-medium text-white hover:bg-blue-800"
               @click="persistRoute(token)"
             >
               Add
             </button>
             <button
+              type="button"
               class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
               @click="close"
             >
@@ -431,6 +507,7 @@ const runConfirm = (token) => {
       <div
         v-if="!filtered.length"
         class="px-4.5 py-10 text-center text-gray-500 dark:text-gray-400"
+        role="status"
       >
         {{ query ? `No tokens match “${query}”.` : 'No access tokens yet. Generate one to get started.' }}
       </div>
