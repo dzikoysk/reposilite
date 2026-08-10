@@ -59,14 +59,14 @@ const copyTrace = (failure) => {
 
 <template>
   <div role="list">
-    <template
+    <div
       v-for="(entry, index) in failures"
       :key="failureKey(entry)"
+      role="listitem"
     >
       <div
         class="group relative flex items-center gap-3 pr-4 py-3.5 border-b border-gray-200 dark:border-gray-800 cursor-pointer transition-colors last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800 <sm:grid <sm:grid-cols-[4px_12px_minmax(0,1fr)] <sm:items-start <sm:gap-x-2 <sm:gap-y-1 <sm:pr-3"
         :class="openFailureKey === failureKey(entry) ? 'bg-gray-100 dark:bg-gray-800 border-b-0' : ''"
-        role="listitem"
       >
         <button
           type="button"
@@ -171,6 +171,6 @@ const copyTrace = (failure) => {
           <pre class="m-0 font-mono text-sm leading-6 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900 rounded-lg py-3.5 pl-4 pr-13 overflow-x-auto <sm:text-xs <sm:leading-5">{{ entry.trace }}</pre>
         </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>

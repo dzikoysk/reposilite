@@ -191,7 +191,7 @@ const nextPage = () => page.value?.nextOffset != null && search(page.value.nextO
         </div>
 
         <div v-if="results">
-          <ol>
+          <ol :start="firstEntry">
           <li
             v-for="(entry, index) in entries"
             :key="`${entry.repository}:${entry.path}`"

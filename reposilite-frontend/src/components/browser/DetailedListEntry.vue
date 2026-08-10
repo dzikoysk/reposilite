@@ -108,9 +108,23 @@ const defaultMode = computed(() => !props.compactMode)
 </template>
 
 <style>
-.browser-entry:hover > .entry-details .entry-menu,
+#browser-list li:hover .entry-menu,
 #browser-list li:focus-within .entry-menu {
   display: flex;
+}
+
+#browser-list li:hover .default-entry {
+  @apply transition-color bg-gray-200 duration-500;
+}
+.dark #browser-list li:hover .default-entry {
+  @apply bg-gray-800;
+}
+
+#browser-list li:hover .compact-entry {
+  @apply transition-colors duration-200 bg-purple-400 text-white;
+}
+.dark #browser-list li:hover .compact-entry {
+  @apply bg-purple-600;
 }
 
 .default-entry {
