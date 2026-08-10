@@ -143,53 +143,62 @@ const plural = (count, singular, pluralText) =>
     />
 
     <div class="grid grid-cols-6 gap-4 <md:grid-cols-1">
-      <div class="col-span-6 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
-        <div class="grid grid-cols-3 gap-6 <sm:grid-cols-2 <sm:gap-5">
+      <section
+        class="col-span-6 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0"
+        aria-label="Instance status"
+      >
+        <dl class="grid grid-cols-3 gap-6 <sm:grid-cols-2 <sm:gap-5">
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+            <dt class="text-sm text-gray-500 dark:text-gray-400 mb-2">
               Status
-            </div>
-            <div class="text-lg font-semibold flex items-center gap-2">
-              <span class="text-green-600 dark:text-green-400 font-semibold text-lg inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500" />Online</span>
-            </div>
-            <div
+            </dt>
+            <dd class="text-lg font-semibold flex items-center gap-2">
+              <span class="text-green-600 dark:text-green-400 font-semibold text-lg inline-flex items-center gap-2"><span
+                class="w-2 h-2 rounded-full bg-green-500"
+                aria-hidden="true"
+              />Online</span>
+            </dd>
+            <dd
               class="mt-1 text-xs text-gray-500 dark:text-gray-400"
               :class="{ 'text-red-600 dark:text-red-400': instanceStatus.failuresCount > 0 }"
             >
               {{ instanceStatus.failuresCount === 0
                 ? 'No failures since restart'
                 : `${instanceStatus.failuresCount} ${plural(instanceStatus.failuresCount, 'failure', 'failures')} since restart` }}
-            </div>
+            </dd>
           </div>
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+            <dt class="text-sm text-gray-500 dark:text-gray-400 mb-2">
               Runtime
-            </div>
-            <div class="text-lg font-semibold flex items-center gap-2 tabular-nums">
+            </dt>
+            <dd class="text-lg font-semibold flex items-center gap-2 tabular-nums">
               {{ prettyUptime(instanceStatus.uptime / 1000) }}
-            </div>
-            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400 tabular-nums">
+            </dd>
+            <dd class="mt-1 text-xs text-gray-500 dark:text-gray-400 tabular-nums">
               Started {{ startedAt }}
-            </div>
+            </dd>
           </div>
           <div class="<sm:col-span-2">
-            <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+            <dt class="text-sm text-gray-500 dark:text-gray-400 mb-2">
               Version
-            </div>
-            <div class="text-lg font-semibold flex items-center gap-2 tabular-nums">
+            </dt>
+            <dd class="text-lg font-semibold flex items-center gap-2 tabular-nums">
               <VersionSponsors
                 :version="instanceStatus.version"
                 :up-to-date="isUpToDate"
                 :sponsors="sponsors"
               />
-            </div>
+            </dd>
           </div>
-        </div>
-      </div>
+        </dl>
+      </section>
 
-      <div class="col-span-3 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+      <section class="col-span-3 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
         <div class="flex items-center justify-between mb-3.5">
-          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Resources</span><button
+          <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            Resources
+          </h2><button
+            type="button"
             class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Diagnostics')"
           >
@@ -200,7 +209,14 @@ const plural = (count, singular, pluralText) =>
           <div class="flex justify-between items-baseline gap-3 text-sm mb-2 <sm:flex-wrap">
             <span class="text-gray-500 dark:text-gray-400">Heap memory</span><span class="font-semibold tabular-nums">{{ instanceStatus.usedMemory.toFixed(0) }} MB <small class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.maxMemory }} MB</small></span>
           </div>
-          <div class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden">
+          <div
+            class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden"
+            role="progressbar"
+            aria-label="Heap memory usage"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            :aria-valuenow="heapUsage"
+          >
             <div
               class="h-full rounded-full bg-blue-600 dark:bg-blue-500"
               :style="{ width: heapUsage + '%' }"
@@ -211,18 +227,28 @@ const plural = (count, singular, pluralText) =>
           <div class="flex justify-between items-baseline gap-3 text-sm mb-2 <sm:flex-wrap">
             <span class="text-gray-500 dark:text-gray-400">Threads</span><span class="font-semibold tabular-nums">{{ instanceStatus.usedThreads }} <small class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.maxThreads }}</small></span>
           </div>
-          <div class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden">
+          <div
+            class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden"
+            role="progressbar"
+            aria-label="Thread usage"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            :aria-valuenow="threadsUsage"
+          >
             <div
               class="h-full rounded-full bg-blue-600 dark:bg-blue-500"
               :style="{ width: threadsUsage + '%' }"
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="col-span-3 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+      <section class="col-span-3 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
         <div class="flex items-center justify-between mb-3.5">
-          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Traffic</span><button
+          <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            Traffic
+          </h2><button
+            type="button"
             class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Statistics')"
           >
@@ -251,11 +277,14 @@ const plural = (count, singular, pluralText) =>
         >
           Statistics disabled
         </div>
-      </div>
+      </section>
 
-      <div class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+      <section class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
         <div class="flex items-center justify-between mb-3.5">
-          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Repositories</span><button
+          <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            Repositories
+          </h2><button
+            type="button"
             class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Settings')"
           >
@@ -277,11 +306,14 @@ const plural = (count, singular, pluralText) =>
             class="text-sm text-gray-500 dark:text-gray-400"
           >No repositories configured</span>
         </div>
-      </div>
+      </section>
 
-      <div class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+      <section class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
         <div class="flex items-center justify-between mb-3.5">
-          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Access tokens</span><button
+          <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            Access tokens
+          </h2><button
+            type="button"
             class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Tokens')"
           >
@@ -304,11 +336,14 @@ const plural = (count, singular, pluralText) =>
             class="text-sm text-gray-500 dark:text-gray-400"
           >No access tokens</span>
         </div>
-      </div>
+      </section>
 
-      <div class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+      <section class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
         <div class="flex items-center justify-between mb-3.5">
-          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Diagnostics</span><button
+          <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            Diagnostics
+          </h2><button
+            type="button"
             class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Diagnostics')"
           >
@@ -339,7 +374,7 @@ const plural = (count, singular, pluralText) =>
             <span class="truncate">Since restart</span><b class="text-red-600 dark:text-red-400 font-semibold truncate text-right">Needs review</b>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>

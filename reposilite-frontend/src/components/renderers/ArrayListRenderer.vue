@@ -1,13 +1,14 @@
 <template>
   <div v-if="control.visible" :class="[styles.arrayList.root, 'array-list-shell']">
     <div :class="[styles.arrayList.legend, 'array-list-head']">
-      <div :class="styles.arrayList.label">
+      <h2 :class="styles.arrayList.label">
         {{ control.label }}
-      </div>
+      </h2>
       <button
         :class="styles.arrayList.addButton"
         @click="addButtonClick"
         type="button"
+        :aria-label="`Add ${control.label} item`"
       >
         +
       </button>
@@ -17,22 +18,31 @@
       <!-- It is a list of items. You can add new entries by clicking the '+' button on the right. -->
     </div>
     <div class="tabs-component">
-       <Tabs v-model="selectedIndex" class="array-list-tabs">
-        <Tab
+       <div class="tabs array-list-tabs" role="tablist" :aria-label="control.label">
+        <button
           v-for="(element, index) in control.data"
+          :id="`${control.id}-tab-${index}`"
           :key="`${control.path}-${index}-tab`"
-          :val="index"
-          :label="createLabel(element)"
-          :indicator="true"
+          type="button"
+          role="tab"
           class="item"
-        />
-      </Tabs>
+          :class="{ 'active': selectedIndex === index }"
+          :aria-selected="selectedIndex === index"
+          :aria-controls="`${control.id}-panel-${index}`"
+          @click="selectedIndex = index"
+        >
+          <span class="tab block">{{ createLabel(element) }}</span>
+        </button>
+      </div>
       <TabPanels v-model="selectedIndex">
         <TabPanel
             v-for="(element, index) in control.data"
+            :id="`${control.id}-panel-${index}`"
             :key="`${control.path}-${index}-panel`"
             :val="index"
             class="array-list-panel"
+            role="tabpanel"
+            :aria-labelledby="`${control.id}-tab-${index}`"
         >
           <div :class="styles.arrayList.itemWrapper">
             <array-list-element
@@ -54,7 +64,11 @@
               />
             </array-list-element>
           </div>
-          <div v-if="noData" :class="styles.arrayList.noData">
+          <div
+            v-if="noData"
+            :class="styles.arrayList.noData"
+            role="status"
+          >
             No data
           </div>
         </TabPanel>
@@ -68,7 +82,7 @@ import { ref } from 'vue'
 import { composePaths, createDefaultValue, rankWith, schemaTypeIs } from '@jsonforms/core'
 import { DispatchRenderer, rendererProps, useJsonFormsArrayControl } from '@jsonforms/vue'
 import { useVanillaArrayControl } from '@jsonforms/vue-vanilla'
-import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
+import {TabPanels, TabPanel} from 'vue3-tabs'
 import ArrayListElement from './ArrayListElement.vue'
 
 export const tester = rankWith(2, schemaTypeIs('array'))
@@ -78,8 +92,6 @@ export default {
   components: {
     ArrayListElement,
     DispatchRenderer,
-    Tabs,
-    Tab, 
     TabPanels,
     TabPanel
   },

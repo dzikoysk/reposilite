@@ -42,33 +42,44 @@ const toggleTheme = () => {
 </script>
 
 <template>
-  <nav class="flex flex-row <sm:(max-w-100px flex-wrap flex-1 justify-end min-w-1/2)">
+  <nav
+    class="flex flex-row <sm:(max-w-100px flex-wrap flex-1 justify-end min-w-1/2)"
+    aria-label="Account and display settings"
+  >
     <div v-if="isLogged" class="pt-1.1 px-2 <sm:hidden">
       Welcome 
       <span class="font-bold underline">{{ token.name }}</span>
     </div>
-    <LoginModal>
+    <LoginModal v-if="!isLogged">
       <template v-slot:button>
-        <MenuButton v-if="!isLogged">
-          Sign in
-        </MenuButton>
+        Sign in
       </template>
     </LoginModal>
     <MenuButton v-if="isLogged" @click="logout()" class="<sm:hidden">
       Logout
     </MenuButton>
-    <div
+    <button
       v-if="isLogged"
+      type="button"
       class="hidden px-2.7 pt-0.8 mr-1.5 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-35px <sm:(block pt-1.5)"
+      aria-label="Log out"
+      title="Log out"
+      @click="logout()"
     >
-      <LogoutIcon @click="logout()"/>
-    </div>
-    <div class="flex justify-center items-center rounded-full w-40px h-35px default-button" @click="toggleTheme()">
-      <SunIcon v-if="theme.mode === 'light'"/>
-      <MoonIcon class="pl-0.5" v-if="theme.mode === 'dark'"/>
-      <div class="font-bold w-full text-center text-lg" v-if="theme.mode === 'auto'">
+      <LogoutIcon aria-hidden="true" />
+    </button>
+    <button
+      type="button"
+      class="flex justify-center items-center rounded-full w-40px h-35px default-button"
+      :aria-label="`Current theme: ${theme.mode}. Change theme`"
+      :title="`Current theme: ${theme.mode}. Change theme`"
+      @click="toggleTheme()"
+    >
+      <SunIcon v-if="theme.mode === 'light'" aria-hidden="true" />
+      <MoonIcon v-if="theme.mode === 'dark'" class="pl-0.5" aria-hidden="true" />
+      <span class="font-bold w-full text-center text-lg" v-if="theme.mode === 'auto'">
         A
-      </div>
-    </div>
+      </span>
+    </button>
   </nav>
 </template>

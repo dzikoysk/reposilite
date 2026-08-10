@@ -1,23 +1,31 @@
 <template>
   <div v-if="control.visible" class="one-of-container">
-    <Tabs v-model="tabIndex" class="one-of-tabs">
-      <Tab 
+    <div class="tabs one-of-tabs" role="tablist" :aria-label="control.label">
+      <button
         v-for="(oneOfRenderInfo, oneOfIndex) in oneOfRenderInfos"
+        :id="`${control.id}-option-tab-${oneOfIndex}`"
         :key="`${control.path}-${oneOfIndex}`"
-        :val="oneOfIndex"
-        :label="oneOfRenderInfo.label"
-        :indicator="true"
+        type="button"
+        role="tab"
         class="item"
-        @click="tabChanged" 
-      />
-    </Tabs>
+        :class="{ 'active': selectedIndex === oneOfIndex }"
+        :aria-selected="selectedIndex === oneOfIndex"
+        :aria-controls="`${control.id}-option-panel-${oneOfIndex}`"
+        @click="tabIndex = oneOfIndex; tabChanged()"
+      >
+        <span class="tab block">{{ oneOfRenderInfo.label }}</span>
+      </button>
+    </div>
     <TabPanels v-model="selectedIndex">
       <TabPanel 
         v-for="(oneOfRenderInfo, oneOfIndex) in oneOfRenderInfos"
+        :id="`${control.id}-option-panel-${oneOfIndex}`"
         :key="`${control.path}-${oneOfIndex}`"
         :val="oneOfIndex"
         :name="`${control.path}-${oneOfIndex}`"
         class="one-of-panel"
+        role="tabpanel"
+        :aria-labelledby="`${control.id}-option-tab-${oneOfIndex}`"
       >
         <DispatchRenderer
           v-if="selectedIndex === oneOfIndex"
@@ -30,14 +38,24 @@
       </TabPanel>
     </TabPanels>
   </div>
-  <DialogWrapper :open="dialog">
-    <p>
+  <DialogWrapper
+    :open="dialog"
+    :aria-labelledby="`${control.id}-confirmation-title`"
+  >
+    <p :id="`${control.id}-confirmation-title`">
       Your data will be cleared if you navigate away from this tab. 
       Do you want to proceed?
     </p>
     <div class="dialog-actions">
-      <button @click="cancel"> No </button>
-      <button ref="confirm" @click="confirm"> Yes </button>
+      <button
+        type="button"
+        @click="cancel"
+      > No </button>
+      <button
+        ref="confirm"
+        type="button"
+        @click="confirm"
+      > Yes </button>
     </div>
   </DialogWrapper>
 </template>
@@ -53,7 +71,7 @@ import {
 } from '@jsonforms/core'
 import {DispatchRenderer, rendererProps, useJsonFormsOneOfControl} from '@jsonforms/vue'
 import {useVanillaControl} from '@jsonforms/vue-vanilla'
-import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
+import {TabPanels, TabPanel} from 'vue3-tabs'
 import isEmpty from 'lodash/isEmpty'
 import DialogWrapper from '../util/DialogWrapper.vue'
 
@@ -81,8 +99,6 @@ export default {
   components: {
     DialogWrapper,
     DispatchRenderer,
-    Tabs,
-    Tab,
     TabPanels,
     TabPanel
   },

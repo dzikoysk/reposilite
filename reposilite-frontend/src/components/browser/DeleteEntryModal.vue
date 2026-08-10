@@ -61,22 +61,30 @@ export default {
       v-model="isOpen"
       v-bind="$attrs"
       class="flex justify-center iems-center"
+      aria-labelledby="delete-entry-dialog-title"
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <div>
-          <h1 class="font-bold px-16">
+          <h2 id="delete-entry-dialog-title" class="font-bold px-16">
             Do you want to delete 
             <span class="text-red-700">
               {{ '/' + value.path + '/' + value.file }}
             </span>
-          </h1>
+          </h2>
           <div class="flex flex-row justify-evenly pt-4">
-            <button @click="deleteAndClose()" class="px-12 py-1 rounded-full bg-red-500">Confirm</button>
-            <button @click="close()" class="px-12 py-1 rounded-full bg-gray-200 dark:bg-gray-600">Cancel</button>
+            <button type="button" @click="deleteAndClose()" class="px-12 py-1 rounded-full bg-red-500">Confirm</button>
+            <button type="button" @click="close()" class="px-12 py-1 rounded-full bg-gray-200 dark:bg-gray-600">Cancel</button>
           </div>
         </div>
-        <button class="absolute top-0 right-0 mt-5 mr-9" @click.left.prevent="close()" v-on:click.stop>
-          <CloseIcon class="w-6 h-6" />
+        <button
+          type="button"
+          class="absolute top-0 right-0 mt-5 mr-9"
+          aria-label="Close delete confirmation"
+          title="Close"
+          @click.left.prevent="close()"
+          v-on:click.stop
+        >
+          <CloseIcon class="w-6 h-6" aria-hidden="true" />
         </button>
       </div>
     </VueFinalModal>

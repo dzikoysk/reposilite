@@ -18,7 +18,6 @@ import { createApp } from 'vue'
 import { createHead } from '@unhead/vue/client'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-import Tabs from 'vue3-tabs'
 import App from './App.vue'
 import router from './router'
 
@@ -39,6 +38,5 @@ app.config.globalProperties.drop = (path) =>
 app
   .use(createHead())
   .use(VueAxios, axios)
-  .use(Tabs)
   .use(router)
   .mount('#app')

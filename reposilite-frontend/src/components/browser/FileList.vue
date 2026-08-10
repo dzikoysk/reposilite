@@ -67,17 +67,19 @@ const closeDeleteModal = () =>
 const isDirectory = (file) =>
   file.type === 'DIRECTORY'
 
-const LinkEntry = ({ file }, context) => {
+const LinkEntry = ({ file }) => {
   return (
     <a
+      class="absolute inset-0 z-0 rounded-3xl <sm:rounded-xl"
+      aria-label={`Download ${file.name}`}
       onClick={(event) => {
         event.preventDefault()
         downloadHandler(route.path, file.name, event)
       }}
       href={createURL(route.path + '/' + file.name)} 
       target="_blank"
+      rel="noopener noreferrer"
     >
-      {context.slots.default()}
     </a>
   )
 }
@@ -85,27 +87,30 @@ const LinkEntry = ({ file }, context) => {
 const append = (path, pathToAppend) =>
   path + (path.endsWith('/') ? '' : '/') + pathToAppend
 
-const RouterEntry = ({ file }, context) => {
+const RouterEntry = ({ file }) => {
   return (
-    <router-link to={append(route.path, file.name)}>
-      {context.slots.default()}
-    </router-link>
+    <router-link
+      class="absolute inset-0 z-0 rounded-3xl <sm:rounded-xl"
+      aria-label={`Open ${file.name} directory`}
+      to={append(route.path, file.name)}
+    />
   )
 }
 </script>
 
 <template>
-  <div id="browser-list" class="pt-3">
+  <section id="browser-list" class="pt-3" aria-label="Directory contents">
     <DeleteEntryModal
       :qualifier="qualifier"
       :value="deleteModalValue"
       :close="closeDeleteModal"
     />
-    <div :class="{'compact-background': compactMode}">
-      <div v-for="(entry, index) in displayedEntries" :key="index">
+    <ul :class="{'compact-background': compactMode}" :aria-busy="loading">
+      <li v-for="(entry, index) in displayedEntries" :key="index" class="relative">
         <div
           v-if="entry.__skeleton"
           :class="{ 'default-entry': !compactMode, 'compact-entry': compactMode }"
+          aria-hidden="true"
         >
           <div class="flex flex-row max-w-full items-center skeleton-bars">
             <div :class="{ 'default-icon': !compactMode, 'compact-icon': compactMode }">
@@ -120,33 +125,25 @@ const RouterEntry = ({ file }, context) => {
           </div>
         </div>
         <template v-else>
-          <RouterEntry v-if="isDirectory(entry)" :file="entry">
-            <ListEntry
-              :file="entry"
-              :qualifier="qualifier"
-              :openDeleteEntryModal="openDeleteModal"
-              :compactMode="compactMode"
-            />
-          </RouterEntry>
-          <LinkEntry v-else :file="entry">
-            <ListEntry
-              :file="entry"
-              :qualifier="qualifier"
-              :url="createURL(`${$route.path}/${entry.name}`)"
-              :openDeleteEntryModal="openDeleteModal"
-              :compactMode="compactMode"
-            />
-          </LinkEntry>
+          <RouterEntry v-if="isDirectory(entry)" :file="entry" />
+          <LinkEntry v-else :file="entry" />
+          <ListEntry
+            :file="entry"
+            :qualifier="qualifier"
+            :url="createURL(`${$route.path}/${entry.name}`)"
+            :openDeleteEntryModal="openDeleteModal"
+            :compactMode="compactMode"
+          />
         </template>
-      </div>
-    </div>
-    <div v-if="!loading && files.isEmpty" class="pl-2 pb-4">
+      </li>
+    </ul>
+    <div v-if="!loading && files.isEmpty" class="pl-2 pb-4" role="status">
       <p>Directory is empty</p>
     </div>
-    <div v-if="!loading && files.error" class="pl-2">
+    <div v-if="!loading && files.error" class="pl-2" role="alert">
       <p>Directory not found</p>
     </div>
-  </div>
+  </section>
 </template>
 
 <style>

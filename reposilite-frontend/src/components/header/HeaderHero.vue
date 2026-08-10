@@ -22,18 +22,27 @@ const { description, organizationWebsite, organizationLogo } = usePlaceholders()
 </script>
 
 <template>
-  <div class="bg-gray-100 dark:bg-black">
+  <section class="bg-gray-100 dark:bg-black" aria-label="Organization information">
     <div class="container mx-auto flex flex-row <sm:(flex-col items-center)">
       <div class="w-35 <sm:mb-2">
-        <img class="border-2 rounded-full dark:border-gray-700" :src="organizationLogo">
+        <img
+          class="border-2 rounded-full dark:border-gray-700"
+          :src="organizationLogo"
+          alt="Organization logo"
+        >
       </div>
       <div class="flex flex-col justify-center px-10 <sm:px-0">
         <div class="<sm:text-center" v-html="description"></div>
         <div class="flex flex-row py-2 <sm:justify-center">
-          <GlobeIcon />
-          <a class="px-3 text-gray-500" :href="organizationWebsite" target="_blank">{{organizationWebsite}}</a>
+          <GlobeIcon aria-hidden="true" />
+          <a
+            class="px-3 text-gray-500"
+            :href="organizationWebsite"
+            target="_blank"
+            rel="noopener noreferrer"
+          >{{organizationWebsite}}</a>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>

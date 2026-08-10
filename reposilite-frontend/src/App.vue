@@ -38,7 +38,7 @@ initializeSession().catch(() => {})
 <template>
   <div :class="{ 'dark': theme.isDark }">
     <div class="min-h-screen flex flex-col dark:bg-black dark:text-white">
-      <router-view 
+      <router-view
         class="flex-1"
         :qualifier="qualifier"
       />

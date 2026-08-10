@@ -36,19 +36,25 @@ const breadcrumbs = computed(() => {
 </script>
 
 <template>
-  <div class="">
-    <p class="pb-3 font-semibold">
+  <nav aria-label="Breadcrumb">
+    <h1 class="pb-3 font-semibold">
       <span class="select-none">
         <router-link to="/">Index of </router-link>
       </span>
       <span class="select-text">
-        <router-link v-for="crumb of breadcrumbs" :key="crumb.link" :to="crumb.link">
+        <router-link
+          v-for="(crumb, index) of breadcrumbs"
+          :key="crumb.link"
+          :to="crumb.link"
+          :aria-label="crumb.name === '/' ? 'Root directory' : crumb.name"
+          :aria-current="index === breadcrumbs.length - 1 ? 'page' : undefined"
+        >
           <span class="hover:(transition-colors duration-200 text-purple-500)">{{ crumb.name }}</span>
         </router-link>
       </span>
-      <router-link :to="parentPath">
-        <span class="font-normal text-xl text-gray-500 select-none"> ⤴ </span>
+      <router-link :to="parentPath" aria-label="Go to parent directory">
+        <span class="font-normal text-xl text-gray-500 select-none" aria-hidden="true"> ⤴ </span>
       </router-link>
-    </p>
-  </div>
+    </h1>
+  </nav>
 </template>

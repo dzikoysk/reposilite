@@ -15,7 +15,10 @@
   -->
 
 <template>
-  <div class="mx-2 py-1.5 rounded-full font-bold px-6 text-sm max-h-35px min-w-93px default-button">
+  <button
+    type="button"
+    class="mx-2 py-1.5 rounded-full font-bold px-6 text-sm max-h-35px min-w-93px default-button"
+  >
     <slot/>
-  </div>
+  </button>
 </template>

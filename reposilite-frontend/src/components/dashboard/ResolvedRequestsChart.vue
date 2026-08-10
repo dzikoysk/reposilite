@@ -55,7 +55,10 @@ const chartOptions = {
 </script>
 
 <template>
-  <div>
+  <figure>
+    <figcaption class="sr-only">
+      Resolved requests over time by repository
+    </figcaption>
     <VueApexCharts 
       class="dark:text-black"
       width="100%"
@@ -64,5 +67,5 @@ const chartOptions = {
       :options="chartOptions"
       :series="resolvedSeries"
     />
-  </div>
+  </figure>
 </template>

@@ -113,9 +113,15 @@ const nextPage = () => page.value?.nextOffset != null && search(page.value.nextO
     />
 
     <template v-if="statisticsEnabled">
-      <div class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300">
+      <section
+        class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300"
+        aria-labelledby="resolved-paths-heading"
+      >
         <div class="px-4.5 py-4 border-b border-gray-200 dark:border-gray-800">
-          <h2 class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100">
+          <h2
+            id="resolved-paths-heading"
+            class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100"
+          >
             Most resolved paths
           </h2>
           <p class="mt-0.5 text-sm leading-5 text-gray-500 dark:text-gray-400">
@@ -127,6 +133,7 @@ const nextPage = () => page.value?.nextOffset != null && search(page.value.nextO
             <svg
               viewBox="0 0 24 24"
               class="w-4 h-4 flex-shrink-0 text-gray-400"
+              aria-hidden="true"
             ><path
               fill="none"
               stroke="currentColor"
@@ -138,6 +145,7 @@ const nextPage = () => page.value?.nextOffset != null && search(page.value.nextO
               v-model="phrase"
               class="flex-1 min-w-0 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"
               placeholder="Filter by path…"
+              aria-label="Filter resolved paths"
             >
             <span
               v-if="isLoading"
@@ -149,6 +157,7 @@ const nextPage = () => page.value?.nextOffset != null && search(page.value.nextO
           <select
             v-model="repository"
             class="h-9 min-w-36 pl-3 pr-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm outline-none <sm:flex-1"
+            aria-label="Repository"
           >
             <option value="">
               All repositories
@@ -164,6 +173,7 @@ const nextPage = () => page.value?.nextOffset != null && search(page.value.nextO
           <select
             v-model.number="limit"
             class="h-9 min-w-36 pl-3 pr-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm outline-none <sm:flex-1"
+            aria-label="Number of paths"
           >
             <option :value="10">
               Top 10
@@ -181,34 +191,46 @@ const nextPage = () => page.value?.nextOffset != null && search(page.value.nextO
         </div>
 
         <div v-if="results">
-          <div
+          <ol>
+          <li
             v-for="(entry, index) in entries"
             :key="`${entry.repository}:${entry.path}`"
             class="flex items-center gap-3.5 px-4.5 h-12 border-b border-gray-200 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             <span class="w-5 text-right text-gray-400 dark:text-gray-600 text-sm flex-none tabular-nums">{{ firstEntry + index }}</span>
             <span class="flex-1 min-w-0 truncate text-sm text-gray-800 dark:text-gray-100 font-mono">/{{ repository ? entry.path : `${entry.repository}/${entry.path}` }}</span>
-            <span class="w-32 h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden flex-none <sm:hidden"><i
+            <span
+              class="w-32 h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden flex-none <sm:hidden"
+              role="progressbar"
+              aria-valuemin="0"
+              :aria-valuemax="maxCount"
+              :aria-valuenow="entry.count"
+              :aria-label="`${entry.count.toLocaleString()} requests`"
+            ><i
               class="block h-full rounded-full bg-blue-600 dark:bg-blue-500 opacity-85"
               :style="{ width: barWidth(entry.count) }"
             /></span>
             <span class="w-16 text-right text-base font-semibold flex-none tabular-nums">{{ entry.count.toLocaleString() }}</span>
-          </div>
+          </li>
+          </ol>
           <div
             v-if="!entries.length"
             class="px-4.5 py-10 text-center text-gray-500 dark:text-gray-400"
+            role="status"
           >
             {{ phrase ? `No paths match “${phrase}”.` : 'No resolved requests recorded yet.' }}
           </div>
-          <div
+          <nav
             v-if="entries.length || page?.offset"
             class="flex items-center justify-between gap-3 border-t border-gray-200 px-4.5 py-2.5 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400 <sm:flex-wrap"
+            aria-label="Resolved paths pages"
           >
             <span v-if="entries.length">Showing <b class="font-semibold tabular-nums text-gray-800 dark:text-gray-100">{{ firstEntry.toLocaleString() }}-{{ lastEntry.toLocaleString() }}</b></span>
             <span v-else>No results</span>
             <div class="ml-auto flex items-center gap-2 <sm:ml-0">
               <button
                 v-if="page?.offset"
+                type="button"
                 class="h-8 rounded-md border border-gray-300 px-3 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
                 @click="previousPage"
               >
@@ -216,64 +238,74 @@ const nextPage = () => page.value?.nextOffset != null && search(page.value.nextO
               </button>
               <button
                 v-if="page?.hasMore"
+                type="button"
                 class="h-8 rounded-md border border-gray-300 px-3 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
                 @click="nextPage"
               >
                 Next
               </button>
             </div>
-          </div>
+          </nav>
         </div>
         <div
           v-else-if="isLoading"
           class="flex min-h-36 items-center justify-center gap-3 px-4.5 py-10 text-gray-500 dark:text-gray-400"
+          role="status"
         >
-          <span class="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400" />
+          <span
+            class="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400"
+            aria-hidden="true"
+          />
           Loading resolved paths…
         </div>
-      </div>
+      </section>
 
-      <div
+      <section
         v-if="kpis"
         class="mt-6 bg-white dark:bg-gray-900 rounded-lg p-5"
+        aria-labelledby="resolved-requests-heading"
       >
         <div class="mb-4">
-          <h2 class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100">
+          <h2
+            id="resolved-requests-heading"
+            class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100"
+          >
             Resolved requests
           </h2>
           <p class="mt-0.5 text-sm leading-5 text-gray-500 dark:text-gray-400">
             {{ kpis.range }}
           </p>
         </div>
-        <div class="flex gap-8 flex-wrap mb-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+        <dl class="flex gap-8 flex-wrap mb-4 pb-4 border-b border-gray-200 dark:border-gray-800">
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
+            <dt class="text-sm text-gray-500 dark:text-gray-400">
               Total
-            </div><div class="text-xl font-semibold mt-0.5 tabular-nums">
+            </dt><dd class="text-xl font-semibold mt-0.5 tabular-nums">
               {{ kpis.total.toLocaleString() }}
-            </div>
+            </dd>
           </div>
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
+            <dt class="text-sm text-gray-500 dark:text-gray-400">
               {{ kpis.labels.average }}
-            </div><div class="text-xl font-semibold mt-0.5 tabular-nums">
+            </dt><dd class="text-xl font-semibold mt-0.5 tabular-nums">
               {{ kpis.average.toLocaleString() }}
-            </div>
+            </dd>
           </div>
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
+            <dt class="text-sm text-gray-500 dark:text-gray-400">
               {{ kpis.labels.current }}
-            </div><div class="text-xl font-semibold mt-0.5 tabular-nums">
+            </dt><dd class="text-xl font-semibold mt-0.5 tabular-nums">
               {{ kpis.current.toLocaleString() }}
-            </div>
+            </dd>
           </div>
-        </div>
+        </dl>
         <ResolvedRequestsChart :statistics="resolvedStatistics" />
-      </div>
+      </section>
     </template>
     <div
       v-else-if="statisticsEnabled === false"
       class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300 px-4.5 py-10 text-center text-gray-500 dark:text-gray-400"
+      role="status"
     >
       <b>Statistics disabled.</b> Enable resolved request statistics to view traffic analytics.
     </div>

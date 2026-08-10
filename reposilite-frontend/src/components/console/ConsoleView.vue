@@ -88,23 +88,57 @@ watch(
     />
 
     <div class="flex text-sm flex-col xl:flex-row w-full py-2 justify-between">
-      <input placeholder="Filter" v-model="filter" class="w-full xl:w-1/2 mr-5 py-1 px-4 rounded-lg bg-white dark:bg-gray-900" />
-      <div class="flex flex-row justify-around w-full xl:w-1/2 <md:flex-wrap">
-        <div v-for="level in levels" :key="level.name" class="pt-1.9 xl:pt-0.8 font-sans whitespace-nowrap">
+      <label
+        for="console-filter"
+        class="sr-only"
+      >Filter console messages</label>
+      <input
+        id="console-filter"
+        v-model="filter"
+        placeholder="Filter"
+        class="w-full xl:w-1/2 mr-5 py-1 px-4 rounded-lg bg-white dark:bg-gray-900"
+      >
+      <div
+        class="flex flex-row justify-around w-full xl:w-1/2 <md:flex-wrap"
+        role="group"
+        aria-label="Log levels"
+      >
+        <label
+          v-for="level in levels"
+          :key="level.name"
+          class="pt-1.9 xl:pt-0.8 font-sans whitespace-nowrap"
+        >
           <input
-            type="checkbox" 
-            :checked="level.enabled" 
+            type="checkbox"
+            :checked="level.enabled"
             @change="level.enabled = !level.enabled"
           >
           <span class="pl-2 pr-4">{{ level.name }} ({{ level.count }})</span>
-        </div>
+        </label>
       </div>
     </div>
-    <div class="bg-white dark:bg-gray-900 rounded-lg">
-      <div id="console" class="overflow-scroll h-144 px-4 py-2 whitespace-pre-wrap font-mono text-xs">
-        <p v-for="entry in log" :key="entry.id" v-html="entry.message" class="whitespace-nowrap"/>
+    <section
+      class="bg-white dark:bg-gray-900 rounded-lg"
+      aria-label="Remote console"
+    >
+      <div
+        id="console"
+        class="overflow-scroll h-144 px-4 py-2 whitespace-pre-wrap font-mono text-xs"
+        role="log"
+        aria-live="polite"
+      >
+        <p
+          v-for="entry in log"
+          :key="entry.id"
+          v-html="entry.message"
+          class="whitespace-nowrap"
+        />
       </div>
       <hr class="dark:border-dark-300">
+      <label
+        for="consoleInput"
+        class="sr-only"
+      >Command</label>
       <input
         id="consoleInput"
         placeholder="Type command or '?' to get help"
@@ -114,7 +148,7 @@ watch(
         @keyup.enter="execute()"
         @keyup.up="previousCommand()"
         @keyup.down="nextCommand()"
-      />
-    </div>
+      >
+    </section>
   </div>
 </template>

@@ -1,12 +1,21 @@
 <template>
   <div :class="styles.arrayList.item">
-    <div @click="expandClicked" :class="toolbarClasses">
-      <div :class="styles.arrayList.itemLabel">{{ label }}</div>
+    <div :class="toolbarClasses">
+      <button
+        type="button"
+        class="flex-1 self-stretch text-left"
+        :aria-expanded="expanded"
+        :aria-label="`${expanded ? 'Collapse' : 'Expand'} ${label}`"
+        @click="expandClicked"
+      >
+        <span :class="styles.arrayList.itemLabel">{{ label }}</span>
+      </button>
       <button
         @click="moveUpClicked"
         :disabled="!moveUpEnabled"
         :class="styles.arrayList.itemMoveUp"
         type="button"
+        aria-label="Move item up"
       >
         ↑
       </button>
@@ -15,6 +24,7 @@
         :disabled="!moveDownEnabled"
         :class="styles.arrayList.itemMoveDown"
         type="button"
+        aria-label="Move item down"
       >
         ↓
       </button>
@@ -23,6 +33,7 @@
         class="font-mono text-xl"
         :class="styles.arrayList.itemDelete"
         type="button"
+        aria-label="Delete item"
       >
         x
       </button>
