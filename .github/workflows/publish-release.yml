@@ -18,7 +18,7 @@ jobs:
       version: "${{ steps.version.outputs.version }}"
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
 
       - name: "Fetch git tags" # Required for axion-release-plugin
         run: git fetch --tags --unshallow
