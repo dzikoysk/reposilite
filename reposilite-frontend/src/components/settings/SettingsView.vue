@@ -36,7 +36,8 @@ const {
   domains, 
   configurations,
   schemas,
-  selectedDomain
+  selectedDomain,
+  isLoading
 } = useConfiguration()
 
 const isValid = ref(true)
@@ -52,9 +53,6 @@ const updateFormsConfiguration = (domain, event) => {
   }
   configurations.value[domain] = event.data
   isValid.value = event.errors.length == 0
-  event.errors.forEach(error => {
-    console.log(error)
-  })
 }
 
 const reload = (action) => action().then(() => hasChanged.value = false)
@@ -63,7 +61,7 @@ watch(
   () => props.selectedTab,
   (selectedTab, prev) => {
     /* Fetch configuration only when user opens the configuration tab  */
-    if (selectedTab === 'Settings' && prev == undefined && domains.value.length == 0)
+    if (selectedTab === 'Settings' && prev == undefined && domains.value.length == 0 && !isLoading.value)
       fetchConfiguration()
   },
   { immediate: true }
@@ -98,6 +96,7 @@ const formsConfiguration = {
     >
       <template #actions>
         <div
+          v-if="domains.length > 0 && !isLoading"
           id="configuration-state"
           class="flex flex-nowrap items-center justify-end gap-2 <md:flex-wrap <md:justify-start"
         >
@@ -135,47 +134,60 @@ const formsConfiguration = {
     </ViewHeader>
     <div class="overflow-hidden rounded-lg bg-gray-100 dark:bg-black">
       <div
-        v-if="domains.length > 1"
-        class="tabs domain-tabs overflow-x-auto pt-2"
-        role="tablist"
-        aria-label="Configuration domains"
+        v-if="isLoading"
+        class="flex min-h-40 items-center justify-center gap-2 bg-white text-sm text-gray-600 dark:bg-gray-900 dark:text-gray-300"
+        role="status"
       >
-        <button
-          v-for="domain in domains"
-          :id="`domain-tab-${domain}`"
-          :key="`config:${domain}`"
-          type="button"
-          role="tab"
-          class="item cursor-pointer whitespace-nowrap rounded-t-md bg-transparent px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300"
-          :class="{ 'domain-tab-active': selectedDomain === domain }"
-          :aria-selected="selectedDomain === domain"
-          :aria-controls="`domain-panel-${domain}`"
-          @click="selectedDomain = domain"
-        >
-          <span class="tab block">{{ schemas[domain]?.title }}</span>
-        </button>
+        <span
+          class="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400"
+          aria-hidden="true"
+        />
+        Loading configuration...
       </div>
-      <TabPanels v-model="selectedDomain">
-        <TabPanel
-          v-for="domain in domains"
-          :id="`domain-panel-${domain}`"
-          :key="`config_tab:${domain}`"
-          :val="domain"
-          class="settings-panel"
-          role="tabpanel"
-          :aria-labelledby="`domain-tab-${domain}`"
+      <template v-else>
+        <div
+          v-if="domains.length > 1"
+          class="tabs domain-tabs overflow-x-auto pt-2"
+          role="tablist"
+          aria-label="Configuration domains"
         >
-          <JsonForms
-            v-if="configurations[domain]"
-            :config="formsConfiguration"
-            :data="configurations[domain]"
-            :schema="schemas[domain]"
-            :renderers="renderers"
-            :ajv="configurationValidator"
-            @change="updateFormsConfiguration(domain, $event)"
-          />
-        </TabPanel>
-      </TabPanels>
+          <button
+            v-for="domain in domains"
+            :id="`domain-tab-${domain}`"
+            :key="`config:${domain}`"
+            type="button"
+            role="tab"
+            class="item cursor-pointer whitespace-nowrap rounded-t-md bg-transparent px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300"
+            :class="{ 'domain-tab-active': selectedDomain === domain }"
+            :aria-selected="selectedDomain === domain"
+            :aria-controls="`domain-panel-${domain}`"
+            @click="selectedDomain = domain"
+          >
+            <span class="tab block">{{ schemas[domain]?.title }}</span>
+          </button>
+        </div>
+        <TabPanels v-model="selectedDomain">
+          <TabPanel
+            v-for="domain in domains"
+            :id="`domain-panel-${domain}`"
+            :key="`config_tab:${domain}`"
+            :val="domain"
+            class="settings-panel"
+            role="tabpanel"
+            :aria-labelledby="`domain-tab-${domain}`"
+          >
+            <JsonForms
+              v-if="configurations[domain]"
+              :config="formsConfiguration"
+              :data="configurations[domain]"
+              :schema="schemas[domain]"
+              :renderers="renderers"
+              :ajv="configurationValidator"
+              @change="updateFormsConfiguration(domain, $event)"
+            />
+          </TabPanel>
+        </TabPanels>
+      </template>
     </div>
   </div>
 </template>
@@ -362,5 +374,30 @@ const formsConfiguration = {
 }
 .settings-view :deep(.description) {
   padding-bottom: 0;
+}
+.settings-view :deep(.dialog-root) {
+  @apply w-[calc(100%-2rem)] max-w-md rounded-lg border border-gray-200 bg-white px-6 py-5 text-left text-gray-700 shadow-xl dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200;
+}
+.settings-view :deep(.dialog-root::backdrop) {
+  @apply bg-black bg-opacity-50;
+}
+.settings-view :deep(.dialog-title) {
+  @apply text-base font-semibold text-gray-900 dark:text-white;
+}
+.settings-view :deep(.dialog-body) {
+  @apply mt-2 text-sm;
+}
+.settings-view :deep(.dialog-actions) {
+  @apply mt-5 flex justify-end gap-2;
+}
+.settings-view :deep(.dialog-button-primary),
+.settings-view :deep(.dialog-button-secondary) {
+  @apply h-8 rounded-md px-3 text-sm;
+}
+.settings-view :deep(.dialog-button-primary) {
+  @apply bg-red-600 text-white hover:bg-red-700 dark:hover:bg-red-500;
+}
+.settings-view :deep(.dialog-button-secondary) {
+  @apply bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600;
 }
 </style>

@@ -16,19 +16,23 @@ const domains = ref([])
 const schemas = ref({})
 const configurations = ref({})
 const selectedDomain = ref('')
+const isLoading = ref(false)
 
 const fetchConfiguration = () => {
+  isLoading.value = true
   return client.value.settings.domains()
-    .then(domainsResponse => domains.value = domainsResponse.data)
-    .then(() => Promise.all(domains.value.map(domain =>
-      client.value.settings.schema(domain)
-        .then(schemaResponse => schemas.value[domain] = schemaResponse.data)
-        .then(() => client.value.settings.fetch(domain))
-        .then(configurationResponse => configurations.value[domain] = configurationResponse.data)))
+    .then(domainsResponse =>
+      Promise.all(domainsResponse.data.map(domain =>
+        client.value.settings.schema(domain)
+          .then(schemaResponse => schemas.value[domain] = schemaResponse.data)
+          .then(() => client.value.settings.fetch(domain))
+          .then(configurationResponse => configurations.value[domain] = configurationResponse.data)
+      )).then(() => domains.value = domainsResponse.data)
     )
     .then(() => selectedDomain.value = domains.value[0])
     .then(() => createToast('Configuration loaded', { type: 'success' }))
     .catch(error => createToast(`${error || ''}`, { type: 'danger' }))
+    .finally(() => isLoading.value = false)
 }
 
 const updateConfiguration = () =>
@@ -91,6 +95,7 @@ export function useConfiguration() {
     domains,
     configurations,
     schemas,
-    selectedDomain
+    selectedDomain,
+    isLoading
   }
 }
