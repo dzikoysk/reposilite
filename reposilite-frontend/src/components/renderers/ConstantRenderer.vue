@@ -20,6 +20,7 @@
 import {and, isControl, rankWith, schemaMatches} from '@jsonforms/core'
 import {rendererProps, useJsonFormsControl} from '@jsonforms/vue'
 import {ControlWrapper, useVanillaControl} from '@jsonforms/vue-vanilla'
+import {watchEffect} from 'vue'
 
 export const tester = rankWith(4, and(isControl, schemaMatches(schema => 'const' in schema)))
 
@@ -30,7 +31,14 @@ export default {
   },
   props: rendererProps(),
   setup(props) {
-    return useVanillaControl(useJsonFormsControl(props))
+    const control = useVanillaControl(useJsonFormsControl(props))
+    watchEffect(() => {
+      const {data, path, schema} = control.control.value
+      if (data !== schema.const) {
+        control.handleChange(path, schema.const)
+      }
+    })
+    return control
   }
 }
 </script>
