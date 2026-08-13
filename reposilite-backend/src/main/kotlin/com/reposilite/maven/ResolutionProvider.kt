@@ -88,7 +88,11 @@ internal class ResolutionProvider(
                 local.isOk -> ResolveAttempt(local, remote = null)
                 else -> {
                     val remote = tryRemote(hosts)
-                    ResolveAttempt(remote.toResult(notFoundMessage).flatMapErr { local }, remote)
+                    val result: Result<T, ErrorResponse> = when {
+                        remote is MirrorResolution.Failed && remote.error.status == 429 -> Result.error(remote.error)
+                        else -> remote.toResult(notFoundMessage).flatMapErr { local }
+                    }
+                    ResolveAttempt(result, remote)
                 }
             }
         }
