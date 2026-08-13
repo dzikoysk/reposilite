@@ -103,6 +103,18 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
     }
 
     @Test
+    fun `should list a prefixed repository root that has an S3 directory marker`() {
+        val releases = storageProvider(repository = "releases")
+        assertOk(releases.putFile("/com/example/artifact.jar".toLocation(), "data".byteInputStream()))
+        assertOk(releases.putFile("/".toLocation(), ByteArray(0).inputStream()))
+
+        val details = assertOk(releases.getFileDetails("/".toLocation()))
+
+        assertThat(details).isInstanceOf(DirectoryInfo::class.java)
+        assertThat((details as DirectoryInfo).files.map { it.name }).containsExactly("com")
+    }
+
+    @Test
     fun `should scope removals to the deleting repository in single-bucket mode`() {
         val alpha = storageProvider(repository = "alpha")
         val beta = storageProvider(repository = "beta")

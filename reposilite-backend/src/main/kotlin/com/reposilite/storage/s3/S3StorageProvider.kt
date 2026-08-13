@@ -140,9 +140,12 @@ class S3StorageProvider(
         }
 
     override fun getFileDetails(location: Location): Result<FileDetails, ErrorResponse> =
-        head(location)
-            .map { toDocumentInfo(location, it) }
-            .flatMapErr { listDirectoryDetails(location) }
+        when (location) {
+            Location.empty() -> listDirectoryDetails(location)
+            else -> head(location)
+                .map { toDocumentInfo(location, it) }
+                .flatMapErr { listDirectoryDetails(location) }
+        }
 
     private fun listDirectoryDetails(location: Location): Result<FileDetails, ErrorResponse> =
         listDirectory(
@@ -243,17 +246,20 @@ class S3StorageProvider(
         onFile: (S3Object) -> T?,
     ): Result<List<T>, ErrorResponse> =
         try {
+            val directoryPrefix = location.toBucketDirectoryPrefix()
             val request =
                 ListObjectsV2Request
                     .builder()
                     .bucket(bucket)
-                    .prefix(location.toBucketDirectoryPrefix())
+                    .prefix(directoryPrefix)
                     .delimiter("/")
                     .build()
 
             val pages = s3.listObjectsV2Paginator(request).toList()
             val directories = pages.flatMap { it.commonPrefixes() }.mapNotNull(onDirectory)
-            val files = pages.flatMap { it.contents() }.mapNotNull(onFile)
+            val files = pages.flatMap { it.contents() }
+                .filterNot { it.key() == directoryPrefix }
+                .mapNotNull(onFile)
             val entries = directories + files
 
             when {
