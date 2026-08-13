@@ -32,7 +32,6 @@ data class S3MetadataCacheSettings(
     val expireAfterCreationSeconds: Long = 60 * 60 * 24, // 1 day
 )
 
-
 @Doc(title = "S3 Storage Provider", description = "Amazon S3 storage provider settings")
 data class S3StorageProviderSettings(
     @get:Custom(name = "const", value = "s3")
@@ -47,6 +46,8 @@ data class S3StorageProviderSettings(
     val secretKey: String = "",
     @get:Doc(title = "Region", description = "Overwrite AWS region (optional)")
     val region: String = "",
+    @get:Doc(title = "Signer", description = "Select the request signer implementation. LEGACY_V4 is required by Cloudflare R2 (optional)")
+    val signer: S3Signer = S3Signer.DEFAULT,
     @get:Doc(title = "Key Prefix", description = "Optional prefix prepended to all object keys, e.g. to scope data within a bucket shared with other services")
     val prefix: String = "",
     @get:Doc(title = "Shared Bucket", description = "Namespace objects under the repository name so several repositories can share one bucket (optional)")
@@ -56,7 +57,12 @@ data class S3StorageProviderSettings(
 ) : StorageProviderSettings
 
 fun S3StorageProviderSettings.resolveKeyPrefix(repositoryName: String): String {
-    val base = prefix.trim().trim('/').let { if (it.isEmpty()) "" else "$it/" }
+    val base =
+        prefix
+            .trim()
+            .trim('/')
+            .let { if (it.isEmpty()) "" else "$it/" }
+
     return when {
         sharedBucket -> base + repositoryName.trim().trim('/') + "/"
         else -> base

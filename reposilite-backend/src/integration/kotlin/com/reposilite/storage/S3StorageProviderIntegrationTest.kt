@@ -20,6 +20,7 @@ import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.toLocation
+import com.reposilite.storage.s3.S3Signer
 import com.reposilite.storage.s3.S3StorageProviderSettings
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -60,7 +61,8 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
                 endpoint = "http://${floci.host}:${floci.getMappedPort(4566)}",
                 accessKey = "test",
                 secretKey = "test",
-                region = "us-east-1"
+                region = "us-east-1",
+                signer = S3Signer.LEGACY_V4,
             )
         )!!
     }

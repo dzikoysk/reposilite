@@ -34,7 +34,12 @@ import java.net.URI
 import java.nio.file.Path
 import java.time.Duration
 
-private val useS3V4Signer = System.getProperty("reposilite.s3.use-s3-v4-signer", "false") == "true"
+private val useLegacyS3V4Signer = System.getProperty("reposilite.s3.use-s3-v4-signer", "false") == "true"
+
+enum class S3Signer {
+    DEFAULT,
+    LEGACY_V4
+}
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
@@ -46,8 +51,8 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
         settings: S3StorageProviderSettings
     ): S3StorageProvider {
         val client = S3Client.builder()
-        val pathStyleAccessEnabled = System.getProperty("reposilite.s3.pathStyleAccessEnabled") == "true"
 
+        val pathStyleAccessEnabled = System.getProperty("reposilite.s3.pathStyleAccessEnabled") == "true"
         if (pathStyleAccessEnabled) {
             client.serviceConfiguration(
                 S3Configuration.builder()
@@ -81,14 +86,20 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             ?.let { URI.create(it) }
             ?.also { client.endpointOverride(it) }
 
+        val signer = when {
+            useLegacyS3V4Signer -> S3Signer.LEGACY_V4
+            else -> settings.signer
+        }
+
         client.overrideConfiguration {
             it.retryPolicy { cfg ->
                 cfg.backoffStrategy(ExponentialBackoffStrategy(Duration.ofSeconds(1), Duration.ofMinutes(1)))
                 cfg.numRetries(5)
             }
 
-            if (useS3V4Signer) {
-                it.putAdvancedOption(SdkAdvancedClientOption.SIGNER, AwsS3V4Signer.create())
+            when (signer) {
+                S3Signer.DEFAULT -> {}
+                S3Signer.LEGACY_V4 -> it.putAdvancedOption(SdkAdvancedClientOption.SIGNER, AwsS3V4Signer.create())
             }
         }
 
@@ -122,6 +133,7 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             failureFacade.logger.error("  - Region: ${region.id()} (isGlobalRegion: ${region.isGlobalRegion})")
             failureFacade.logger.error("  - Custom endpoint: $customEndpoint")
             failureFacade.logger.error("  - Path style access: $pathStyleAccessEnabled")
+            failureFacade.logger.error("  - Signer: $signer")
             failureFacade.logger.error("  - Access key: ${maskSecret(settings.accessKey)}")
             failureFacade.logger.error("  - Secret key: ${maskSecret(settings.secretKey)}")
             throw IllegalStateException("Failed to initialize S3 storage provider", exception)
