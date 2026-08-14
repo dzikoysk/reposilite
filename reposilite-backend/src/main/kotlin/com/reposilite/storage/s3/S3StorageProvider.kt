@@ -257,13 +257,15 @@ class S3StorageProvider(
 
             val pages = s3.listObjectsV2Paginator(request).toList()
             val directories = pages.flatMap { it.commonPrefixes() }.mapNotNull(onDirectory)
-            val files = pages.flatMap { it.contents() }
+            val contents = pages.flatMap { it.contents() }
+            val hasDirectoryMarker = contents.any { it.key() == directoryPrefix }
+            val files = contents
                 .filterNot { it.key() == directoryPrefix }
                 .mapNotNull(onFile)
             val entries = directories + files
 
             when {
-                entries.isEmpty() -> notFoundError("Directory not found or is empty")
+                entries.isEmpty() && location != Location.empty() && !hasDirectoryMarker -> notFoundError("Directory not found")
                 else -> entries.asSuccess()
             }
         } catch (exception: Exception) {

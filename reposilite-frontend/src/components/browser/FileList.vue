@@ -29,7 +29,8 @@ const props = defineProps({
   qualifier: property(Object, true),
   files: property(Object, true),
   compactMode: property(Boolean, true),
-  loading: property(Boolean, true)
+  loading: property(Boolean, true),
+  retry: property(Function, true)
 })
 
 // cycled across skeleton rows so the placeholder name bars vary in width
@@ -140,8 +141,16 @@ const RouterEntry = ({ file }) => {
     <div v-if="!loading && files.isEmpty" class="pl-2 pb-4" role="status">
       <p>Directory is empty</p>
     </div>
-    <div v-if="!loading && files.error" class="pl-2" role="alert">
-      <p>Directory not found</p>
+    <div v-if="!loading && files.error" class="pl-2 pb-4" role="alert">
+      <p>{{ files.error }}</p>
+      <button
+        v-if="files.retryable"
+        type="button"
+        class="mt-2 min-h-44px py-1 px-4 rounded-full bg-white dark:bg-gray-900 default-button"
+        @click="retry"
+      >
+        Retry
+      </button>
     </div>
   </section>
 </template>

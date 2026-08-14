@@ -28,7 +28,6 @@ import BrowserUpload from './FileUpload.vue'
 import ViewGrid from '../icons/ViewGrid.vue'
 import ViewList from '../icons/ViewList.vue'
 import { property } from '../../helpers/vue-extensions'
-import { createErrorToast } from '../../helpers/toast'
 
 const props = defineProps({
   qualifier: property(Object, true)
@@ -39,7 +38,13 @@ const files = ref({})
 const loading = ref(true)
 const { details, client, hasPermissionTo } = useSession()
 const { applyAdjustments } = useAdjustments()
-const { getParentPath } = useQualifier()
+const { getParentPath, refreshQualifier } = useQualifier()
+
+const nonRetryableErrors = {
+  401: 'You do not have permission to view this directory',
+  403: 'You do not have permission to view this directory',
+  404: 'Directory not found'
+}
 
 const processedFiles = computed(() => ({
   ...files.value,
@@ -52,13 +57,16 @@ const canUpload = computed(() => {
 
 watch(
   () => [props.qualifier.watchable, details.value],
-  async () => {
+  (_, __, onCleanup) => {
     if (details.value === null) {
       return
     }
 
+    let invalidated = false
+    onCleanup(() => invalidated = true)
+
     const qualifier = props.qualifier.path
-    const isStale = () => qualifier !== props.qualifier.path
+    const isStale = () => invalidated || qualifier !== props.qualifier.path
     parentPath.value = getParentPath()
     loading.value = true
 
@@ -75,11 +83,12 @@ watch(
       .catch(error => {
         if (isStale()) return
         // simulate intermediate directory if 403 & user has access to only one directory
-        const currentRoutes = details.value.routes
+        const status = error.response?.status
+        const currentRoutes = details.value?.routes
             ?.filter(route => route.path.startsWith(`/${qualifier}`))
             ?? []
 
-        if (error.response.status === 403 && currentRoutes.length > 0) {
+        if (status === 403 && currentRoutes.length > 0) {
           const intermediateDirectories = currentRoutes.map(currentRoute => {
             let currentSegment = currentRoute.path.substring(`/${qualifier}/`.replaceAll('//', '/').length)
             return currentSegment.includes('/') ? currentSegment.substring(0, currentSegment.indexOf('/')) : currentSegment
@@ -97,10 +106,12 @@ watch(
             error: false
           }
         } else {
-          createErrorToast(`${error.response.status}: ${error.response.data.message}`)
+          const message = nonRetryableErrors[status]
+
           files.value = {
             list: [],
-            error: true
+            error: message ?? 'Could not load directory',
+            retryable: message === undefined
           }
         }
 
@@ -150,7 +161,13 @@ const toggleCompactMode = () => {
               </AdjustmentsModal>
             </div>
           </div>
-          <FileList :qualifier="qualifier" :files="processedFiles" :compactMode="fileBrowserCompactMode" :loading="loading"/>
+          <FileList
+            :qualifier="qualifier"
+            :files="processedFiles"
+            :compactMode="fileBrowserCompactMode"
+            :loading="loading"
+            :retry="refreshQualifier"
+          />
           <BrowserUpload v-if="canUpload" :qualifier="qualifier" />
         </div>
       </div>

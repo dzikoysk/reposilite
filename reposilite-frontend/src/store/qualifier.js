@@ -15,37 +15,29 @@
  */
 
 import { watch, reactive } from 'vue'
+import { createSharedComposable } from '@vueuse/core'
 import { useRoute, useRouter } from 'vue-router'
-import { useSession } from './session'
 
-const qualifier = reactive({
-  watchable: 0,
-  path: ''
-})
-
-const refreshQualifier = () =>
-  qualifier.watchable++
-
-const getParentPath = () =>
-  `/${(qualifier.path.endsWith('/') ? qualifier.path.slice(0, -1) : qualifier.path)}`
-    .split("/")
-    .slice(0, -1)
-    .join('/') || '/'
-
-const { details } = useSession()
-
-watch(
-  () => details.value,
-  () => refreshQualifier()
-)
-
-export default function useQualifier() {
+const useQualifier = createSharedComposable(() => {
   const route = useRoute()
   const router = useRouter()
 
-  const redirectTo = (path) => {
+  const qualifier = reactive({
+    watchable: 0,
+    path: ''
+  })
+
+  const refreshQualifier = () =>
+    qualifier.watchable++
+
+  const getParentPath = () =>
+    `/${(qualifier.path.endsWith('/') ? qualifier.path.slice(0, -1) : qualifier.path)}`
+      .split("/")
+      .slice(0, -1)
+      .join('/') || '/'
+
+  const redirectTo = (path) =>
     router.push(path)
-  }
 
   watch(
     () => route.params.qualifier,
@@ -62,4 +54,6 @@ export default function useQualifier() {
     refreshQualifier,
     redirectTo
   }
-}
+})
+
+export default useQualifier

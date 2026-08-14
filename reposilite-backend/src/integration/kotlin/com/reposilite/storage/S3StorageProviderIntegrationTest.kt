@@ -31,6 +31,7 @@ import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 import java.io.File
 
@@ -114,6 +115,42 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
 
         assertThat(details).isInstanceOf(DirectoryInfo::class.java)
         assertThat((details as DirectoryInfo).files.map { it.name }).containsExactly("com")
+    }
+
+    @Test
+    fun `should return directory details for an empty repository root`() {
+        val empty = storageProvider(repository = "empty")
+
+        val details = assertOk(empty.getFileDetails("/".toLocation()))
+
+        assertThat(details).isInstanceOf(DirectoryInfo::class.java)
+        assertThat((details as DirectoryInfo).files).isEmpty()
+    }
+
+    @Test
+    fun `should return directory details for an empty directory marker`() {
+        val repository = storageProvider(repository = "directory-markers")
+        val markerWriter = storageProvider(
+            repository = "marker-writer",
+            prefix = "reposilite/directory-markers/empty",
+            sharedBucket = false
+        )
+        assertOk(markerWriter.putFile("/".toLocation(), ByteArray(0).inputStream()))
+
+        val details = assertOk(repository.getFileDetails("/empty".toLocation()))
+
+        assertThat(details).isInstanceOf(DirectoryInfo::class.java)
+        assertThat((details as DirectoryInfo).files).isEmpty()
+    }
+
+    @Test
+    fun `should return not found for a missing nested directory`() {
+        val repository = storageProvider(repository = "missing-directory")
+
+        val response = repository.getFileDetails("/missing".toLocation())
+
+        assertError(response)
+        assertThat(response.error.status).isEqualTo(404)
     }
 
     @Test
