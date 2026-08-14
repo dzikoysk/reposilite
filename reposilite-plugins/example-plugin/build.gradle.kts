@@ -19,7 +19,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 // group = "com.reposilite.plugin"
 
 plugins {
-    id("com.gradleup.shadow") version "9.6.1"
+    id("com.gradleup.shadow")
 }
 
 application {
@@ -34,5 +34,4 @@ dependencies {
 tasks.withType<ShadowJar> {
     archiveFileName.set("example-plugin.jar")
     destinationDirectory.set(file("$rootDir/reposilite-test/workspace/plugins"))
-    mergeServiceFiles()
 }

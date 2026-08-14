@@ -27,7 +27,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "2.2.5"
-    id("com.gradleup.shadow") version "9.6.1"
+    id("com.gradleup.shadow")
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
@@ -148,7 +148,6 @@ dependencies {
 
 tasks.withType<ShadowJar> {
     archiveFileName.set("reposilite-${archiveVersion.get()}.jar")
-    mergeServiceFiles()
     minimize {
         exclude(dependency("org.eclipse.jetty:.*"))
         exclude(dependency("org.eclipse.jetty.http2:.*"))

@@ -17,7 +17,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("com.gradleup.shadow") version "9.6.1"
+    id("com.gradleup.shadow")
     kotlin("jvm")
 }
 
@@ -33,5 +33,4 @@ dependencies {
 tasks.withType<ShadowJar> {
     archiveFileName.set("checksum-plugin.jar")
     destinationDirectory.set(file("$rootDir/reposilite-test/workspace/plugins"))
-    mergeServiceFiles()
 }

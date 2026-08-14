@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -29,6 +31,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
+    id("com.gradleup.shadow") version "9.6.1" apply false
     id("pl.allegro.tech.build.axion-release")
 }
 
@@ -117,6 +120,32 @@ allprojects {
 
 subprojects {
     apply(plugin = "maven-publish")
+
+    pluginManager.withPlugin("com.gradleup.shadow") {
+        val shadowJar = tasks.named<ShadowJar>("shadowJar")
+        val verifyShadowJarServices = tasks.register<VerifyMergedServiceFiles>("verifyShadowJarServices") {
+            group = "verification"
+            description = "Verifies that the shaded JAR contains all service providers from its inputs."
+            dependsOn(shadowJar)
+
+            archiveFile.set(shadowJar.flatMap { task -> task.archiveFile })
+            serviceSources.from(sourceSets.main.get().output)
+            serviceSources.from(configurations.named("runtimeClasspath"))
+        }
+
+        shadowJar.configure {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            mergeServiceFiles()
+
+            // Shadow filters duplicate service descriptors before merging them unless they explicitly opt into inclusion.
+            // ~ https://github.com/dzikoysk/reposilite/issues/2708
+            filesMatching("META-INF/services/**") {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+            }
+
+            finalizedBy(verifyShadowJarServices)
+        }
+    }
 
     dependencies {
         // Capped at 4.6.0: unirest-modules-jackson 4.7.0+ migrated to Jackson 3 (tools.jackson.*); we're pinned to Jackson 2.x.

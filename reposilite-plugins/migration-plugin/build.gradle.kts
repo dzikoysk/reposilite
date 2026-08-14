@@ -20,7 +20,7 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization") version "2.4.10"
 
-    id("com.gradleup.shadow") version "9.6.1"
+    id("com.gradleup.shadow")
 }
 
 application {
@@ -36,5 +36,4 @@ dependencies {
 tasks.withType<ShadowJar> {
     archiveFileName.set("migration-plugin.jar")
     destinationDirectory.set(file("$rootDir/reposilite-test/workspace/plugins"))
-    mergeServiceFiles()
 }

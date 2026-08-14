@@ -18,7 +18,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm")
-    id("com.gradleup.shadow") version "9.6.1"
+    id("com.gradleup.shadow")
 }
 
 application {
@@ -39,5 +39,4 @@ dependencies {
 tasks.withType<ShadowJar> {
     archiveFileName.set("prometheus-plugin.jar")
     destinationDirectory.set(file("$rootDir/reposilite-test/workspace/plugins"))
-    mergeServiceFiles()
 }
