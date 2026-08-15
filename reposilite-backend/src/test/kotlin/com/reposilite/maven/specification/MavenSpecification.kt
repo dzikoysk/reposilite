@@ -34,6 +34,7 @@ import com.reposilite.plugin.Extensions
 import com.reposilite.shared.http.AuthenticationMethod.BASIC
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.http.FakeRemoteClientProvider
+import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.notFoundError
 import io.javalin.http.HttpStatus.BAD_GATEWAY
 import com.reposilite.statistics.DailyDateIntervalProvider
@@ -110,11 +111,13 @@ internal abstract class MavenSpecification {
 
     abstract fun repositories(): List<RepositorySettings>
 
+    protected open val remoteClientProviderOverride: RemoteClientProvider? = null
+
     @BeforeEach
     fun initializeFacade() {
         this.ioService = Executors.newCachedThreadPool()
 
-        val remoteClientProvider = FakeRemoteClientProvider(
+        val remoteClientProvider = remoteClientProviderOverride ?: FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 remoteRequestsByUri.computeIfAbsent(uri) { AtomicInteger() }.incrementAndGet()
                 if (uri.startsWith(REMOTE_REPOSITORY_BROKEN))
