@@ -46,6 +46,7 @@ import java.io.Closeable
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
@@ -73,9 +74,10 @@ import kotlin.io.path.useDirectoryEntries
 /**
  * @param rootDirectory root directory of storage space
  */
-abstract class FileSystemStorageProvider protected constructor(
+abstract class FileSystemStorageProvider internal constructor(
     val journalist: Journalist,
     val rootDirectory: Path,
+    private val usageTracker: UsageTracker? = null,
 ) : StorageProvider {
 
     private enum class LockMode {
@@ -147,9 +149,12 @@ abstract class FileSystemStorageProvider protected constructor(
                             // Re-check post-write: InputStream.available() is just a hint and returns 0 for HTTP request bodies.
                             .flatMap { canHold(temporaryFile.fileSize()).mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") } }
                             .peek {
+                                val size = temporaryFile.fileSize()
+                                val oldSize = if (file.exists()) file.fileSize() else 0L
                                 acquireFileAccessLock(location, LockMode.WRITE).use {
                                     temporaryFile.moveTo(file, overwrite = true)
                                 }
+                                usageTracker?.addDelta(size - oldSize)
                             }
                             .mapToUnit()
                     }
@@ -250,10 +255,19 @@ abstract class FileSystemStorageProvider protected constructor(
             .resolveWithRootDirectory()
             .filter({ !it.normalize().equals(rootDirectory.normalize()) }, { badRequest("Cannot remove repository root") })
             .map { rootPath ->
+                val removedSize = when {
+                    rootPath.isDirectory() -> Files.walk(rootPath).use { stream ->
+                        stream.filter { it.type() == FILE }
+                            .mapToLong { it.fileSize() }
+                            .sum()
+                    }
+                    else -> rootPath.fileSize()
+                }
                 when {
                     rootPath.isDirectory() -> rootPath.deleteRecursively()
                     else -> rootPath.deleteExisting()
                 }
+                usageTracker?.addDelta(-removedSize)
             }
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
@@ -288,7 +302,7 @@ abstract class FileSystemStorageProvider protected constructor(
             .fold({ true }, { false })
 
     override fun usage(): Result<Long, ErrorResponse> =
-        getFileSize(Location.empty())
+        if (usageTracker != null) usageTracker.getUsage().asSuccess() else (-1L).asSuccess()
 
     private fun Result<Path, ErrorResponse>.exists(): Result<Path, ErrorResponse> =
         filter({ it.exists() }) { notFound("File not found") }
