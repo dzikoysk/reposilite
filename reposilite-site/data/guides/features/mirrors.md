@@ -53,6 +53,38 @@ org.reposilite
 
 If the list is empty, all groups are allowed.
 
+#### Blocked groups
+You can also block specific groups from being proxied through this mirror, e.g.:
+
+```bash
+com.internal
+```
+
+Groups listed here are never requested from this mirror.
+Blocked groups take precedence over allowed groups, so a group that appears in both lists is blocked.
+
+Mirrors are consulted in the order they are configured, and the first one to answer wins.
+Two situations follow from that:
+
+- Steering resolution. When two mirrors carry the same group at different versions,
+  block the group on the mirror that should not answer for it,
+  and resolution falls through to the mirror that should.
+- Dependency confusion. If someone publishes an artifact under one of your internal groups
+  to a public repository you proxy, that mirror may answer ahead of the mirror
+  that should serve the group. Blocking your internal groups on every public mirror
+  removes that possibility.
+
+Matching is a path prefix, so `com.acme` also blocks `com.acmecorp` - prefer the most specific group you can.
+
+Blocking a group only suppresses the upstream fetch.
+Artifacts already stored locally under a blocked group still resolve normally from local storage,
+so blocking prevents future fetches rather than retracting past ones -
+delete the cached artifact as well if you need it gone.
+
+When a mirror's Link references another local repository by ID rather than a URL,
+blocking a group on that entry also suppresses reads of the referenced repository's cached artifacts.
+For that reason, `blockedGroups` belongs on mirror entries whose Link is a URL.
+
 #### Allowed extensions
 You can limit the scope of proxied artifacts by specifying list of allowed extensions.
 By default, Reposilite allows these extensions:
