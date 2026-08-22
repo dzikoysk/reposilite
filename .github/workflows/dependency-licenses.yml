@@ -1,0 +1,31 @@
+name: "Dependency licenses"
+
+on:
+  pull_request:
+    branches: [ "main", "3.0" ]
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: "Review dependency licenses"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+
+      - name: "Review dependency licenses"
+        uses: actions/dependency-review-action@v5
+        with:
+          vulnerability-check: false
+          license-check: true
+          fail-on-scopes: runtime
+          allow-licenses: >-
+            Apache-2.0,
+            BSD-2-Clause,
+            BSD-3-Clause,
+            ISC,
+            MIT,
+            OFL-1.1,
+            Unlicense

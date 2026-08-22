@@ -17,6 +17,7 @@
     "npm": ">=10.0.0"
   },
   "dependencies": {
+    "@fontsource-variable/open-sans": "^5.3.0",
     "@jsonforms/core": "^3.8.0",
     "@jsonforms/vue": "^3.8.0",
     "@jsonforms/vue-vanilla": "^3.8.0",
