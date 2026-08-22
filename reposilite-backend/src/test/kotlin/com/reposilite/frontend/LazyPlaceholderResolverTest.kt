@@ -7,7 +7,7 @@ import java.io.ByteArrayOutputStream
 
 class LazyPlaceholderResolverTest {
 
-    private val bufferSize = 8192
+    private val bufferSize = 1024
     private val placeholder =  "{{PLACEHOLDER}}"
     private val defaultResolver = LazyPlaceholderResolver(mapOf(placeholder to "Reposilite"))
 
@@ -62,12 +62,13 @@ class LazyPlaceholderResolverTest {
                 encodedPlaceholder to "."
             )
         )
-        val input = (ByteArray(bufferSize - encodedPlaceholder.length + 1) + encodedPlaceholder.toByteArray()).inputStream()
+        val prefix = "a".repeat(bufferSize - encodedPlaceholder.length + 1)
+        val input = (prefix + encodedPlaceholder).byteInputStream()
         val output = ByteArrayOutputStream()
 
         resolver.process(input, output)
 
-        assertThat(output.toByteArray().decodeToString()).contains(".")
+        assertThat(output.toByteArray().decodeToString()).isEqualTo("$prefix.")
     }
 
 }

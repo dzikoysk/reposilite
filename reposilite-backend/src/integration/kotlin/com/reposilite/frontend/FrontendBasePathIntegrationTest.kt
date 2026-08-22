@@ -26,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 private const val BASE_PATH = "/custom-base-path"
 private const val FONT_SOURCE_PREFIX = "src: url('"
+private const val SCRIPT_SOURCE_PREFIX = "<script type=\"module\" crossorigin src=\""
 
 @ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class FrontendBasePathIntegrationTest : ReposiliteSpecification() {
@@ -43,6 +44,21 @@ internal class FrontendBasePathIntegrationTest : ReposiliteSpecification() {
             .contains("src=\"$BASE_PATH/assets/")
             .contains("href=\"$BASE_PATH/assets/")
             .contains("$FONT_SOURCE_PREFIX$BASE_PATH/assets/")
+
+        val scriptPath = indexResponse.body
+            .substringAfter(SCRIPT_SOURCE_PREFIX)
+            .substringBefore('"')
+
+        assertThat(scriptPath)
+            .startsWith("$BASE_PATH/assets/")
+            .endsWith(".js")
+
+        val scriptResponse = get("$base${scriptPath.removePrefix(BASE_PATH)}").asBytes()
+
+        assertThat(scriptResponse.isSuccess).isTrue
+        assertThat(scriptResponse.body.decodeToString())
+            .contains(BASE_PATH)
+            .doesNotContain("\u0000")
 
         val fontPath = indexResponse.body
             .substringAfter(FONT_SOURCE_PREFIX)

@@ -105,7 +105,7 @@ internal class LazyPlaceholderResolver(private val placeholders: Map<String, Str
                         return buffer
                     }
 
-                    val contentWithMissingPlaceholder = buffer + missingBuffer
+                    val contentWithMissingPlaceholder = buffer + missingBuffer.copyOf(missingLength)
                     return loadSlicedPlaceholders(input, contentWithMissingPlaceholder)
                 }
             }
