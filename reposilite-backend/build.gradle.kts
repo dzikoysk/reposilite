@@ -248,6 +248,8 @@ tasks.named<Test>("integration") {
     // Floci (used in S3 integration tests) does not auto-rewrite virtual-host requests
     // to the container's random port, so the AWS SDK must use path-style addressing.
     systemProperty("reposilite.s3.pathStyleAccessEnabled", "true")
+    // Replace and disable the file writer to avoid creating production log files in integration tests.
+    systemProperties(mapOf("tinylog.writerFile" to "console", "tinylog.writerFile.level" to "off"))
 }
 
 tasks.jacocoTestReport {
