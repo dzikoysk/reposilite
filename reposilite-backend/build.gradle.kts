@@ -127,7 +127,6 @@ dependencies {
         exclude(group = "com.google.guava", module = "guava")
     }
     api("commons-codec:commons-codec:1.22.1")
-    api("com.google.guava:guava:33.6.0-android")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
     val journalist = "1.0.12"

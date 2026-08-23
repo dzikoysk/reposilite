@@ -16,8 +16,8 @@
 
 package com.reposilite.auth
 
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.reposilite.auth.api.Credentials
 import com.reposilite.auth.api.SessionDetails
 import com.reposilite.auth.application.BruteForceProtectionSettings
@@ -50,20 +50,18 @@ class AuthenticationFacade(
 ) : Journalist, Facade {
 
     private val authenticationCache: Cache<Credentials, AccessTokenDto> =
-        CacheBuilder
+        Caffeine
             .newBuilder()
             .maximumSize(16)
-            .concurrencyLevel(2)
             .expireAfterAccess(1, MINUTES)
             .build()
 
     private val failedAttempts: Cache<String, FailedAttempt> by lazy {
-        CacheBuilder
+        Caffeine
             .newBuilder()
-            .concurrencyLevel(2)
             .expireAfterWrite(1, HOURS)
             .build()
-        }
+    }
 
     fun registerAuthenticator(authenticator: Authenticator) {
         this.authenticators.add(authenticator)

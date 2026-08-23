@@ -29,6 +29,7 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val REMOTE_VERSION_CHECK_PROPERTY = "reposilite.status.remote-version-check"
 
@@ -50,8 +51,10 @@ internal class StatusFacadeTest {
 
     @Test
     fun `should return remote version once available`() {
+        val requests = AtomicInteger()
         val versionServer = HttpServer.create(InetSocketAddress(InetAddress.getByName("127.0.0.1"), 0), 0)
         versionServer.createContext("/") { exchange ->
+            requests.incrementAndGet()
             VERSION.toByteArray().also { version ->
                 exchange.sendResponseHeaders(200, version.size.toLong())
                 exchange.responseBody.use { it.write(version) }
@@ -67,6 +70,8 @@ internal class StatusFacadeTest {
             }
 
             assertThat(status.latestVersion).isEqualTo(VERSION)
+            repeat(10) { assertThat(statusFacade.getLatestVersion()).isEqualTo(VERSION) }
+            assertThat(requests).hasValue(1)
         } finally {
             versionServer.stop(0)
         }
@@ -81,6 +86,15 @@ internal class StatusFacadeTest {
         } finally {
             System.clearProperty(REMOTE_VERSION_CHECK_PROPERTY)
         }
+    }
+
+    @Test
+    fun `should keep only the latest status snapshots`() {
+        val statusFacade = createStatusFacade("https://example.com")
+
+        repeat(20) { statusFacade.recordStatusSnapshot() }
+
+        assertThat(statusFacade.getLatestStatusSnapshots()).hasSize(12)
     }
 
     private fun createStatusFacade(remoteVersionUrl: String): StatusFacade {
