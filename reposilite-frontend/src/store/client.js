@@ -73,16 +73,22 @@ const createClient = (defaultName, defaultSecret) => {
       }
     },
     statistics: {
-      allResolved() {
-        return get("/api/statistics/resolved/all")
+      allResolved(dateRange = {}) {
+        const query = new URLSearchParams()
+        if (dateRange.from) query.set("from", dateRange.from)
+        if (dateRange.to) query.set("to", dateRange.to)
+        const suffix = query.size ? `?${query}` : ''
+        return get(`/api/statistics/resolved/all${suffix}`)
       },
-      resolvedEntries(limit, repository, phrase, offset = 0) {
+      resolvedEntries(limit, repository, phrase, offset = 0, dateRange = {}) {
         const query = new URLSearchParams({
           limit,
           offset
         })
         if (repository) query.set("repository", repository)
         if (phrase) query.set("phrase", phrase)
+        if (dateRange.from) query.set("from", dateRange.from)
+        if (dateRange.to) query.set("to", dateRange.to)
         return get(`/api/statistics/resolved/entries?${query}`)
       }
     },

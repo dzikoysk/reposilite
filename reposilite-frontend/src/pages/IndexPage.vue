@@ -132,7 +132,10 @@ const selectHomepage = () =>
             aria-labelledby="main-tab-statistics"
             :val="'Statistics'"
           >
-            <StatisticsView v-if="selectedTab == 'Statistics'" />
+            <StatisticsView
+              v-if="selectedTab == 'Statistics'"
+              @goto="selectedTab = $event"
+            />
           </TabPanel>
           <TabPanel
             v-show="isManager"

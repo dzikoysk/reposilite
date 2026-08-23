@@ -23,6 +23,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.maven.api.GAV_MAX_LENGTH
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
+import com.reposilite.shared.DateRange
 import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
@@ -244,21 +245,22 @@ internal class SqlStatisticsRepository(
     override fun findResolvedEntries(
         repository: String?,
         phrase: String,
-        from: LocalDate,
+        dateRange: DateRange,
         limit: Int,
         offset: Long
     ): List<ResolvedStatisticsEntry> =
         transaction(database) {
             val resolvedSum = ResolvedTable.count.sum()
             val criteria = listOfNotNull<Op<Boolean>>(
-                ResolvedTable.date greaterEq from,
+                dateRange.from?.let { ResolvedTable.date greaterEq it },
+                dateRange.to?.let { ResolvedTable.date lessEq it },
                 phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav.lowerCase() like it.toContainsPattern() },
                 repository?.let { IdentifierTable.repository eq it }
-            )
+            ).let { if (it.isEmpty()) Op.TRUE else AndOp(it) }
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .select(IdentifierTable.repository, IdentifierTable.gav, resolvedSum)
-                .where(AndOp(criteria))
+                .where(criteria)
                 .groupBy(IdentifierTable.id, IdentifierTable.repository, IdentifierTable.gav)
                 .having { resolvedSum greater 0L }
                 .orderBy(
@@ -272,11 +274,16 @@ internal class SqlStatisticsRepository(
                 .map { ResolvedStatisticsEntry(it[IdentifierTable.repository], it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
-    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(from: LocalDate): Map<String, Map<LocalDate, Long>> =
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(dateRange: DateRange): Map<String, Map<LocalDate, Long>> =
         transaction(database) {
+            val criteria = listOfNotNull<Op<Boolean>>(
+                dateRange.from?.let { ResolvedTable.date greaterEq it },
+                dateRange.to?.let { ResolvedTable.date lessEq it }
+            ).let { if (it.isEmpty()) Op.TRUE else AndOp(it) }
+
             ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
                 .select(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
-                .where { ResolvedTable.date greaterEq from }
+                .where(criteria)
                 .groupBy(IdentifierTable.repository, ResolvedTable.date)
                 .asSequence()
                 .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }

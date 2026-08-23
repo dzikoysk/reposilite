@@ -17,6 +17,7 @@
 package com.reposilite.statistics
 
 import com.reposilite.maven.api.Identifier
+import com.reposilite.shared.DateRange
 import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics
@@ -35,6 +36,17 @@ import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertOk
 
 internal class StatisticsFacadeTest : StatisticsSpecification() {
+
+    @Test
+    fun `should keep the requested lower date boundary`() {
+        assertThat(MonthlyDateIntervalProvider.createTimeSeries(
+            from = LocalDate.of(2026, 6, 23),
+            to = LocalDate.of(2026, 8, 23)
+        )).containsExactly(
+            LocalDate.of(2026, 8, 1),
+            LocalDate.of(2026, 7, 1)
+        )
+    }
 
     @Test
     fun `should increase records after saving the bulk`() {
@@ -142,6 +154,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         val today = LocalDate.now()
         useResolvedRequests(mapOf(identifier to 2), today)
         useResolvedRequests(mapOf(identifier to 3), today.minusDays(1))
+        useResolvedRequests(mapOf(identifier to 4), today.minusDays(120))
         useResolvedRequests(mapOf(identifier to 7), today.minusYears(2))
         useResolvedRequests(
             mapOf(Identifier("releases", "com/LiteralXXMatch.jar") to 20),
@@ -150,22 +163,48 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
 
         // when: entries and all-time phrase results are requested using different casing
         val entries = assertOk(statisticsFacade.findResolvedEntries(null, "%_MATCH"))
+        val currentPeriodEntries = assertOk(statisticsFacade.findResolvedEntries(
+            repository = null,
+            phrase = "%_MATCH",
+            dateRange = DateRange(from = today, to = today)
+        ))
+        val historicalEntries = assertOk(statisticsFacade.findResolvedEntries(
+            repository = null,
+            phrase = "%_MATCH",
+            dateRange = DateRange(from = today.minusDays(120), to = today.minusDays(1))
+        ))
+        val allTimeEntries = assertOk(statisticsFacade.findResolvedEntries(
+            repository = null,
+            phrase = "%_MATCH",
+            dateRange = DateRange(to = today)
+        ))
         val phrase = assertOk(statisticsFacade.findResolvedRequestsByPhrase("releases", "%_MATCH"))
         val all = assertOk(statisticsFacade.getAllResolvedStatistics())
+        val allTime = assertOk(statisticsFacade.getAllResolvedStatistics(DateRange(to = today)))
 
         // then: current entries are aggregated, while the existing phrase API remains all-time
         assertThat(entries).isEqualTo(
             ResolvedEntriesResponse(
                 page = ResolvedEntriesPage(limit = 100, offset = 0, hasMore = false, nextOffset = null),
-                entries = listOf(ResolvedStatisticsEntry("releases", "com/Literal%_Match.jar", 5))
+                entries = listOf(ResolvedStatisticsEntry("releases", "com/Literal%_Match.jar", 9))
             )
         )
         assertThat(phrase).isEqualTo(
             ResolvedCountResponse(
-                sum = 12,
-                requests = listOf(ResolvedEntry("com/Literal%_Match.jar", 12))
+                sum = 16,
+                requests = listOf(ResolvedEntry("com/Literal%_Match.jar", 16))
             )
         )
+        assertThat(currentPeriodEntries.entries).containsExactly(
+            ResolvedStatisticsEntry("releases", "com/Literal%_Match.jar", 2)
+        )
+        assertThat(historicalEntries.entries).containsExactly(
+            ResolvedStatisticsEntry("releases", "com/Literal%_Match.jar", 7)
+        )
+        assertThat(allTimeEntries.entries).containsExactly(
+            ResolvedStatisticsEntry("releases", "com/Literal%_Match.jar", 16)
+        )
+        assertThat(all.repositories.single().data).hasSize(365)
         assertThat(all).isEqualTo(
             AllResolvedResponse(
                 interval = DAILY,
@@ -177,6 +216,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
                                 when (date) {
                                     today -> 22L
                                     today.minusDays(1) -> 3L
+                                    today.minusDays(120) -> 4L
                                     else -> 0L
                                 }
                             }
@@ -186,6 +226,45 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
                 )
             )
         )
+        assertThat(allTime.repositories.single().data.sumOf { it.count }).isEqualTo(36)
+        assertThat(allTime.repositories.single().data.first()).isEqualTo(
+            IntervalRecord(STATISTICS_EARLIEST_DATE.toUTCMillis(), 0)
+        )
+        assertThat(allTime.repositories.single().data.last()).isEqualTo(
+            IntervalRecord(today.toUTCMillis(), 22)
+        )
+    }
+
+    @Test
+    fun `should cap statistics ranges to the Reposilite 3 lifetime`() {
+        val identifier = Identifier("releases", "com/reposilite.jar")
+        val latestDate = LocalDate.now().plusDays(1)
+        useResolvedRequests(mapOf(identifier to 1), STATISTICS_EARLIEST_DATE.minusDays(1))
+        useResolvedRequests(mapOf(identifier to 2), STATISTICS_EARLIEST_DATE)
+        useResolvedRequests(mapOf(identifier to 3), latestDate)
+        useResolvedRequests(mapOf(identifier to 4), latestDate.plusDays(1))
+
+        val entries = assertOk(statisticsFacade.findResolvedEntries(null, dateRange = DateRange(to = LocalDate.MAX)))
+        val timeSeries = assertOk(statisticsFacade.getAllResolvedStatistics(DateRange(from = LocalDate.MIN)))
+        val records = timeSeries.repositories.single().data
+
+        assertThat(entries.entries).containsExactly(
+            ResolvedStatisticsEntry("releases", "com/reposilite.jar", 5)
+        )
+        assertThat(records.sumOf(IntervalRecord::count)).isEqualTo(5)
+        assertThat(records.first()).isEqualTo(IntervalRecord(STATISTICS_EARLIEST_DATE.toUTCMillis(), 2))
+        assertThat(records.last()).isEqualTo(IntervalRecord(latestDate.toUTCMillis(), 3))
+    }
+
+    @Test
+    fun `should reject inverted statistics date ranges`() {
+        val invertedRange = DateRange(
+            from = LocalDate.now(),
+            to = LocalDate.now().minusDays(1)
+        )
+
+        assertThat(statisticsFacade.findResolvedEntries(null, dateRange = invertedRange).isErr).isTrue()
+        assertThat(statisticsFacade.getAllResolvedStatistics(invertedRange).isErr).isTrue()
     }
 
     @Test

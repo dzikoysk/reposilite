@@ -141,30 +141,44 @@ setInterval(() => {
   uptime += 5000
 }, 5000)
 
-const statisticsBaseDate = new Date().getTime() - (19 * 86400000)
+const statisticsBaseDate = new Date().getTime() - (399 * 86400000)
 const statisticsSeries = [
   {
     name: 'Releases',
-    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 400, {
       min: 10,
       max: 60
     })
   },
   {
     name: 'Snapshots',
-    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 400, {
       min: 10,
       max: 20
     })
   },
   {
     name: 'Maven Central',
-    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 400, {
       min: 10,
       max: 15
     })
   }
 ]
+
+const filterStatisticsData = (data, query) => {
+  const hasRange = query.from !== undefined || query.to !== undefined
+  const from = query.from
+    ? new Date(query.from).getTime()
+    : hasRange ? null : new Date().getTime() - (364 * 86400000)
+  const to = query.to
+    ? new Date(query.to).getTime()
+    : null
+
+  return data.filter(record =>
+    (from === null || record.date >= from) &&
+    (to === null || record.date <= to))
+}
 
 const resolvedArtifacts = {
   releases: [
@@ -452,12 +466,16 @@ application
   .get("/api/statistics/resolved/all", (req, res) => {
     authorized(
       req,
-      () =>
+      () => {
         res.send({
           statisticsEnabled: true,
           interval: 'DAILY',
-          repositories: statisticsSeries
-        }),
+          repositories: statisticsSeries.map(repository => ({
+            ...repository,
+            data: filterStatisticsData(repository.data, req.query)
+          }))
+        })
+      },
       () => invalidCredentials(res)
     )
   })
@@ -474,6 +492,7 @@ application
       () => {
         const limit = parseInt(req.query.limit, 10) || 20
         const offset = parseInt(req.query.offset, 10) || 0
+        const rangeMultiplier = filterStatisticsData(statisticsSeries[0].data, req.query).length / 365
         const phrase = (req.query.phrase || "").toLowerCase()
         const repositories = req.query.repository
           ? [req.query.repository]
@@ -482,7 +501,7 @@ application
           .flatMap(repository =>
             (resolvedArtifacts[repository] || [])
               .filter(entry => entry.gav.toLowerCase().includes(phrase))
-              .map(entry => ({ repository, path: entry.gav, count: entry.count })))
+              .map(entry => ({ repository, path: entry.gav, count: Math.round(entry.count * rangeMultiplier) })))
           .sort((a, b) => b.count - a.count || a.repository.localeCompare(b.repository) || a.path.localeCompare(b.path))
         const page = matches.slice(offset, offset + limit)
         const nextOffset = offset + limit
