@@ -77,10 +77,18 @@ dependencies {
 
     val awssdk = "2.46.3"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
-    implementation("software.amazon.awssdk:s3:$awssdk")
+    // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
+    implementation("software.amazon.awssdk:s3:$awssdk") {
+        exclude(group = "software.amazon.awssdk", module = "apache5-client")
+        exclude(group = "software.amazon.awssdk", module = "netty-nio-client")
+    }
     // STS is needed so it Web Identity Tokens can be used
     // See https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
-    implementation("software.amazon.awssdk:sts:$awssdk")
+    implementation("software.amazon.awssdk:sts:$awssdk") {
+        exclude(group = "software.amazon.awssdk", module = "apache5-client")
+        exclude(group = "software.amazon.awssdk", module = "netty-nio-client")
+    }
+    implementation("software.amazon.awssdk:url-connection-client:$awssdk")
 
     val awsSdkV1 = "1.12.797"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
