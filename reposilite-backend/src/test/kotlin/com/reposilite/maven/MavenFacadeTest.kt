@@ -72,6 +72,18 @@ internal class MavenFacadeTest : MavenSpecification() {
         )),
         RepositorySettings("PROXIED-BLANK-EXTENSIONS", visibility = HIDDEN, proxied = mutableListOf(
             MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, allowedExtensions = listOf(""))
+        )),
+        RepositorySettings("PROXIED-BLOCKED-GROUPS", visibility = HIDDEN, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, blockedGroups = listOf("com.blocked"))
+        )),
+        RepositorySettings("PROXIED-ALLOW-AND-BLOCK", visibility = HIDDEN, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, allowedGroups = listOf("com.both"), blockedGroups = listOf("com.both"))
+        )),
+        RepositorySettings("PROXIED-BLANK-BLOCKED-GROUPS", visibility = HIDDEN, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, blockedGroups = listOf("", "com.blocked"))
+        )),
+        RepositorySettings("PROXIED-PADDED-BLOCKED-GROUPS", visibility = HIDDEN, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, blockedGroups = listOf(" com.blocked "))
         ))
     )
 
@@ -307,6 +319,98 @@ internal class MavenFacadeTest : MavenSpecification() {
 
             // then: it is rejected by the extension filter
             assertError(response)
+        }
+
+        @Test
+        fun `should not request a blocked group from the mirror`() {
+            // given: an artifact the upstream would happily serve, in a blocked group
+            val file = FileSpec("PROXIED-BLOCKED-GROUPS", "/com/blocked/artifact.jar", REMOTE_CONTENT)
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: it is not found and no upstream request is issued
+            assertError(response)
+            assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY/com/blocked/artifact.jar"]).isNull()
+        }
+
+        @Test
+        fun `should serve a locally stored artifact from a blocked group`() {
+            // given: an artifact in a blocked group already present in local storage
+            val file = addFileToRepository(FileSpec("PROXIED-BLOCKED-GROUPS", "/com/blocked/local.jar", "local-content"))
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: it resolves from local storage without contacting the mirror
+            val (_, data) = assertOk(response)
+            assertThat(data.readBytes().decodeToString()).isEqualTo("local-content")
+            assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY/com/blocked/local.jar"]).isNull()
+        }
+
+        @Test
+        fun `should block a group present in both allowed and blocked lists`() {
+            // given: a group named in allowedGroups and blockedGroups alike
+            val file = FileSpec("PROXIED-ALLOW-AND-BLOCK", "/com/both/artifact.jar", REMOTE_CONTENT)
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: block wins
+            assertError(response)
+            assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY/com/both/artifact.jar"]).isNull()
+        }
+
+        @Test
+        fun `should ignore blank entries in blocked groups`() {
+            // given: a blockedGroups list containing a blank alongside a real entry
+            val file = FileSpec("PROXIED-BLANK-BLOCKED-GROUPS", "/com/unrelated/artifact.jar", REMOTE_CONTENT)
+
+            // when: an unrelated group is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: the blank entry does not block it
+            val (_, data) = assertOk(response)
+            assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
+        }
+
+        @Test
+        fun `should still block real entries alongside a blank entry`() {
+            // given: the same list, now requesting the genuinely blocked group
+            val file = FileSpec("PROXIED-BLANK-BLOCKED-GROUPS", "/com/blocked/artifact.jar", REMOTE_CONTENT)
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: it is blocked and no request is issued
+            assertError(response)
+            assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY/com/blocked/artifact.jar"]).isNull()
+        }
+
+        @Test
+        fun `should block a group sharing a raw prefix with a blocked group`() {
+            // given: blockedGroups contains 'com.blocked' and the request is for 'com.blockedcorp'
+            val file = FileSpec("PROXIED-BLOCKED-GROUPS", "/com/blockedcorp/artifact.jar", REMOTE_CONTENT)
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: it is blocked too
+            assertError(response)
+            assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY/com/blockedcorp/artifact.jar"]).isNull()
+        }
+
+        @Test
+        fun `should block a whitespace padded group entry`() {
+            // given: a blockedGroups entry padded with whitespace, as the settings UI easily produces
+            val file = FileSpec("PROXIED-PADDED-BLOCKED-GROUPS", "/com/blocked/artifact.jar", REMOTE_CONTENT)
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: the padding is ignored and the group is still blocked
+            assertError(response)
+            assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY/com/blocked/artifact.jar"]).isNull()
         }
 
         @Test

@@ -204,7 +204,8 @@ internal class MirrorService(
 
     private enum class DisallowedReason {
         EXTENSION,
-        GROUP
+        GROUP,
+        BLOCKED_GROUP
     }
 
     private fun isAllowed(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
@@ -225,10 +226,17 @@ internal class MirrorService(
 
     private fun isAllowedGroup(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
         when {
+            isBlockedGroup(config, gav) -> error(DisallowedReason.BLOCKED_GROUP)
             config.allowedGroups.none { it.isNotBlank() } -> ok()
-            config.allowedGroups.any { gav.toString().startsWith(it.replace('.', '/')) } -> ok()
+            config.allowedGroups.any { matchesGroup(it, gav) } -> ok()
             else -> error(DisallowedReason.GROUP)
         }
+
+    private fun isBlockedGroup(config: MirroredRepositorySettings, gav: Location): Boolean =
+        config.blockedGroups.any { it.isNotBlank() && matchesGroup(it.trim(), gav) }
+
+    private fun matchesGroup(entry: String, gav: Location): Boolean =
+        gav.toString().startsWith(entry.replace('.', '/'))
 
     override fun getLogger(): Logger =
         journalist.logger

@@ -92,6 +92,8 @@ data class MirroredRepositorySettings(
     val store: Boolean = false,
     @get:Doc(title = "Allowed Groups", description = "Allowed artifact groups. If none are given, all artifacts can be obtained from this mirror.")
     val allowedGroups: List<String> = listOf(),
+    @get:Doc(title = "Blocked Groups", description = "Artifact groups that are never requested from this mirror. Takes precedence over Allowed Groups. Matched as a path prefix, so 'com.acme' also blocks 'com.acmecorp' - prefer the most specific group you can.")
+    val blockedGroups: List<String> = listOf(),
     @get:Doc(title = "Allowed Extensions", description = "List of accepted file extensions. If none are given, all files can be obtained from this mirror. Use the special value '&lt;none&gt;' to permit files without an extension (e.g. native binaries).")
     val allowedExtensions: List<String> = listOf(".jar", ".war", ".aar", ".pom", ".xml", ".module", ".md5", ".sha1", ".sha256", ".sha512", ".asc"),
     @Min(0)
