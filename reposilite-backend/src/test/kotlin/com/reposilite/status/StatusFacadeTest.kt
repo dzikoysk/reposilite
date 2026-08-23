@@ -22,17 +22,34 @@ import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.status.api.InstanceStatusResponse
 import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
-import panda.std.reactive.toReference
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.time.Duration
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val REMOTE_VERSION_CHECK_PROPERTY = "reposilite.status.remote-version-check"
 
 internal class StatusFacadeTest {
+
+    private val executorSubmissions = AtomicInteger()
+    private val ioService = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "StatusFacadeTest | IO").apply { isDaemon = true }
+    }
+    private val trackedIoService = Executor { task ->
+        executorSubmissions.incrementAndGet()
+        ioService.execute(task)
+    }
+
+    @AfterEach
+    fun shutdownIoService() {
+        ioService.shutdownNow()
+    }
 
     @Test
     fun `should return null without waiting for remote version check`() {
@@ -45,6 +62,8 @@ internal class StatusFacadeTest {
 
             assertThat(status.version).isEqualTo(VERSION)
             assertThat(status.latestVersion).isNull()
+            assertThat(status.usedThreads).isEqualTo(3)
+            assertThat(status.maxThreads).isEqualTo(16)
         }
     }
 
@@ -67,6 +86,7 @@ internal class StatusFacadeTest {
             }
 
             assertThat(status.latestVersion).isEqualTo(VERSION)
+            assertThat(executorSubmissions).hasValue(1)
         } finally {
             versionServer.stop(0)
         }
@@ -88,11 +108,12 @@ internal class StatusFacadeTest {
 
         return StatusFacade(
             testEnv = false,
-            maxThreads = 16.toReference(),
+            threadPoolCapacity = { ThreadPoolCapacity(used = 3, max = 16) },
             status = { true },
             remoteVersionUrl = remoteVersionUrl,
             remoteClientProvider = HttpRemoteClientProvider(failureFacade),
-            failureFacade = failureFacade
+            failureFacade = failureFacade,
+            ioService = trackedIoService
         )
     }
 

@@ -70,6 +70,13 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // then: service should respond with valid instance dto
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body.version).isEqualTo(VERSION)
+        assertThat(response.body.usedThreads).isBetween(0, response.body.maxThreads)
+        assertThat(response.body.maxThreads).isEqualTo(
+            reposilite.localConfiguration.webThreadPool.get() +
+                reposilite.localConfiguration.ioThreadPool.get() +
+                1
+        )
+        assertThat(reposilite.webServer.getThreadPool()?.minThreads).isEqualTo(4)
     }
 
     @Test

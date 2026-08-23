@@ -31,7 +31,7 @@ internal class StatusCommand(private val statusFacade: StatusFacade) : Reposilit
             context.append("  Active: ${context.effect { GREEN_BOLD }}${statusFacade.isAlive()}${context.effect { RESET }}")
             context.append("  Uptime: ${TimeUtils.getPrettyUptime(statusFacade.getUptime())}")
             context.append("  Memory usage of process: ${TimeUtils.format(usedMemory)}M")
-            context.append("  Active threads in group: $usedThreads")
+            context.append("  Busy threads: $usedThreads / $maxThreads")
             context.append("  Recorded failures: $failuresCount")
         }
 

@@ -80,15 +80,24 @@ class Reposilite(
         alive.peek {
             alive.set(false)
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
-            scheduler.shutdown()
-            ioService.shutdown()
-            extensions.emitEvent(ReposiliteDisposeEvent(this))
-            webServer.stop()
-            databaseConnection.close()
-            scheduler.shutdownNow()
-            ioService.shutdownNow()
-            journalist.shutdown()
+            shutdownSafely("scheduler") { scheduler.shutdown() }
+            shutdownSafely("extensions") { extensions.emitEvent(ReposiliteDisposeEvent(this)) }
+            shutdownSafely("web server") { webServer.stop() }
+            shutdownSafely("IO executor") { ioService.shutdown() }
+            shutdownSafely("database") { databaseConnection.close() }
+            shutdownSafely("scheduler") { scheduler.shutdownNow() }
+            shutdownSafely("IO executor") { ioService.shutdownNow() }
+            shutdownSafely("journalist") { journalist.shutdown() }
         }
+
+    private inline fun shutdownSafely(component: String, action: () -> Unit) {
+        try {
+            action()
+        } catch (exception: Exception) {
+            logger.error("Failed to shut down $component")
+            logger.exception(exception)
+        }
+    }
 
     override fun getLogger(): Logger =
         journalist.logger

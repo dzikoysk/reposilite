@@ -16,15 +16,17 @@
 
 package com.reposilite.shared.extensions
 
-import io.javalin.util.ConcurrencyUtil
+import java.util.concurrent.AbstractExecutorService
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 
 open class NamedThreadFactory(private val prefix: String) : ThreadFactory {
 
@@ -37,15 +39,67 @@ open class NamedThreadFactory(private val prefix: String) : ThreadFactory {
 }
 
 fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorService =
-    when (LoomExtensions.isLoomAvailable()) {
-        true -> ConcurrencyUtil.executorService("$prefix (virtual) - ", useLoom = false) // disable loom for now
-        false -> ThreadPoolExecutor(
-            min, max,
-            0L, MILLISECONDS,
-            LinkedBlockingQueue(),
-            NamedThreadFactory("$prefix ($max) - ")
-        )
-    }
+    QueuedThreadPoolExecutorService(newQueuedThreadPool(min, max, prefix).apply {
+        reservedThreads = 0
+        start()
+    })
 
 fun newSingleThreadScheduledExecutor(prefix: String): ScheduledExecutorService =
-    ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - "))
+    ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - ")).apply {
+        removeOnCancelPolicy = true
+        executeExistingDelayedTasksAfterShutdownPolicy = false
+    }
+
+internal fun newQueuedThreadPool(min: Int, max: Int, prefix: String): QueuedThreadPool {
+    require(max > 0) { "Maximum thread pool size must be greater than 0" }
+    require(min in 0..max) { "Minimum thread pool size must be between 0 and $max" }
+
+    return QueuedThreadPool(max, min, 60_000).apply {
+        name = "$prefix ($max)"
+    }
+}
+
+internal fun ExecutorService.asQueuedThreadPool(): QueuedThreadPool? =
+    (this as? QueuedThreadPoolExecutorService)?.threadPool
+
+private class QueuedThreadPoolExecutorService(
+    val threadPool: QueuedThreadPool
+) : AbstractExecutorService() {
+
+    private val shutdown = AtomicBoolean(false)
+    private val terminated = CountDownLatch(1)
+
+    override fun execute(command: Runnable) {
+        if (isShutdown) {
+            throw RejectedExecutionException(command.toString())
+        }
+        threadPool.execute(command)
+    }
+
+    override fun shutdown() {
+        if (shutdown.compareAndSet(false, true)) {
+            try {
+                threadPool.stop()
+            } finally {
+                terminated.countDown()
+            }
+        }
+    }
+
+    override fun shutdownNow(): MutableList<Runnable> {
+        shutdown()
+        return mutableListOf()
+    }
+
+    override fun isShutdown(): Boolean =
+        shutdown.get()
+
+    override fun isTerminated(): Boolean =
+        terminated.count == 0L && !threadPool.isRunning
+
+    override fun awaitTermination(timeout: Long, unit: TimeUnit): Boolean {
+        terminated.await(timeout, unit)
+        return isTerminated
+    }
+
+}

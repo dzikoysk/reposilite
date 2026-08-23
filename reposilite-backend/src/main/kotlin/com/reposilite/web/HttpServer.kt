@@ -20,29 +20,32 @@ import com.reposilite.Reposilite
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.extensions.error
+import com.reposilite.shared.extensions.newQueuedThreadPool
 import com.reposilite.storage.api.UnsupportedLocationException
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
-import io.javalin.util.ConcurrencyUtil
 import org.eclipse.jetty.io.EofException
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 
 class HttpServer {
 
     private var javalin: Javalin? = null
+    private var threadPool: QueuedThreadPool? = null
 
     fun start(reposilite: Reposilite) {
         val extensionsManagement = reposilite.extensions
         val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
 
-        val webThreadPool = ConcurrencyUtil.jettyThreadPool(
-            name = "Reposilite | Web (${localConfiguration.webThreadPool.get()}) -",
-            minThreads = localConfiguration.webThreadPool.get(),
-            maxThreads = localConfiguration.webThreadPool.get(),
-            useLoom = false
+        val maxThreads = localConfiguration.webThreadPool.get()
+        val webThreadPool = newQueuedThreadPool(
+            min = minOf(4, maxThreads),
+            max = maxThreads,
+            prefix = "Reposilite | Web"
         )
+        this.threadPool = webThreadPool
 
         this.javalin = Javalin.start { config ->
             config.jetty.host = reposilite.parameters.hostname
@@ -73,5 +76,8 @@ class HttpServer {
 
     fun isAlive(): Boolean =
         javalin?.jettyServer()?.server()?.isStarted ?: false
+
+    internal fun getThreadPool(): QueuedThreadPool? =
+        threadPool
 
 }

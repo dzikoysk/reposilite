@@ -29,6 +29,7 @@ import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.web.api.RoutingSetupEvent
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 @Plugin(name = "shared-configuration", dependencies = ["failure", "configuration", "local-configuration"])
 class SharedConfigurationPlugin : ReposilitePlugin() {
@@ -60,14 +61,23 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
         }
 
         if (sharedConfigurationFacade.isMutable()) {
+            val updateInProgress = AtomicBoolean(false)
             val watcher = reposilite().scheduler.scheduleWithFixedDelay({
-                if (!sharedConfigurationFacade.isUpdateRequired()) {
+                if (!updateInProgress.compareAndSet(false, true)) {
                     return@scheduleWithFixedDelay
                 }
 
-                logger.info("Propagation | Shared configuration has been changed in ${sharedConfigurationFacade.getProviderName()}, updating current instance...")
-                sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationFacade.fetchConfiguration())
-                logger.info("Propagation | Sources have been updated successfully")
+                reposilite().ioService.execute {
+                    try {
+                        if (sharedConfigurationFacade.isUpdateRequired()) {
+                            logger.info("Propagation | Shared configuration has been changed in ${sharedConfigurationFacade.getProviderName()}, updating current instance...")
+                            sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationFacade.fetchConfiguration())
+                            logger.info("Propagation | Sources have been updated successfully")
+                        }
+                    } finally {
+                        updateInProgress.set(false)
+                    }
+                }
             }, 10, 10, TimeUnit.SECONDS)
 
             event { _: ReposiliteDisposeEvent ->
