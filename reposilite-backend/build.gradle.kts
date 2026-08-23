@@ -157,10 +157,11 @@ dependencies {
 tasks.withType<ShadowJar> {
     archiveFileName.set("reposilite-${archiveVersion.get()}.jar")
     minimize {
+        // PEM decryption discovers algorithms through the provider at runtime, while the higher-level APIs are statically reachable.
+        exclude(dependency("org.bouncycastle:bcprov.*"))
         exclude(dependency("org.eclipse.jetty:.*"))
         exclude(dependency("org.eclipse.jetty.http2:.*"))
         exclude(dependency("org.eclipse.jetty.websocket:.*"))
-        exclude(dependency("org.bouncycastle:.*"))
         exclude(dependency("com.fasterxml.woodstox:woodstox-core:.*"))
         exclude(dependency("commons-logging:commons-logging:.*"))
         exclude(dependency("org.jetbrains.kotlin:kotlin-reflect:.*"))
