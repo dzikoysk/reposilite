@@ -47,6 +47,8 @@ List of available parameters:
 | `--enable-migrations`                                             | Runs set of optional migrations. Currently available migrations: <br/> 1. 001 Change `repository` identifier size from 32 to 64. This migration is required to support longer repository names |                           -                            |
 | `--test-env`<br/>`--debug`<br/>`-d`                               | Enables debug mode                                                                                                                                                                             |                           -                            |
 
+> Note: Reposilite checks `maven.reposilite.com` for dashboard update information. Offline installations can disable this request with `-Dreposilite.status.remote-version-check=false`.
+
 #### Configuration modes
 
 Configuration mode describes how the given configuration should be processed by Reposilite.
@@ -58,9 +60,9 @@ Sometimes you want to keep your configuration file immutable,
 and to give a possibility to control this process, 
 configuration modes where introduced. Supported configuration modes:
 
-| Mode | Description |
-| :--: | :--: |
-| `auto` | Processes and updates configuration file automatically if there are missing entries |
+|  Mode  |                                                                  Description                                                                  |
+|:------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
+| `auto` |                              Processes and updates configuration file automatically if there are missing entries                              |
 | `none` | Disables automatic updates of configuration file, user has update such files manually in case of new properties introduced in further updates |
 
 ## Local configuration
@@ -149,10 +151,10 @@ debugEnabled: false
 
 You can also updated those properties using system properties or environment variables in following format:
 
-| Mode | Prefix | Example |
-| :--: | :--: | :--: |
-| System properties | `reposilite.local.` | `-Dreposilite.local.sslEnabled=true` |
-| Environment variables | `REPOSILITE_LOCAL_` | `REPOSILITE_LOCAL_SSLENABLED=true` |
+|         Mode          |       Prefix        |               Example                |
+|:---------------------:|:-------------------:|:------------------------------------:|
+|   System properties   | `reposilite.local.` | `-Dreposilite.local.sslEnabled=true` |
+| Environment variables | `REPOSILITE_LOCAL_` |  `REPOSILITE_LOCAL_SSLENABLED=true`  |
 
 ## Shared configuration
 

@@ -409,7 +409,7 @@ application
       () => {
         res.send({
           version: '3.2.0',
-          latestVersion: '<unknown>',
+          latestVersion: null,
           uptime: uptime,
           usedMemory: memory,
           maxMemory: '32',

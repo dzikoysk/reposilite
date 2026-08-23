@@ -46,13 +46,19 @@ import java.time.format.DateTimeParseException
 
 interface RemoteClientProvider {
 
-    fun createClient(journalist: Journalist, proxy: Proxy?): RemoteClient
+    val defaultClient: RemoteClient
+
+    fun createClient(proxy: Proxy): RemoteClient
 
 }
 
-object HttpRemoteClientProvider : RemoteClientProvider {
+class HttpRemoteClientProvider(private val journalist: Journalist) : RemoteClientProvider {
 
-    override fun createClient(journalist: Journalist, proxy: Proxy?): RemoteClient =
+    override val defaultClient: RemoteClient by lazy {
+        HttpRemoteClient(journalist, null)
+    }
+
+    override fun createClient(proxy: Proxy): RemoteClient =
         HttpRemoteClient(journalist, proxy)
 
 }
@@ -66,8 +72,8 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
 
     override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse> =
         createRequest(HttpMethods.HEAD, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
-            .flatMap {
-                it.execute { response ->
+            .flatMap { request ->
+                request.execute { response ->
                     response.disconnect()
                     val headers = response.headers
 
@@ -88,7 +94,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                         ?.let {
                             try {
                                 ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()
-                            } catch (dateTimeParsedException: DateTimeParseException) {
+                            } catch (_: DateTimeParseException) {
                                 null
                             }
                         }
@@ -107,11 +113,10 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
             .flatMap { it.execute { response -> response.content.asSuccess() } }
     }
 
-
     private fun createRequest(method: String, uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<HttpRequest, ErrorResponse> {
         val url = try {
             GenericUrl(uri)
-        }catch (exception: IllegalArgumentException) {
+        } catch (_: IllegalArgumentException) {
             return badRequestError("Invalid remote URI: $uri")
         }
         val request = requestFactory.buildRequest(method, url, null)

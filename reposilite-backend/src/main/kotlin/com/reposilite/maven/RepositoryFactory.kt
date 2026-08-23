@@ -86,7 +86,8 @@ internal class RepositoryFactory(
                 configurationSource.httpProxy
                     .takeIf { it.isNotEmpty() }
                     ?.let { createHttpProxy(it) }
-                    .let { remoteClientProvider.createClient(failureFacade, it) }
+                    ?.let { remoteClientProvider.createClient(it) }
+                    ?: remoteClientProvider.defaultClient
         }
 
         return MirrorHost(host, configurationSource, remoteClient)

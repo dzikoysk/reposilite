@@ -25,7 +25,10 @@ import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
+import com.reposilite.shared.http.HttpRemoteClientProvider
+import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.web.HttpServer
+import org.jetbrains.exposed.v1.jdbc.Database
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.asError
@@ -45,7 +48,8 @@ class Reposilite(
     val extensions: Extensions
 ) : Facade, Journalist {
 
-    val database = databaseConnection.database
+    val database: Database = databaseConnection.database
+    val remoteClientProvider: RemoteClientProvider = HttpRemoteClientProvider(journalist)
 
     private val alive = AtomicBoolean(true)
 

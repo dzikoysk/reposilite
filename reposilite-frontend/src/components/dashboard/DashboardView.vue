@@ -52,9 +52,6 @@ client.value.statistics.allResolved()
 
 fetchTokens()
 
-const isUpToDate = computed(() =>
-  instanceStatus.value && instanceStatus.value.version === instanceStatus.value.latestVersion)
-
 const prettyUptime = (seconds) => {
   const d = Math.floor(seconds / 86400)
   const h = Math.floor((seconds % 86400) / 3600)
@@ -185,7 +182,7 @@ const plural = (count, singular, pluralText) =>
             <dd class="text-lg font-semibold flex items-center gap-2 tabular-nums">
               <VersionSponsors
                 :version="instanceStatus.version"
-                :up-to-date="isUpToDate"
+                :latest-version="instanceStatus.latestVersion"
                 :sponsors="sponsors"
               />
             </dd>

@@ -23,11 +23,11 @@ import com.google.common.base.Suppliers
 import com.google.common.collect.EvictingQueue
 import com.reposilite.VERSION
 import com.reposilite.plugin.api.Facade
+import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
-import panda.std.Result
 import panda.std.reactive.Reference
-import panda.utilities.IOUtils
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
@@ -37,31 +37,35 @@ class StatusFacade(
     private val maxThreads: Reference<Int>,
     private val status: () -> Boolean,
     private val remoteVersionUrl: String,
+    private val remoteClientProvider: RemoteClientProvider,
     private val failureFacade: FailureFacade
 ) : Facade {
 
     private val cachedStatusSnapshots = EvictingQueue.create<StatusSnapshot>(12)
 
-    private val cachedLatestVersion: Supplier<Result<String, String>> =
+    private val cachedLatestVersion: Supplier<CompletableFuture<String?>> =
         Suppliers.memoizeWithExpiration({
             when {
-                testEnv || !remoteVersionCheckEnabled ->
-                    Result.ok(VERSION)
+                testEnv ->
+                    CompletableFuture.completedFuture(VERSION)
+                System.getProperty("reposilite.status.remote-version-check", "true") != "true" ->
+                    CompletableFuture.completedFuture(null)
                 else ->
-                    IOUtils
-                        .fetchContent(remoteVersionUrl)
-                        .onError {
-                            when (it.message?.contains("java.security.NoSuchAlgorithmException")) {
-                                true -> failureFacade.logger.warn("Cannot load SSL context for HTTPS request due to the lack of available memory")
-                                else -> failureFacade.logger.warn("$remoteVersionUrl is unavailable: ${it.message}")
+                    CompletableFuture.supplyAsync {
+                        remoteClientProvider
+                            .defaultClient
+                            .get(remoteVersionUrl, null, 3, 15)
+                            .onError {
+                                when (it.message.contains("java.security.NoSuchAlgorithmException")) {
+                                    true -> failureFacade.logger.warn("Cannot load SSL context for HTTPS request due to the lack of available memory")
+                                    else -> failureFacade.logger.warn("$remoteVersionUrl is unavailable: ${it.message}")
+                                }
                             }
-                        }
-                        .mapErr { "<unknown>" }
+                            .map { stream -> stream.bufferedReader().use { it.readText() } }
+                            .orNull()
+                    }
             }
         }, 1, TimeUnit.HOURS)
-
-    private val remoteVersionCheckEnabled: Boolean
-        get() = System.getProperty("reposilite.status.remote-version-check", "true") == "true"
 
     init {
         recordStatusSnapshot()
@@ -79,7 +83,7 @@ class StatusFacade(
     fun fetchInstanceStatus(): InstanceStatusResponse =
         InstanceStatusResponse(
             version = VERSION,
-            latestVersion = cachedLatestVersion.get().fold({ it }, { it }),
+            latestVersion = cachedLatestVersion.get().getNow(null),
             uptime = System.currentTimeMillis() - getUptime(),
             usedMemory = getUsedMemory(),
             maxMemory = (Runtime.getRuntime().maxMemory() / 1024 / 1024).toInt(),
@@ -94,8 +98,10 @@ class StatusFacade(
     private fun getUsedMemory(): Double =
         (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0
 
-    internal fun getLatestVersion(): Result<String, String> =
-        cachedLatestVersion.get()
+    internal fun getLatestVersion(): String? =
+        cachedLatestVersion
+            .get()
+            .getNow(null)
 
     fun getLatestStatusSnapshots(): Array<StatusSnapshot> =
         cachedStatusSnapshots.toTypedArray()

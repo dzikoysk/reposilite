@@ -16,7 +16,6 @@
 
 package com.reposilite.shared.http
 
-import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.FileDetails
 import panda.std.Result
@@ -26,10 +25,13 @@ import java.net.Proxy
 private typealias HeadHandler = (String, RemoteCredentials?, Int, Int) -> Result<FileDetails, ErrorResponse>
 private typealias GetHandler = (String, RemoteCredentials?, Int, Int) -> Result<InputStream, ErrorResponse>
 
-class FakeRemoteClientProvider(private val headHandler: HeadHandler, private val getHandler: GetHandler) : RemoteClientProvider {
+class FakeRemoteClientProvider(headHandler: HeadHandler, getHandler: GetHandler) : RemoteClientProvider {
 
-    override fun createClient(journalist: Journalist, proxy: Proxy?): RemoteClient =
+    override val defaultClient: RemoteClient =
         FakeRemoteClient(headHandler, getHandler)
+
+    override fun createClient(proxy: Proxy): RemoteClient =
+        defaultClient
 
 }
 

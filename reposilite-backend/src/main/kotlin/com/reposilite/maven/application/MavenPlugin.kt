@@ -33,7 +33,6 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
-import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.web.api.RoutingSetupEvent
 import java.time.Clock
 
@@ -53,7 +52,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 workingDirectory = parameters().workingDirectory,
                 journalist = this,
                 extensions = extensions(),
-                remoteClientProvider = HttpRemoteClientProvider,
+                remoteClientProvider = reposilite().remoteClientProvider,
                 failureFacade = facade(),
                 storageFacade = facade(),
                 authenticationFacade = facade(),

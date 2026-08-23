@@ -1374,7 +1374,8 @@ Raw JSON scheme:
             "type": "string"
           },
           "latestVersion": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "uptime": {
             "type": "integer",

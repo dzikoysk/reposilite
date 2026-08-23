@@ -61,6 +61,7 @@ internal class StatusPlugin : ReposilitePlugin() {
         val statusFacade = StatusComponents(
             testEnv = parameters().testEnv,
             failureFacade = failureFacade,
+            remoteClientProvider = reposilite().remoteClientProvider,
             remoteVersionEndpoint = remoteVersionEndpoint,
             statusSupplier = { if (webServer.isReady) webServer.get().isAlive() else false },
             maxThreads = with (localConfiguration) {

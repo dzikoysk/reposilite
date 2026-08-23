@@ -16,11 +16,17 @@
 
 package com.reposilite.shared.http
 
+import com.reposilite.journalist.backend.InMemoryLogger
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+
 class HttpClientTest {
 
-//    @Test
-//    fun `should ignore 404 pages`() {
-//
-//    }
+    @Test
+    fun `should reuse default client`() {
+        val provider = HttpRemoteClientProvider(InMemoryLogger())
+
+        assertThat(provider.defaultClient).isSameAs(provider.defaultClient)
+    }
 
 }

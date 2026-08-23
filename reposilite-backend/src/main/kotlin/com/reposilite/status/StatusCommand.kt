@@ -36,10 +36,9 @@ internal class StatusCommand(private val statusFacade: StatusFacade) : Reposilit
         }
 
         statusFacade.getLatestVersion()
-            .fold(
-                { "${if (VERSION == it) context.effect { GREEN } else context.effect { RED_UNDERLINED }}$it${context.effect { RESET }}" },
-                { "${context.effect { RED_UNDERLINED }}$it${context.effect { RESET }}" }
-            )
+            .let { latestVersion ->
+                "${if (VERSION == latestVersion) context.effect { GREEN } else context.effect { RED_UNDERLINED }}${latestVersion ?: "UNAVAILABLE"}${context.effect { RESET }}"
+            }
             .let { coloredStatus -> context.append("  Latest version of Reposilite: $coloredStatus") }
     }
 

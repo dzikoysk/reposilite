@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 
 data class InstanceStatusResponse(
     val version: String,
-    val latestVersion: String,
+    val latestVersion: String?,
     val uptime: Long,
     val usedMemory: Double,
     val maxMemory: Int,

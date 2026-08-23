@@ -8,9 +8,9 @@ defineProps({
     type: String,
     required: true
   },
-  upToDate: {
-    type: Boolean,
-    required: true
+  latestVersion: {
+    type: String,
+    default: null
   },
   sponsors: {
     type: Array,
@@ -21,6 +21,7 @@ defineProps({
 const open = ref(false)
 const container = ref(null)
 const allSponsorsUrl = 'https://github.com/dzikoysk/reposilite#supporters'
+const releasesUrl = 'https://github.com/dzikoysk/reposilite/releases'
 
 onClickOutside(container, () => {
   open.value = false
@@ -33,28 +34,45 @@ onKeyStroke('Escape', () => {
 <template>
   <div
     ref="container"
-    class="relative inline-flex"
+    class="relative inline-flex flex-col items-start"
   >
+    <span class="flex items-center gap-2 text-lg font-semibold">
+      {{ version }}
+      <small
+        v-if="latestVersion"
+        class="inline-flex items-center gap-2 text-xs font-normal"
+        :class="version === latestVersion
+          ? 'text-green-700 dark:text-green-400'
+          : 'text-orange-700 dark:text-orange-400'"
+      >
+        <span aria-hidden="true">·</span>
+        <span v-if="version === latestVersion">up to date</span>
+        <a
+          v-else
+          :href="releasesUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-current underline hover:no-underline"
+        >update available: {{ latestVersion }}</a>
+      </small>
+      <small
+        v-else
+        class="inline-flex items-center gap-2 text-xs font-normal text-red-600 dark:text-red-400"
+      >
+        <span aria-hidden="true">·</span>
+        <span>unavailable</span>
+      </small>
+    </span>
     <button
       id="version-sponsors-trigger"
       type="button"
-      class="flex flex-col items-start bg-transparent border-0 p-0 text-left cursor-pointer"
+      class="mt-1 bg-transparent border-0 p-0 text-left cursor-pointer text-xs font-normal text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200"
       aria-haspopup="dialog"
       :aria-expanded="open"
       aria-controls="version-sponsors-dialog"
-      title="View sponsors"
       @click="open = !open"
     >
-      <span class="flex items-center gap-2 text-lg font-semibold">
-        {{ version }}
-        <small
-          v-if="upToDate"
-          class="text-xs font-normal text-gray-500 dark:text-gray-400"
-        >· up to date</small>
-      </span>
-      <span class="mt-1 text-xs font-normal text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200">
-        Sponsored by {{ sponsors.flat().length }} supporters
-      </span>
+      Sponsored by {{ sponsors.flat().length }} supporters
     </button>
     <div
       v-if="open"
