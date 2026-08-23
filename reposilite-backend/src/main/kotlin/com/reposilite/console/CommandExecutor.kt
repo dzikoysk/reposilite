@@ -30,6 +30,8 @@ import picocli.CommandLine.UnmatchedArgumentException
 import java.io.InputStream
 import java.util.function.Consumer
 
+internal const val REDACTED_COMMAND_ARGUMENTS = "<redacted>"
+
 @Command(name = "", version = ["Reposilite $VERSION"])
 internal class CommandExecutor(
     private val journalist: ReposiliteJournalist,
@@ -52,6 +54,34 @@ internal class CommandExecutor(
             }
         }
 
+    fun prepare(command: String): PreparedCommand {
+        val processedCommand = command.trim()
+
+        if (processedCommand.isEmpty()) {
+            return PreparedCommand(processedCommand, command, this)
+        }
+
+        val redactedCommand = try {
+            val reposiliteCommand = parseCommand(processedCommand)
+
+            when {
+                reposiliteCommand == null -> processedCommand.redacted()
+                reposiliteCommand.sensitiveInput -> processedCommand.redacted()
+                else -> processedCommand
+            }
+        } catch (_: UnmatchedArgumentException) {
+            processedCommand.redacted()
+        } catch (_: MissingParameterException) {
+            processedCommand.redacted()
+        }
+
+        return PreparedCommand(
+            redactedCommand = redactedCommand,
+            command = command,
+            commandExecutor = this,
+        )
+    }
+
     private fun executeCommand(command: String): ExecutionResponse {
         val processedCommand = command.trim()
 
@@ -62,8 +92,7 @@ internal class CommandExecutor(
         val response: MutableList<String> = ArrayList()
 
         return try {
-            val parseResult = commandLine.parseArgs(*processedCommand.split(" ").toTypedArray())
-            val commandObject = parseResult.subcommand().commandSpec().userObject() as? ReposiliteCommand
+            val commandObject = parseCommand(processedCommand)
 
             commandObject
                 ?.let {
@@ -72,8 +101,8 @@ internal class CommandExecutor(
                     ExecutionResponse(context.status, context.output())
                 }
                 ?: ExecutionResponse(FAILED, listOf(commandLine.usageMessage))
-        } catch (unmatchedArgumentException: UnmatchedArgumentException) {
-            ExecutionResponse(FAILED, listOf("Unknown command $processedCommand"))
+        } catch (_: UnmatchedArgumentException) {
+            ExecutionResponse(FAILED, listOf("Unknown command ${processedCommand.substringBefore(' ')}"))
         } catch (missingParameterException: MissingParameterException) {
             response.add(missingParameterException.message.toString())
             response.add("")
@@ -81,6 +110,16 @@ internal class CommandExecutor(
             ExecutionResponse(FAILED, response)
         }
     }
+
+    private fun parseCommand(command: String): ReposiliteCommand? =
+        commandLine
+            .parseArgs(*command.split(" ").toTypedArray())
+            .subcommand()
+            .commandSpec()
+            .userObject() as? ReposiliteCommand
+
+    private fun String.redacted(): String =
+        "${substringBefore(' ')} $REDACTED_COMMAND_ARGUMENTS"
 
     fun registerCommand(command: ReposiliteCommand): CommandLine =
         commandLine.addSubcommand(command)

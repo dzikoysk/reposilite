@@ -35,7 +35,13 @@ class ConsoleFacade internal constructor(
     internal val commandExecutor: CommandExecutor
 ) : Journalist, Facade {
 
-    fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
+    fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> =
+        processCommand(command) { commandExecutor.execute(command) }
+
+    internal fun prepareCommand(command: String): Result<PreparedCommand, ErrorResponse> =
+        processCommand(command) { commandExecutor.prepare(command) }
+
+    private fun <T : Any> processCommand(command: String, invoke: () -> T): Result<T, ErrorResponse> {
         if (StringUtils.isEmpty(command)) {
             return badRequestError("Missing command")
         }
@@ -44,7 +50,7 @@ class ConsoleFacade internal constructor(
             return badRequestError("The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
         }
 
-        return commandExecutor.execute(command).asSuccess()
+        return invoke().asSuccess()
     }
 
     fun registerCommand(command: ReposiliteCommand): CommandLine =

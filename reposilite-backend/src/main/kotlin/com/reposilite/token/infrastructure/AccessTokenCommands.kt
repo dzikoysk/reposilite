@@ -68,6 +68,9 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     ])
     private lateinit var permissions: String
 
+    override val sensitiveInput: Boolean
+        get() = secret != null
+
     override fun execute(context: CommandContext) {
         val mappedPermissions = mapPermissions(context, permissions) ?: return
 
@@ -188,6 +191,9 @@ internal class RegenerateCommand(private val accessTokenFacade: AccessTokenFacad
 
     @Option(names = ["--silent"], description = ["Do not print regenerated token secret"], required = false)
     var silent: Boolean = false
+
+    override val sensitiveInput: Boolean
+        get() = secret != null
 
     override fun execute(context: CommandContext) {
         accessTokenFacade.getAccessToken(name)

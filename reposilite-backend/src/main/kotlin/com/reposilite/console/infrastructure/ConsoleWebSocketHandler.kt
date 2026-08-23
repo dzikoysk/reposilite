@@ -69,7 +69,7 @@ internal class ConsoleWebSocketHandler(
                             val subscriberId = journalist.subscribe {
                                 try {
                                     ctx.send(it.value)
-                                } catch (ignored: ClosedChannelException) {
+                                } catch (_: ClosedChannelException) {
                                     journalist.logger.debug("CLI | $identifier tried to write to closed channel")
                                 }
                             }
@@ -87,11 +87,14 @@ internal class ConsoleWebSocketHandler(
                         }
                 else ->
                     when (val message = ctx.message()) {
-                        "keep-alive" -> ctx.send("keep-alive")
-                        else -> {
-                            journalist.logger.info("CLI | ${session.identifier}> $message")
-                            consoleFacade.executeCommand(message)
-                        }
+                        "keep-alive" ->
+                            ctx.send("keep-alive")
+                        else ->
+                            consoleFacade.prepareCommand(message).peek { command ->
+                                journalist.logger.info("CLI | ${session.identifier}> ${command.redactedCommand}")
+                                command.execute()
+                            }
+
                     }
             }
         }

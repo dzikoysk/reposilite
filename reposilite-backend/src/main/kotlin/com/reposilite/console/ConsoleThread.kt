@@ -46,12 +46,14 @@ internal class ConsoleThread(
                 continue
             }
 
+            val preparedCommand = commandExecutor.prepare(command)
+
             runCatching {
                 commandExecutor.logger.info("")
-                commandExecutor.execute(command)
+                preparedCommand.execute()
                 commandExecutor.logger.info("")
             }.onFailure {
-                failureFacade.throwException("Command: $command", it)
+                failureFacade.throwException("Command: ${preparedCommand.redactedCommand}", it)
             }
         } while (!isInterrupted && input.hasNextLine())
     }

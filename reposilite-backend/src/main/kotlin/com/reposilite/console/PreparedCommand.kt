@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.console.api
+package com.reposilite.console
 
-import com.reposilite.console.CommandContext
+import com.reposilite.console.api.ExecutionResponse
 
-interface ReposiliteCommand {
+internal class PreparedCommand(
+    val redactedCommand: String,
+    private val command: String,
+    private val commandExecutor: CommandExecutor
+) {
 
-    val sensitiveInput: Boolean
-        get() = false
-
-    fun execute(context: CommandContext)
+    fun execute(): ExecutionResponse =
+        commandExecutor.execute(command)
 
 }
