@@ -77,10 +77,18 @@ dependencies {
 
     val awssdk = "2.46.3"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
-    implementation("software.amazon.awssdk:s3:$awssdk")
+    // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
+    implementation("software.amazon.awssdk:s3:$awssdk") {
+        exclude(group = "software.amazon.awssdk", module = "apache5-client")
+        exclude(group = "software.amazon.awssdk", module = "netty-nio-client")
+    }
     // STS is needed so it Web Identity Tokens can be used
     // See https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
-    implementation("software.amazon.awssdk:sts:$awssdk")
+    implementation("software.amazon.awssdk:sts:$awssdk") {
+        exclude(group = "software.amazon.awssdk", module = "apache5-client")
+        exclude(group = "software.amazon.awssdk", module = "netty-nio-client")
+    }
+    implementation("software.amazon.awssdk:url-connection-client:$awssdk")
 
     val awsSdkV1 = "1.12.797"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
@@ -119,7 +127,6 @@ dependencies {
         exclude(group = "com.google.guava", module = "guava")
     }
     api("commons-codec:commons-codec:1.22.1")
-    api("com.google.guava:guava:33.6.0-android")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
     val journalist = "1.0.12"
@@ -149,10 +156,11 @@ dependencies {
 tasks.withType<ShadowJar> {
     archiveFileName.set("reposilite-${archiveVersion.get()}.jar")
     minimize {
+        // PEM decryption discovers algorithms through the provider at runtime, while the higher-level APIs are statically reachable.
+        exclude(dependency("org.bouncycastle:bcprov.*"))
         exclude(dependency("org.eclipse.jetty:.*"))
         exclude(dependency("org.eclipse.jetty.http2:.*"))
         exclude(dependency("org.eclipse.jetty.websocket:.*"))
-        exclude(dependency("org.bouncycastle:.*"))
         exclude(dependency("com.fasterxml.woodstox:woodstox-core:.*"))
         exclude(dependency("commons-logging:commons-logging:.*"))
         exclude(dependency("org.jetbrains.kotlin:kotlin-reflect:.*"))

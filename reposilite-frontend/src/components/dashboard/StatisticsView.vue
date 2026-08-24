@@ -139,9 +139,7 @@ function loadStatistics(loadEntries = false) {
       const byDate = {}
       points.forEach(point => byDate[point.date] = (byDate[point.date] || 0) + point.count)
       const dates = Object.keys(byDate).sort()
-      const rangeStart = selectedRange.value === 'all'
-        ? dates.length ? Number(dates[0]) : null
-        : requestedRange.from
+      const rangeStart = dates.length ? Number(dates[0]) : null
       const total = dates.reduce((sum, date) => sum + byDate[date], 0)
       const labels = intervalLabels[allResolved.interval] || intervalLabels.MONTHLY
       kpis.value = {
@@ -217,7 +215,7 @@ loadStatistics(true)
       <template #note>
         <button
           type="button"
-          class="relative -top-0.5 ml-1 inline-flex align-middle leading-none text-gray-400 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-gray-500 dark:hover:text-gray-200"
+          class="relative -top-0.5 -my-1 ml-0.5 inline-flex h-7 w-7 items-center justify-center rounded-md align-middle leading-none text-gray-400 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-gray-500 dark:hover:text-gray-200"
           aria-label="Open settings"
           title="Open settings"
           @click="$emit('goto', 'Settings')"
@@ -289,7 +287,6 @@ loadStatistics(true)
           <p
             v-if="kpis"
             class="flex flex-none items-center gap-1.5 whitespace-nowrap text-xs font-medium leading-5 text-gray-500 dark:text-gray-400"
-            aria-live="polite"
           >
             <svg
               viewBox="0 0 24 24"

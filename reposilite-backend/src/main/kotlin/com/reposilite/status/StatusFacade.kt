@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-@file:Suppress("UnstableApiUsage")
-
 package com.reposilite.status
 
-import com.google.common.base.Supplier
-import com.google.common.base.Suppliers
-import com.google.common.collect.EvictingQueue
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.reposilite.VERSION
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
 import panda.std.reactive.Reference
+import java.util.ArrayDeque
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.ForkJoinPool
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.HOURS
 import kotlin.math.roundToInt
+
+private const val MAX_STATUS_SNAPSHOTS = 12
 
 data class ThreadPoolCapacity(
     val used: Int,
@@ -68,31 +68,14 @@ class StatusFacade(
         ioService = ForkJoinPool.commonPool()
     )
 
-    private val cachedStatusSnapshots = EvictingQueue.create<StatusSnapshot>(12)
+    private val cachedStatusSnapshots = ArrayDeque<StatusSnapshot>(MAX_STATUS_SNAPSHOTS)
 
-    private val cachedLatestVersion: Supplier<CompletableFuture<String?>> =
-        Suppliers.memoizeWithExpiration({
-            when {
-                testEnv ->
-                    CompletableFuture.completedFuture(VERSION)
-                System.getProperty("reposilite.status.remote-version-check", "true") != "true" ->
-                    CompletableFuture.completedFuture(null)
-                else ->
-                    CompletableFuture.supplyAsync({
-                        remoteClientProvider
-                            .defaultClient
-                            .get(remoteVersionUrl, null, 3, 15)
-                            .onError {
-                                when (it.message.contains("java.security.NoSuchAlgorithmException")) {
-                                    true -> failureFacade.logger.warn("Cannot load SSL context for HTTPS request due to the lack of available memory")
-                                    else -> failureFacade.logger.warn("$remoteVersionUrl is unavailable: ${it.message}")
-                                }
-                            }
-                            .map { stream -> stream.bufferedReader().use { it.readText() } }
-                            .orNull()
-                    }, ioService)
-            }
-        }, 1, TimeUnit.HOURS)
+    private val cachedLatestVersion: Cache<Unit, CompletableFuture<String?>> =
+        Caffeine
+            .newBuilder()
+            .maximumSize(1)
+            .expireAfterWrite(1, HOURS)
+            .build()
 
     init {
         recordStatusSnapshot()
@@ -100,7 +83,11 @@ class StatusFacade(
 
     fun recordStatusSnapshot() {
         synchronized(cachedStatusSnapshots) {
-            cachedStatusSnapshots.add(
+            if (cachedStatusSnapshots.size == MAX_STATUS_SNAPSHOTS) {
+                cachedStatusSnapshots.removeFirst()
+            }
+
+            cachedStatusSnapshots.addLast(
                 StatusSnapshot(
                     memory = getUsedMemory().roundToInt(),
                     threads = threadPoolCapacity().used
@@ -113,7 +100,7 @@ class StatusFacade(
         threadPoolCapacity().let { threads ->
             InstanceStatusResponse(
                 version = VERSION,
-                latestVersion = cachedLatestVersion.get().getNow(null),
+                latestVersion = getLatestVersion(),
                 uptime = System.currentTimeMillis() - getUptime(),
                 usedMemory = getUsedMemory(),
                 maxMemory = (Runtime.getRuntime().maxMemory() / 1024 / 1024).toInt(),
@@ -128,8 +115,30 @@ class StatusFacade(
 
     internal fun getLatestVersion(): String? =
         cachedLatestVersion
-            .get()
+            .get(Unit) { fetchLatestVersion() }
             .getNow(null)
+
+    private fun fetchLatestVersion(): CompletableFuture<String?> =
+        when {
+            testEnv ->
+                CompletableFuture.completedFuture(VERSION)
+            System.getProperty("reposilite.status.remote-version-check", "true") != "true" ->
+                CompletableFuture.completedFuture(null)
+            else ->
+                CompletableFuture.supplyAsync({
+                    remoteClientProvider
+                        .defaultClient
+                        .get(remoteVersionUrl, null, 3, 15)
+                        .onError {
+                            when (it.message.contains("java.security.NoSuchAlgorithmException")) {
+                                true -> failureFacade.logger.warn("Cannot load SSL context for HTTPS request due to the lack of available memory")
+                                else -> failureFacade.logger.warn("$remoteVersionUrl is unavailable: ${it.message}")
+                            }
+                        }
+                        .map { stream -> stream.bufferedReader().use { it.readText() } }
+                        .orNull()
+                }, ioService)
+        }
 
     fun getLatestStatusSnapshots(): Array<StatusSnapshot> =
         synchronized(cachedStatusSnapshots) {

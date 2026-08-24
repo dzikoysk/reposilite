@@ -172,16 +172,13 @@ class StatisticsFacade internal constructor(
                 val defaultTimeSeries = intervalProvider.createTimeSeries()
                 val range = requestedRange ?: DateRange(from = defaultTimeSeries.min())
                 val recordsByRepository = statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeSeries(range)
-                val firstRecordedDate = recordsByRepository.values
-                    .asSequence()
-                    .flatMap { it.keys.asSequence() }
-                    .minOrNull()
                 val timeSeries = when {
                     dateRange == null -> defaultTimeSeries
                     recordsByRepository.isEmpty() -> emptyList()
-                    range.from != null -> intervalProvider.createTimeSeries(range.from, range.to ?: intervalProvider.createDate())
-                    firstRecordedDate != null -> intervalProvider.createTimeSeries(firstRecordedDate, range.to ?: intervalProvider.createDate())
-                    else -> emptyList()
+                    else -> intervalProvider.createTimeSeries(
+                        requireNotNull(range.from).coerceAtLeast(STATISTICS_EARLIEST_DATE),
+                        requireNotNull(range.to)
+                    )
                 }.associateWith { 0L }
 
                 AllResolvedResponse(
@@ -227,10 +224,11 @@ class StatisticsFacade internal constructor(
 }
 
 private fun DateRange.coerceToStatisticsBounds(): DateRange {
+    val earliestBucketDate = STATISTICS_EARLIEST_DATE.withDayOfYear(1)
     val latestDate = LocalDate.now().plusDays(1)
 
     return copy(
-        from = (from ?: STATISTICS_EARLIEST_DATE).coerceAtLeast(STATISTICS_EARLIEST_DATE),
+        from = (from ?: earliestBucketDate).coerceAtLeast(earliestBucketDate),
         to = (to ?: latestDate).coerceAtMost(latestDate)
     )
 }

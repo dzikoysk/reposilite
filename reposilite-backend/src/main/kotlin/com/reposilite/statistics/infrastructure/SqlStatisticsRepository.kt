@@ -65,7 +65,7 @@ internal class SqlStatisticsRepository(
 
     object ResolvedTable : IntIdTable("statistics_resolved_identifier") {
         val identifierId = reference("identifier_id", IdentifierTable.id, onDelete = CASCADE, onUpdate = CASCADE)
-        val date = date("date")
+        val date = date("date").index("idx_statistics_resolved_identifier_date")
         val count = long("count")
 
         init {
@@ -76,7 +76,7 @@ internal class SqlStatisticsRepository(
     init {
         transaction(database) {
             SchemaUtils.create(IdentifierTable, ResolvedTable)
-            SchemaUtils.addMissingColumnsStatements(IdentifierTable, ResolvedTable)
+            SchemaUtils.checkMappingConsistence(ResolvedTable, withLogs = false).forEach { exec(it) }
         }
         runFixes()
     }

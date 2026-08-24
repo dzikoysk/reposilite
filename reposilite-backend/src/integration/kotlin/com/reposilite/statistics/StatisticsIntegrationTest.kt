@@ -38,6 +38,7 @@ import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import kong.unirest.core.Unirest.get
@@ -216,18 +217,25 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                 entries = listOf(ResolvedStatisticsEntry("releases", "com/reposilite.jar", 1))
             )
         )
-        assertThat(get("$base/api/statistics/resolved/entries?limit=invalid").basicAuth(name, secret).asString().status)
-            .isEqualTo(BAD_REQUEST.code)
-        assertThat(get("$base/api/statistics/resolved/entries?offset=invalid").basicAuth(name, secret).asString().status)
-            .isEqualTo(BAD_REQUEST.code)
-        assertThat(get("$base/api/statistics/resolved/entries?from=invalid").basicAuth(name, secret).asString().status)
-            .isEqualTo(BAD_REQUEST.code)
-        assertThat(get("$base/api/statistics/resolved/entries?to=invalid").basicAuth(name, secret).asString().status)
-            .isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?limit=invalid").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?offset=invalid").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?from=invalid").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?to=invalid").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+
         val today = LocalDate.now()
         val invertedRange = "from=${today.toStatisticsInstant()}&to=${today.minusDays(1).toStatisticsInstant()}"
-        assertThat(get("$base/api/statistics/resolved/all?$invertedRange").basicAuth(name, secret).asString().status)
-            .isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/all?$invertedRange").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+
+        val statisticsZone = ZoneId.systemDefault()
+        val invertedSameDayRange = "from=${today.atTime(20, 0).atZone(statisticsZone).toInstant()}&to=${today.atTime(10, 0).atZone(statisticsZone).toInstant()}"
+        assertThat(get("$base/api/statistics/resolved/all?$invertedSameDayRange").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+
+        val extremeRangeResponse = get("$base/api/statistics/resolved/all")
+            .queryString("from", Instant.MIN.toString())
+            .queryString("to", Instant.MAX.toString())
+            .basicAuth(name, secret)
+            .asString()
+        assertThat(extremeRangeResponse.status).isEqualTo(BAD_REQUEST.code)
     }
 
     @Test
