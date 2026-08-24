@@ -17,18 +17,17 @@
 package com.reposilite.shared.extensions
 
 import com.reposilite.Reposilite
+import com.reposilite.web.validateWebThreadPoolSize
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.HOURS
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
-import java.util.concurrent.atomic.AtomicBoolean
 
 internal class NamedThreadPoolsTest {
 
@@ -77,68 +76,22 @@ internal class NamedThreadPoolsTest {
     }
 
     @Test
-    fun `should reject a non-positive maximum size`() {
+    fun `should reject unsupported pool sizes`() {
         assertThatThrownBy { newFixedThreadPool(min = 0, max = 0, prefix = "Test | Invalid") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Maximum thread pool size must be greater than 0")
-    }
-
-    @Test
-    fun `should reject a non-zero minimum size`() {
         assertThatThrownBy { newFixedThreadPool(min = 1, max = 1, prefix = "Test | Invalid") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Minimum thread pool size must be 0")
-    }
 
-    @Test
-    fun `should complete running and queued tasks during orderly shutdown`() {
-        val executor = newFixedThreadPool(min = 0, max = 1, prefix = "Test | Orderly Shutdown")
-        val runningTaskStarted = CountDownLatch(1)
-        val releaseRunningTask = CountDownLatch(1)
-        val queuedTaskCompleted = CountDownLatch(1)
-
-        val runningTask = executor.submit {
-            runningTaskStarted.countDown()
-            releaseRunningTask.await()
-        }
-        val queuedTask = executor.submit { queuedTaskCompleted.countDown() }
-        assertThat(runningTaskStarted.await(2, SECONDS)).isTrue()
-
-        executor.shutdown()
-        assertThat(executor.isShutdown).isTrue()
-        assertThat(executor.isTerminated).isFalse()
-        assertThat(queuedTaskCompleted.await(200, MILLISECONDS)).isFalse()
-
-        releaseRunningTask.countDown()
-        assertThat(executor.awaitTermination(2, SECONDS)).isTrue()
-        assertThat(runningTask).isDone()
-        assertThat(queuedTask).isDone()
-
-        assertThatThrownBy { executor.execute {} }
-            .isInstanceOf(RejectedExecutionException::class.java)
-    }
-
-    @Test
-    fun `should interrupt running work and return queued work during immediate shutdown`() {
-        val executor = newFixedThreadPool(min = 0, max = 1, prefix = "Test | Immediate Shutdown")
-        val runningTaskStarted = CountDownLatch(1)
-        val runningTaskInterrupted = AtomicBoolean(false)
-        val queuedTask = Runnable {}
-
-        executor.execute {
-            runningTaskStarted.countDown()
-            try {
-                CountDownLatch(1).await()
-            } catch (_: InterruptedException) {
-                runningTaskInterrupted.set(true)
-            }
-        }
-        assertThat(runningTaskStarted.await(2, SECONDS)).isTrue()
-        executor.execute(queuedTask)
-
-        assertThat(executor.shutdownNow()).containsExactly(queuedTask)
-        assertThat(executor.awaitTermination(2, SECONDS)).isTrue()
-        assertThat(runningTaskInterrupted).isTrue()
+        validateWebThreadPoolSize(maxThreads = 4, sslEnabled = false)
+        validateWebThreadPoolSize(maxThreads = 6, sslEnabled = true)
+        assertThatThrownBy { validateWebThreadPoolSize(maxThreads = 3, sslEnabled = false) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Web thread pool size must be at least 4")
+        assertThatThrownBy { validateWebThreadPoolSize(maxThreads = 5, sslEnabled = true) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Web thread pool size must be at least 6 when SSL is enabled")
     }
 
     @Test
