@@ -19,6 +19,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.Identifier
 import com.reposilite.plugin.api.Facade
+import com.reposilite.shared.DateRange
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
 import com.reposilite.shared.toErrorResult
@@ -38,9 +39,12 @@ import io.javalin.http.HttpStatus.FORBIDDEN
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
+import java.time.LocalDate
 import java.util.concurrent.ConcurrentHashMap
 
 const val MAX_PAGE_SIZE = 100
+// Statistics were introduced with Reposilite 3.0.0.
+internal val STATISTICS_EARLIEST_DATE: LocalDate = LocalDate.of(2022, 8, 1)
 
 class StatisticsFacade internal constructor(
     private val journalist: Journalist,
@@ -122,15 +126,25 @@ class StatisticsFacade internal constructor(
         }
     }
 
-    fun findResolvedEntries(repository: String?, phrase: String = "", limit: Int = MAX_PAGE_SIZE, offset: Long = 0): Result<ResolvedEntriesResponse, ErrorResponse> =
-        when {
+    fun findResolvedEntries(
+        repository: String?,
+        phrase: String = "",
+        limit: Int = MAX_PAGE_SIZE,
+        offset: Long = 0,
+        dateRange: DateRange? = null
+    ): Result<ResolvedEntriesResponse, ErrorResponse> {
+        val requestedRange = dateRange?.coerceToStatisticsBounds()
+
+        return when {
             limit !in 1..MAX_PAGE_SIZE ->
                 badRequestError("Requested invalid page size ($limit, expected 1..$MAX_PAGE_SIZE)")
             offset < 0 ->
                 badRequestError("Requested invalid offset ($offset, expected >= 0)")
+            requestedRange?.isEmpty() == true ->
+                badRequestError("Requested invalid statistics date range (${requestedRange.from} must not be after ${requestedRange.to})")
             else -> {
-                val from = dateIntervalProvider.get().createTimeSeries().min()
-                val records = statisticsRepository.findResolvedEntries(repository, phrase, from, limit + 1, offset)
+                val range = requestedRange ?: DateRange(from = dateIntervalProvider.get().createTimeSeries().min())
+                val records = statisticsRepository.findResolvedEntries(repository, phrase, range, limit + 1, offset)
                 val entries = records.take(limit)
                 ResolvedEntriesResponse(
                     page = ResolvedEntriesPage(
@@ -143,18 +157,34 @@ class StatisticsFacade internal constructor(
                 ).asSuccess()
             }
         }
+    }
 
-    fun getAllResolvedStatistics(): Result<AllResolvedResponse, ErrorResponse> {
+    fun getAllResolvedStatistics(dateRange: DateRange? = null): Result<AllResolvedResponse, ErrorResponse> {
         val intervalProvider = dateIntervalProvider.get()
+        val requestedRange = dateRange?.coerceToStatisticsBounds()
+
+        if (requestedRange?.isEmpty() == true) {
+            return badRequestError("Requested invalid statistics date range (${requestedRange.from} must not be after ${requestedRange.to})")
+        }
 
         return when {
             statisticsEnabled.get() -> {
-                val timeSeries = intervalProvider.createTimeSeries().associateWith { 0L }
+                val defaultTimeSeries = intervalProvider.createTimeSeries()
+                val range = requestedRange ?: DateRange(from = defaultTimeSeries.min())
+                val recordsByRepository = statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeSeries(range)
+                val timeSeries = when {
+                    dateRange == null -> defaultTimeSeries
+                    recordsByRepository.isEmpty() -> emptyList()
+                    else -> intervalProvider.createTimeSeries(
+                        requireNotNull(range.from).coerceAtLeast(STATISTICS_EARLIEST_DATE),
+                        requireNotNull(range.to)
+                    )
+                }.associateWith { 0L }
 
                 AllResolvedResponse(
                     interval = intervalProvider.interval,
                     repositories =
-                        statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeSeries(timeSeries.keys.min())
+                        recordsByRepository
                             .mapValues { (_, records) ->
                                 (timeSeries + records)
                                     .asSequence()
@@ -191,4 +221,14 @@ class StatisticsFacade internal constructor(
     override fun getLogger(): Logger =
         journalist.logger
 
+}
+
+private fun DateRange.coerceToStatisticsBounds(): DateRange {
+    val earliestBucketDate = STATISTICS_EARLIEST_DATE.withDayOfYear(1)
+    val latestDate = LocalDate.now().plusDays(1)
+
+    return copy(
+        from = (from ?: earliestBucketDate).coerceAtLeast(earliestBucketDate),
+        to = (to ?: latestDate).coerceAtMost(latestDate)
+    )
 }

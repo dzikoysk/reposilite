@@ -16,7 +16,9 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.shared.DateRange
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
 import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
@@ -31,7 +33,11 @@ import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
+import panda.std.Result
 import panda.std.asSuccess
+import java.time.DateTimeException
+import java.time.Instant
+import java.time.ZoneId
 
 internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade) : ReposiliteRoutes() {
 
@@ -70,11 +76,13 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
             OpenApiParam(name = "limit", description = "Amount of entries to find (Maximum: $MAX_PAGE_SIZE)", required = false),
             OpenApiParam(name = "offset", description = "Amount of entries to skip", required = false),
             OpenApiParam(name = "repository", description = "Repository to search in. If omitted, all repositories are searched.", required = false),
-            OpenApiParam(name = "phrase", description = "Phrase to search for", required = false)
+            OpenApiParam(name = "phrase", description = "Phrase to search for", required = false),
+            OpenApiParam(name = "from", description = "First instant to include, in ISO-8601 UTC format", required = false),
+            OpenApiParam(name = "to", description = "Last instant to include, in ISO-8601 UTC format", required = false)
         ],
         responses = [
             OpenApiResponse("200", content = [ OpenApiContent(from = ResolvedEntriesResponse::class) ], description = "Paginated resolved entry statistics"),
-            OpenApiResponse("400", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When invalid pagination is used"),
+            OpenApiResponse("400", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When invalid pagination or statistics date range is used"),
             OpenApiResponse("401", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When invalid token is used"),
             OpenApiResponse("403", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When non-manager token is used")
         ]
@@ -92,12 +100,16 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
                 rawOffset != null && offset == null ->
                     badRequestError("Requested invalid offset ($rawOffset, expected >= 0)")
                 else ->
-                    statisticsFacade.findResolvedEntries(
-                        repository = ctx.queryParam("repository")?.takeIf(String::isNotBlank),
-                        phrase = ctx.queryParam("phrase").orEmpty(),
-                        limit = limit ?: MAX_PAGE_SIZE,
-                        offset = offset ?: 0
-                    )
+                    parseDateRange(ctx.queryParam("from"), ctx.queryParam("to"))
+                        .flatMap { dateRange ->
+                            statisticsFacade.findResolvedEntries(
+                                repository = ctx.queryParam("repository")?.takeIf(String::isNotBlank),
+                                phrase = ctx.queryParam("phrase").orEmpty(),
+                                limit = limit ?: MAX_PAGE_SIZE,
+                                offset = offset ?: 0,
+                                dateRange = dateRange
+                            )
+                        }
             }
         }
     }
@@ -123,18 +135,50 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
         tags = ["Statistics"],
         path = "/api/statistics/resolved/all",
         methods = [HttpMethod.GET],
+        queryParams = [
+            OpenApiParam(name = "from", description = "First instant to include, in ISO-8601 UTC format", required = false),
+            OpenApiParam(name = "to", description = "Last instant to include, in ISO-8601 UTC format", required = false)
+        ],
         responses = [
             OpenApiResponse("200", content = [ OpenApiContent(from = AllResolvedResponse::class) ], description = "Aggregated list of statistics per each repository"),
+            OpenApiResponse("400", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When an invalid statistics date range is used"),
             OpenApiResponse("401", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When invalid token is used"),
             OpenApiResponse("403", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When non-manager token is used")
         ]
     )
     val getAllStatistics = ReposiliteRoute<AllResolvedResponse>("/api/statistics/resolved/all", GET) {
         managerOnly {
-            response = statisticsFacade.getAllResolvedStatistics()
+            response = parseDateRange(ctx.queryParam("from"), ctx.queryParam("to"))
+                .flatMap { statisticsFacade.getAllResolvedStatistics(it) }
         }
     }
 
     override val routes = routes(findCountByPhrase, findEntries, findUniqueCount, getAllStatistics)
 
+}
+
+private fun parseDateRange(rawFrom: String?, rawTo: String?): Result<DateRange?, ErrorResponse> {
+    val fromInstant = rawFrom?.let { runCatching { Instant.parse(it) }.getOrNull() }
+    val toInstant = rawTo?.let { runCatching { Instant.parse(it) }.getOrNull() }
+
+    return when {
+        rawFrom != null && fromInstant == null ->
+             badRequestError("Requested invalid start instant ($rawFrom, expected ISO-8601 UTC instant)")
+        rawTo != null && toInstant == null ->
+             badRequestError("Requested invalid end instant ($rawTo, expected ISO-8601 UTC instant)")
+        fromInstant != null && toInstant != null && fromInstant > toInstant ->
+             badRequestError("Requested invalid statistics date range ($fromInstant must not be after $toInstant)")
+        else ->
+            Result.supplyThrowing(DateTimeException::class.java) {
+                when (fromInstant) {
+                    null if toInstant == null -> null
+                    else -> DateRange(
+                        from = fromInstant?.atZone(ZoneId.systemDefault())?.toLocalDate(),
+                        to = toInstant?.atZone(ZoneId.systemDefault())?.toLocalDate()
+                    )
+                }
+            }.mapErr {
+                badRequest("Requested statistics date range exceeds supported instant bounds")
+            }
+    }
 }

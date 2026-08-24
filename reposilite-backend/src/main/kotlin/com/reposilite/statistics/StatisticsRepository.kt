@@ -17,6 +17,7 @@
 package com.reposilite.statistics
 
 import com.reposilite.maven.api.Identifier
+import com.reposilite.shared.DateRange
 import com.reposilite.statistics.api.ResolvedEntry
 import com.reposilite.statistics.api.ResolvedStatisticsEntry
 import java.time.LocalDate
@@ -36,12 +37,12 @@ interface StatisticsRepository {
     fun findResolvedEntries(
         repository: String?,
         phrase: String,
-        from: LocalDate,
+        dateRange: DateRange,
         limit: Int = MAX_VALUE,
         offset: Long = 0
     ): List<ResolvedStatisticsEntry>
 
-    fun getAllResolvedRequestsPerRepositoryAsTimeSeries(from: LocalDate): Map<String, Map<LocalDate, Long>>
+    fun getAllResolvedRequestsPerRepositoryAsTimeSeries(dateRange: DateRange): Map<String, Map<LocalDate, Long>>
 
     fun countUniqueResolvedRequests(): Long
 

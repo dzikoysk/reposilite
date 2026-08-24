@@ -38,7 +38,9 @@ import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -215,10 +217,25 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                 entries = listOf(ResolvedStatisticsEntry("releases", "com/reposilite.jar", 1))
             )
         )
-        assertThat(get("$base/api/statistics/resolved/entries?limit=invalid").basicAuth(name, secret).asString().status)
-            .isEqualTo(BAD_REQUEST.code)
-        assertThat(get("$base/api/statistics/resolved/entries?offset=invalid").basicAuth(name, secret).asString().status)
-            .isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?limit=invalid").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?offset=invalid").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?from=invalid").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?to=invalid").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+
+        val today = LocalDate.now()
+        val invertedRange = "from=${today.toStatisticsInstant()}&to=${today.minusDays(1).toStatisticsInstant()}"
+        assertThat(get("$base/api/statistics/resolved/all?$invertedRange").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+
+        val statisticsZone = ZoneId.systemDefault()
+        val invertedSameDayRange = "from=${today.atTime(20, 0).atZone(statisticsZone).toInstant()}&to=${today.atTime(10, 0).atZone(statisticsZone).toInstant()}"
+        assertThat(get("$base/api/statistics/resolved/all?$invertedSameDayRange").basicAuth(name, secret).asString().status).isEqualTo(BAD_REQUEST.code)
+
+        val extremeRangeResponse = get("$base/api/statistics/resolved/all")
+            .queryString("from", Instant.MIN.toString())
+            .queryString("to", Instant.MAX.toString())
+            .basicAuth(name, secret)
+            .asString()
+        assertThat(extremeRangeResponse.status).isEqualTo(BAD_REQUEST.code)
     }
 
     @Test
@@ -295,8 +312,21 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         val response = get("$base/api/statistics/resolved/all")
             .basicAuth(name, secret)
             .asObject(AllResolvedResponse::class.java)
+        val quarterFrom = today.minusMonths(2).withDayOfMonth(1).toStatisticsInstant()
+        val todayInstant = today.toStatisticsInstant()
+        val quarterResponse = get("$base/api/statistics/resolved/all?from=$quarterFrom&to=$todayInstant")
+            .basicAuth(name, secret)
+            .asObject(AllResolvedResponse::class.java)
+        val previousMonth = today.minusMonths(1).withDayOfMonth(1)
+        val partialPeriodQuery = "from=${previousMonth.plusDays(1).toStatisticsInstant()}&to=${previousMonth.plusMonths(1).minusDays(1).toStatisticsInstant()}"
+        val partialPeriodResponse = get("$base/api/statistics/resolved/all?$partialPeriodQuery")
+            .basicAuth(name, secret)
+            .asObject(AllResolvedResponse::class.java)
+        val allTimeResponse = get("$base/api/statistics/resolved/all?to=$todayInstant")
+            .basicAuth(name, secret)
+            .asObject(AllResolvedResponse::class.java)
 
-        // then: service should respond with time-series not older than a year
+        // then: service should preserve its default while supporting arbitrary and open-ended date ranges
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body).isEqualTo(
             AllResolvedResponse(
@@ -317,11 +347,27 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                     .sortedBy { it.name }
             )
         )
+        assertThat(quarterResponse.status).isEqualTo(OK.code)
+        assertThat(quarterResponse.body.repositories).allSatisfy { repository ->
+            assertThat(repository.data).hasSize(3)
+            assertThat(repository.data.sumOf { it.count }).isEqualTo(6)
+        }
+        assertThat(partialPeriodResponse.status).isEqualTo(OK.code)
+        assertThat(partialPeriodResponse.body.repositories).isEmpty()
+        assertThat(allTimeResponse.status).isEqualTo(OK.code)
+        assertThat(allTimeResponse.body.repositories.associate { it.name to it.data.sumOf(IntervalRecord::count) })
+            .containsExactlyInAnyOrderEntriesOf(mapOf("releases" to 652L, "snapshots" to 552L))
 
         val entries = get("$base/api/statistics/resolved/entries?repository=releases&phrase=reposilite")
             .basicAuth(name, secret)
             .asObject(ResolvedEntriesResponse::class.java)
         val oldEntries = get("$base/api/statistics/resolved/entries?phrase=old")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+        val allTimeOldEntries = get("$base/api/statistics/resolved/entries?phrase=old&to=$todayInstant")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+        val partialPeriodEntries = get("$base/api/statistics/resolved/entries?phrase=reposilite&$partialPeriodQuery")
             .basicAuth(name, secret)
             .asObject(ResolvedEntriesResponse::class.java)
 
@@ -341,6 +387,15 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                 entries = emptyList()
             )
         )
+        assertThat(allTimeOldEntries.status).isEqualTo(OK.code)
+        assertThat(allTimeOldEntries.body.entries).containsExactly(
+            ResolvedStatisticsEntry("releases", "/old/only.jar", 100)
+        )
+        assertThat(partialPeriodEntries.status).isEqualTo(OK.code)
+        assertThat(partialPeriodEntries.body.entries).isEmpty()
     }
 
 }
+
+private fun LocalDate.toStatisticsInstant() =
+    atStartOfDay(ZoneId.systemDefault()).toInstant()

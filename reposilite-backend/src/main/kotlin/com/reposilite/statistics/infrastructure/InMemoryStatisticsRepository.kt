@@ -17,6 +17,7 @@
 package com.reposilite.statistics.infrastructure
 
 import com.reposilite.maven.api.Identifier
+import com.reposilite.shared.DateRange
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
 import com.reposilite.statistics.api.ResolvedStatisticsEntry
@@ -58,7 +59,7 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
     override fun findResolvedEntries(
         repository: String?,
         phrase: String,
-        from: LocalDate,
+        dateRange: DateRange,
         limit: Int,
         offset: Long
     ): List<ResolvedStatisticsEntry> =
@@ -66,7 +67,7 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
             emptyList()
         } else {
             resolvedRequests.asSequence()
-                .filter { it.date >= from }
+                .filter { it.date in dateRange }
                 .filter { repository == null || it.identifier.repository == repository }
                 .filter { (identifier) -> phrase.isEmpty() || identifier.gav.contains(phrase, ignoreCase = true) }
                 .groupBy { it.identifier }
@@ -76,9 +77,9 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
                 .take(limit)
         }
 
-    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(from: LocalDate): Map<String, Map<LocalDate, Long>> =
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(dateRange: DateRange): Map<String, Map<LocalDate, Long>> =
         resolvedRequests
-            .filter { it.date >= from }
+            .filter { it.date in dateRange }
             .groupBy { it.identifier.repository }
             .mapValues { (_, records) ->
                 records.groupingBy { it.date }.fold(0L) { count, record -> count + record.count }
