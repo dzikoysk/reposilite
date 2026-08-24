@@ -80,7 +80,7 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
         ],
         responses = [
             OpenApiResponse("200", content = [ OpenApiContent(from = ResolvedEntriesResponse::class) ], description = "Paginated resolved entry statistics"),
-            OpenApiResponse("400", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When invalid pagination is used"),
+            OpenApiResponse("400", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When invalid pagination or statistics date range is used"),
             OpenApiResponse("401", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When invalid token is used"),
             OpenApiResponse("403", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When non-manager token is used")
         ]
@@ -156,18 +156,25 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
 }
 
 private fun parseDateRange(rawFrom: String?, rawTo: String?): Result<DateRange?, ErrorResponse> {
-    val statisticsZone = ZoneId.systemDefault()
-    val from = rawFrom?.let { runCatching { Instant.parse(it).atZone(statisticsZone).toLocalDate() }.getOrNull() }
-    val to = rawTo?.let { runCatching { Instant.parse(it).atZone(statisticsZone).toLocalDate() }.getOrNull() }
+    val fromInstant = rawFrom?.let { runCatching { Instant.parse(it) }.getOrNull() }
+    val toInstant = rawTo?.let { runCatching { Instant.parse(it) }.getOrNull() }
 
-    if (rawFrom != null && from == null) {
-        return badRequestError("Requested invalid start instant ($rawFrom, expected ISO-8601 UTC instant)")
+    return when {
+        rawFrom != null && fromInstant == null ->
+             badRequestError("Requested invalid start instant ($rawFrom, expected ISO-8601 UTC instant)")
+        rawTo != null && toInstant == null ->
+             badRequestError("Requested invalid end instant ($rawTo, expected ISO-8601 UTC instant)")
+        fromInstant != null && toInstant != null && fromInstant > toInstant ->
+             badRequestError("Requested invalid statistics date range ($fromInstant must not be after $toInstant)")
+        else ->
+             Result.ok(
+                 when (fromInstant) {
+                     null if toInstant == null -> null
+                     else -> DateRange(
+                         from = fromInstant?.atZone(ZoneId.systemDefault())?.toLocalDate(),
+                         to = toInstant?.atZone(ZoneId.systemDefault())?.toLocalDate()
+                     )
+                 }
+            )
     }
-    if (rawTo != null && to == null) {
-        return badRequestError("Requested invalid end instant ($rawTo, expected ISO-8601 UTC instant)")
-    }
-
-    return Result.ok(
-        if (rawFrom == null && rawTo == null) null else DateRange(from, to)
-    )
 }

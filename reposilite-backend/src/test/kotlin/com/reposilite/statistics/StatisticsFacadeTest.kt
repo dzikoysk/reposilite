@@ -238,9 +238,10 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
     @Test
     fun `should cap statistics ranges to the Reposilite 3 lifetime`() {
         val identifier = Identifier("releases", "com/reposilite.jar")
+        val earliestBucketDate = STATISTICS_EARLIEST_DATE.withDayOfYear(1)
         val latestDate = LocalDate.now().plusDays(1)
-        useResolvedRequests(mapOf(identifier to 1), STATISTICS_EARLIEST_DATE.minusDays(1))
-        useResolvedRequests(mapOf(identifier to 2), STATISTICS_EARLIEST_DATE)
+        useResolvedRequests(mapOf(identifier to 1), earliestBucketDate.minusDays(1))
+        useResolvedRequests(mapOf(identifier to 2), earliestBucketDate)
         useResolvedRequests(mapOf(identifier to 3), latestDate)
         useResolvedRequests(mapOf(identifier to 4), latestDate.plusDays(1))
 
@@ -252,7 +253,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
             ResolvedStatisticsEntry("releases", "com/reposilite.jar", 5)
         )
         assertThat(records.sumOf(IntervalRecord::count)).isEqualTo(5)
-        assertThat(records.first()).isEqualTo(IntervalRecord(STATISTICS_EARLIEST_DATE.toUTCMillis(), 2))
+        assertThat(records.first()).isEqualTo(IntervalRecord(earliestBucketDate.toUTCMillis(), 2))
         assertThat(records.last()).isEqualTo(IntervalRecord(latestDate.toUTCMillis(), 3))
     }
 
