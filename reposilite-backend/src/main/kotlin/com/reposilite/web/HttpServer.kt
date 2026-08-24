@@ -41,7 +41,8 @@ class HttpServer {
         val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
 
         val maxThreads = localConfiguration.webThreadPool.get()
-        validateWebThreadPoolSize(maxThreads, localConfiguration.sslEnabled.get())
+        val minimum = if (localConfiguration.sslEnabled.get()) MIN_SSL_WEB_THREAD_POOL_SIZE else MIN_WEB_THREAD_POOL_SIZE
+        require(maxThreads >= minimum) { "Web thread pool size must be at least $minimum" }
         val webThreadPool = ConcurrencyUtil.jettyThreadPool(
             name = "Reposilite | Web ($maxThreads) -",
             minThreads = MIN_WEB_THREAD_POOL_SIZE,
@@ -79,9 +80,4 @@ class HttpServer {
     fun isAlive(): Boolean =
         javalin?.jettyServer()?.server()?.isStarted ?: false
 
-}
-
-internal fun validateWebThreadPoolSize(maxThreads: Int, sslEnabled: Boolean) {
-    val minimum = if (sslEnabled) MIN_SSL_WEB_THREAD_POOL_SIZE else MIN_WEB_THREAD_POOL_SIZE
-    require(maxThreads >= minimum) { "Web thread pool size must be at least $minimum${if (sslEnabled) " when SSL is enabled" else ""}" }
 }

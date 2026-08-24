@@ -31,7 +31,6 @@ import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
 import java.util.concurrent.TimeUnit.SECONDS
-import java.util.concurrent.atomic.AtomicBoolean
 
 @Plugin(name = "statistics", dependencies = ["shared-configuration", "console", "access-token"], settings = StatisticsSettings::class)
 internal class StatisticsPlugin : ReposilitePlugin() {
@@ -51,15 +50,10 @@ internal class StatisticsPlugin : ReposilitePlugin() {
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
         event { _: ReposiliteInitializeEvent ->
-            val saveInProgress = AtomicBoolean()
             reposilite().scheduler.scheduleWithFixedDelay({
-                if (statisticsFacade.statisticsEnabled().get() && saveInProgress.compareAndSet(false, true)) {
+                if (statisticsFacade.statisticsEnabled().get()) {
                     reposilite().ioService.execute {
-                        try {
-                            statisticsFacade.saveRecordsBulk()
-                        } finally {
-                            saveInProgress.set(false)
-                        }
+                        statisticsFacade.saveRecordsBulk()
                     }
                 }
             }, 10, 10, SECONDS)
