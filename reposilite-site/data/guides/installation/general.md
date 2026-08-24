@@ -115,7 +115,7 @@ keyPassword: reposilite
 # Redirect http traffic to https
 enforceSsl: false
 
-# Maximum number of threads used to handle HTTP requests.
+# Maximum number of threads used to handle HTTP requests (min: 4, or 6 with SSL).
 webThreadPool: 12
 # Maximum number of threads used for background IO operations.
 ioThreadPool: 4

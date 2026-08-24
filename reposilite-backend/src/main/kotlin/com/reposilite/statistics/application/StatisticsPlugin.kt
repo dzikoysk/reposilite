@@ -30,6 +30,7 @@ import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit.SECONDS
 
 @Plugin(name = "statistics", dependencies = ["shared-configuration", "console", "access-token"], settings = StatisticsSettings::class)
@@ -50,9 +51,10 @@ internal class StatisticsPlugin : ReposilitePlugin() {
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
         event { _: ReposiliteInitializeEvent ->
+            var saveTask: Future<*>? = null
             reposilite().scheduler.scheduleWithFixedDelay({
-                if (statisticsFacade.statisticsEnabled().get()) {
-                    reposilite().ioService.execute {
+                if (statisticsFacade.statisticsEnabled().get() && saveTask?.isDone != false) {
+                    saveTask = reposilite().ioService.submit {
                         statisticsFacade.saveRecordsBulk()
                     }
                 }

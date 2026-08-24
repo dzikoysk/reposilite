@@ -30,20 +30,19 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.shared.extensions.TimeUtils
-import com.reposilite.shared.extensions.asQueuedThreadPool
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.FailuresCommand
 import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
 import com.reposilite.status.StatusSnapshotScheduler
-import com.reposilite.status.ThreadPoolCapacity
 import com.reposilite.status.infrastructure.StatusEndpoints
 import com.reposilite.web.HttpServer
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import panda.std.reactive.Completable
+import panda.std.reactive.Reference.Dependencies.dependencies
+import panda.std.reactive.Reference.computed
 import java.nio.file.StandardOpenOption
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 
@@ -65,21 +64,11 @@ internal class StatusPlugin : ReposilitePlugin() {
             remoteClientProvider = reposilite().remoteClientProvider,
             remoteVersionEndpoint = remoteVersionEndpoint,
             statusSupplier = { if (webServer.isReady) webServer.get().isAlive() else false },
-            threadPoolCapacity = {
-                val webPool = reposilite().webServer.getThreadPool()
-                val ioPool = reposilite().ioService.asQueuedThreadPool()
-                val scheduler = reposilite().scheduler as? ScheduledThreadPoolExecutor
-
-                ThreadPoolCapacity(
-                    used = (webPool?.busyThreads ?: 0) +
-                        (ioPool?.busyThreads ?: 0) +
-                        (scheduler?.activeCount ?: 0),
-                    max = (webPool?.maxThreads ?: localConfiguration.webThreadPool.get()) +
-                        (ioPool?.maxThreads ?: localConfiguration.ioThreadPool.get()) +
-                        (scheduler?.corePoolSize ?: 1)
-                )
-            },
-            ioService = reposilite().ioService
+            maxThreads = with (localConfiguration) {
+                computed(dependencies(webThreadPool, ioThreadPool, databaseThreadPool)) {
+                    webThreadPool.get() + ioThreadPool.get() + databaseThreadPool.get()
+                }
+            }
         ).statusFacade()
 
         val statusSnapshotScheduler = StatusSnapshotScheduler(reposilite().scheduler, statusFacade)

@@ -20,10 +20,7 @@ import com.reposilite.plugin.api.PluginComponents
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
-import com.reposilite.status.ThreadPoolCapacity
 import panda.std.reactive.Reference
-import java.util.concurrent.Executor
-import java.util.concurrent.ForkJoinPool
 
 class StatusComponents(
     private val testEnv: Boolean,
@@ -31,36 +28,17 @@ class StatusComponents(
     private val remoteClientProvider: RemoteClientProvider,
     private val remoteVersionEndpoint: String,
     private val statusSupplier: () -> Boolean,
-    private val threadPoolCapacity: () -> ThreadPoolCapacity,
-    private val ioService: Executor
+    private val maxThreads: Reference<Int>
 ) : PluginComponents {
-
-    constructor(
-        testEnv: Boolean,
-        failureFacade: FailureFacade,
-        remoteClientProvider: RemoteClientProvider,
-        remoteVersionEndpoint: String,
-        statusSupplier: () -> Boolean,
-        maxThreads: Reference<Int>
-    ) : this(
-        testEnv = testEnv,
-        failureFacade = failureFacade,
-        remoteClientProvider = remoteClientProvider,
-        remoteVersionEndpoint = remoteVersionEndpoint,
-        statusSupplier = statusSupplier,
-        threadPoolCapacity = { ThreadPoolCapacity(used = Thread.activeCount(), max = maxThreads.get()) },
-        ioService = ForkJoinPool.commonPool()
-    )
 
     fun statusFacade(): StatusFacade =
         StatusFacade(
             testEnv = testEnv,
             status = statusSupplier,
-            threadPoolCapacity = threadPoolCapacity,
             remoteVersionUrl = remoteVersionEndpoint,
             remoteClientProvider = remoteClientProvider,
             failureFacade = failureFacade,
-            ioService = ioService
+            maxThreads = maxThreads
         )
 
 }

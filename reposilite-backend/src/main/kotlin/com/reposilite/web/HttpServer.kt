@@ -20,32 +20,34 @@ import com.reposilite.Reposilite
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.extensions.error
-import com.reposilite.shared.extensions.newQueuedThreadPool
 import com.reposilite.storage.api.UnsupportedLocationException
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
+import io.javalin.util.ConcurrencyUtil
 import org.eclipse.jetty.io.EofException
-import org.eclipse.jetty.util.thread.QueuedThreadPool
+
+private const val MIN_WEB_THREAD_POOL_SIZE = 4
+private const val MIN_SSL_WEB_THREAD_POOL_SIZE = 6
 
 class HttpServer {
 
     private var javalin: Javalin? = null
-    private var threadPool: QueuedThreadPool? = null
 
     fun start(reposilite: Reposilite) {
         val extensionsManagement = reposilite.extensions
         val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
 
         val maxThreads = localConfiguration.webThreadPool.get()
-        val webThreadPool = newQueuedThreadPool(
-            min = minOf(4, maxThreads),
-            max = maxThreads,
-            prefix = "Reposilite | Web"
+        validateWebThreadPoolSize(maxThreads, localConfiguration.sslEnabled.get())
+        val webThreadPool = ConcurrencyUtil.jettyThreadPool(
+            name = "Reposilite | Web ($maxThreads) -",
+            minThreads = MIN_WEB_THREAD_POOL_SIZE,
+            maxThreads = maxThreads,
+            useLoom = false
         )
-        this.threadPool = webThreadPool
 
         this.javalin = Javalin.start { config ->
             config.jetty.host = reposilite.parameters.hostname
@@ -77,7 +79,9 @@ class HttpServer {
     fun isAlive(): Boolean =
         javalin?.jettyServer()?.server()?.isStarted ?: false
 
-    internal fun getThreadPool(): QueuedThreadPool? =
-        threadPool
+}
 
+internal fun validateWebThreadPoolSize(maxThreads: Int, sslEnabled: Boolean) {
+    val minimum = if (sslEnabled) MIN_SSL_WEB_THREAD_POOL_SIZE else MIN_WEB_THREAD_POOL_SIZE
+    require(maxThreads >= minimum) { "Web thread pool size must be at least $minimum${if (sslEnabled) " when SSL is enabled" else ""}" }
 }

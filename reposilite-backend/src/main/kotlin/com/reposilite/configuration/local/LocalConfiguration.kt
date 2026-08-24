@@ -105,7 +105,7 @@ class LocalConfiguration : Facade {
     /* Performance */
 
     @Description("")
-    @Description("# Maximum number of threads used to handle HTTP requests.")
+    @Description("# Maximum number of threads used to handle HTTP requests (min: 4, or 6 with SSL).")
     val webThreadPool = reference(12)
 
     @Description("# Maximum number of threads used for background IO operations.")

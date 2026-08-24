@@ -22,10 +22,13 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.HOURS
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal class NamedThreadPoolsTest {
 
@@ -45,44 +48,31 @@ internal class NamedThreadPoolsTest {
 
     @Test
     fun `should grow to maximum size, queue excess work, and shrink when idle`() {
-        val threadPool = newQueuedThreadPool(min = 0, max = 8, prefix = "Test | IO").apply {
-            idleTimeout = 50
-            maxEvictCount = 8
-            reservedThreads = 0
-            start()
-        }
-        val releaseFirstHalf = CountDownLatch(1)
-        val releaseSecondHalf = CountDownLatch(1)
+        val threadPool = newFixedThreadPool(min = 0, max = 4, prefix = "Test | IO") as ThreadPoolExecutor
+        threadPool.setKeepAliveTime(50, MILLISECONDS)
+        val workersStarted = CountDownLatch(4)
+        val releaseWorkers = CountDownLatch(1)
         val queuedTaskStarted = CountDownLatch(1)
 
         try {
-            repeat(8) { workerIndex ->
-                val workerStarted = CountDownLatch(1)
+            repeat(4) {
                 threadPool.execute {
-                    workerStarted.countDown()
-                    when {
-                        workerIndex < 4 -> releaseFirstHalf.await()
-                        else -> releaseSecondHalf.await()
-                    }
+                    workersStarted.countDown()
+                    releaseWorkers.await()
                 }
-                assertThat(workerStarted.await(2, SECONDS)).isTrue()
             }
+            assertThat(workersStarted.await(2, SECONDS)).isTrue()
 
             threadPool.execute { queuedTaskStarted.countDown() }
+            assertThat(threadPool.queue).hasSize(1)
             assertThat(queuedTaskStarted.await(200, MILLISECONDS)).isFalse()
 
-            releaseFirstHalf.countDown()
+            releaseWorkers.countDown()
             assertThat(queuedTaskStarted.await(2, SECONDS)).isTrue()
-            assertThat(waitUntil(2, SECONDS) { threadPool.threads == 4 })
-                .withFailMessage("Expected four running workers, but pool was %s", threadPool)
-                .isTrue()
-
-            releaseSecondHalf.countDown()
-            assertThat(waitUntil(2, SECONDS) { threadPool.threads == 0 }).isTrue()
+            assertThat(waitUntil(2, SECONDS) { threadPool.poolSize == 0 }).isTrue()
         } finally {
-            releaseFirstHalf.countDown()
-            releaseSecondHalf.countDown()
-            threadPool.stop()
+            releaseWorkers.countDown()
+            threadPool.shutdownNow()
         }
     }
 
@@ -94,17 +84,73 @@ internal class NamedThreadPoolsTest {
     }
 
     @Test
-    fun `should expose Jetty pool through executor service lifecycle`() {
-        val executor = newFixedThreadPool(min = 0, max = 1, prefix = "Test | Lifecycle")
-        val taskCompleted = CountDownLatch(1)
+    fun `should reject a non-zero minimum size`() {
+        assertThatThrownBy { newFixedThreadPool(min = 1, max = 1, prefix = "Test | Invalid") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Minimum thread pool size must be 0")
+    }
 
-        executor.execute { taskCompleted.countDown() }
-        assertThat(taskCompleted.await(2, SECONDS)).isTrue()
+    @Test
+    fun `should complete running and queued tasks during orderly shutdown`() {
+        val executor = newFixedThreadPool(min = 0, max = 1, prefix = "Test | Orderly Shutdown")
+        val runningTaskStarted = CountDownLatch(1)
+        val releaseRunningTask = CountDownLatch(1)
+        val queuedTaskCompleted = CountDownLatch(1)
+
+        val runningTask = executor.submit {
+            runningTaskStarted.countDown()
+            releaseRunningTask.await()
+        }
+        val queuedTask = executor.submit { queuedTaskCompleted.countDown() }
+        assertThat(runningTaskStarted.await(2, SECONDS)).isTrue()
 
         executor.shutdown()
         assertThat(executor.isShutdown).isTrue()
+        assertThat(executor.isTerminated).isFalse()
+        assertThat(queuedTaskCompleted.await(200, MILLISECONDS)).isFalse()
+
+        releaseRunningTask.countDown()
+        assertThat(executor.awaitTermination(2, SECONDS)).isTrue()
+        assertThat(runningTask).isDone()
+        assertThat(queuedTask).isDone()
+
+        assertThatThrownBy { executor.execute {} }
+            .isInstanceOf(RejectedExecutionException::class.java)
+    }
+
+    @Test
+    fun `should interrupt running work and return queued work during immediate shutdown`() {
+        val executor = newFixedThreadPool(min = 0, max = 1, prefix = "Test | Immediate Shutdown")
+        val runningTaskStarted = CountDownLatch(1)
+        val runningTaskInterrupted = AtomicBoolean(false)
+        val queuedTask = Runnable {}
+
+        executor.execute {
+            runningTaskStarted.countDown()
+            try {
+                CountDownLatch(1).await()
+            } catch (_: InterruptedException) {
+                runningTaskInterrupted.set(true)
+            }
+        }
+        assertThat(runningTaskStarted.await(2, SECONDS)).isTrue()
+        executor.execute(queuedTask)
+
+        assertThat(executor.shutdownNow()).containsExactly(queuedTask)
+        assertThat(executor.awaitTermination(2, SECONDS)).isTrue()
+        assertThat(runningTaskInterrupted).isTrue()
+    }
+
+    @Test
+    fun `should wait for work during graceful shutdown`() {
+        val executor = newFixedThreadPool(min = 0, max = 1, prefix = "Test | Graceful Shutdown")
+        val taskCompleted = CountDownLatch(1)
+
+        executor.execute { taskCompleted.countDown() }
+        assertThat(executor.shutdownGracefully(2, SECONDS)).isTrue()
+
+        assertThat(taskCompleted.count).isZero()
         assertThat(executor.isTerminated).isTrue()
-        assertThat(executor.asQueuedThreadPool()?.isStopped).isTrue()
     }
 
     @Test

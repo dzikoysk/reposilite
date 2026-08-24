@@ -26,47 +26,20 @@ import com.reposilite.status.api.StatusSnapshot
 import panda.std.reactive.Reference
 import java.util.ArrayDeque
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executor
-import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.TimeUnit.HOURS
 import kotlin.math.roundToInt
 
 private const val MAX_STATUS_SNAPSHOTS = 12
 
-data class ThreadPoolCapacity(
-    val used: Int,
-    val max: Int
-)
-
 class StatusFacade(
     private val testEnv: Boolean,
     private val startTime: Long = System.currentTimeMillis(),
-    private val threadPoolCapacity: () -> ThreadPoolCapacity,
+    private val maxThreads: Reference<Int>,
     private val status: () -> Boolean,
     private val remoteVersionUrl: String,
     private val remoteClientProvider: RemoteClientProvider,
-    private val failureFacade: FailureFacade,
-    private val ioService: Executor
+    private val failureFacade: FailureFacade
 ) : Facade {
-
-    constructor(
-        testEnv: Boolean,
-        startTime: Long = System.currentTimeMillis(),
-        maxThreads: Reference<Int>,
-        status: () -> Boolean,
-        remoteVersionUrl: String,
-        remoteClientProvider: RemoteClientProvider,
-        failureFacade: FailureFacade
-    ) : this(
-        testEnv = testEnv,
-        startTime = startTime,
-        threadPoolCapacity = { ThreadPoolCapacity(used = Thread.activeCount(), max = maxThreads.get()) },
-        status = status,
-        remoteVersionUrl = remoteVersionUrl,
-        remoteClientProvider = remoteClientProvider,
-        failureFacade = failureFacade,
-        ioService = ForkJoinPool.commonPool()
-    )
 
     private val cachedStatusSnapshots = ArrayDeque<StatusSnapshot>(MAX_STATUS_SNAPSHOTS)
 
@@ -82,33 +55,32 @@ class StatusFacade(
     }
 
     fun recordStatusSnapshot() {
-        synchronized(cachedStatusSnapshots) {
-            if (cachedStatusSnapshots.size == MAX_STATUS_SNAPSHOTS) {
-                cachedStatusSnapshots.removeFirst()
-            }
-
-            cachedStatusSnapshots.addLast(
-                StatusSnapshot(
-                    memory = getUsedMemory().roundToInt(),
-                    threads = threadPoolCapacity().used
-                )
-            )
+        if (cachedStatusSnapshots.size == MAX_STATUS_SNAPSHOTS) {
+            cachedStatusSnapshots.removeFirst()
         }
+
+        cachedStatusSnapshots.addLast(
+            StatusSnapshot(
+                memory = getUsedMemory().roundToInt(),
+                threads = getUsedThreads()
+            )
+        )
     }
 
     fun fetchInstanceStatus(): InstanceStatusResponse =
-        threadPoolCapacity().let { threads ->
-            InstanceStatusResponse(
-                version = VERSION,
-                latestVersion = getLatestVersion(),
-                uptime = System.currentTimeMillis() - getUptime(),
-                usedMemory = getUsedMemory(),
-                maxMemory = (Runtime.getRuntime().maxMemory() / 1024 / 1024).toInt(),
-                usedThreads = threads.used,
-                maxThreads = threads.max,
-                failuresCount = failureFacade.getFailuresCount()
-            )
-        }
+        InstanceStatusResponse(
+            version = VERSION,
+            latestVersion = getLatestVersion(),
+            uptime = System.currentTimeMillis() - getUptime(),
+            usedMemory = getUsedMemory(),
+            maxMemory = (Runtime.getRuntime().maxMemory() / 1024 / 1024).toInt(),
+            usedThreads = getUsedThreads(),
+            maxThreads = maxThreads.get(),
+            failuresCount = failureFacade.getFailuresCount()
+        )
+
+    private fun getUsedThreads(): Int =
+        Thread.activeCount()
 
     private fun getUsedMemory(): Double =
         (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0
@@ -125,7 +97,7 @@ class StatusFacade(
             System.getProperty("reposilite.status.remote-version-check", "true") != "true" ->
                 CompletableFuture.completedFuture(null)
             else ->
-                CompletableFuture.supplyAsync({
+                CompletableFuture.supplyAsync {
                     remoteClientProvider
                         .defaultClient
                         .get(remoteVersionUrl, null, 3, 15)
@@ -137,13 +109,11 @@ class StatusFacade(
                         }
                         .map { stream -> stream.bufferedReader().use { it.readText() } }
                         .orNull()
-                }, ioService)
+                }
         }
 
     fun getLatestStatusSnapshots(): Array<StatusSnapshot> =
-        synchronized(cachedStatusSnapshots) {
-            cachedStatusSnapshots.toTypedArray()
-        }
+        cachedStatusSnapshots.toTypedArray()
 
     fun getUptime(): Long =
         startTime

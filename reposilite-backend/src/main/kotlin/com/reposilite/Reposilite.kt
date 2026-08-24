@@ -25,6 +25,7 @@ import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
+import com.reposilite.shared.extensions.shutdownGracefully
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.web.HttpServer
@@ -35,6 +36,7 @@ import panda.std.asError
 import panda.std.peek
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit.MINUTES
 import java.util.concurrent.atomic.AtomicBoolean
 
 class Reposilite(
@@ -81,12 +83,14 @@ class Reposilite(
             alive.set(false)
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
             shutdownSafely("scheduler") { scheduler.shutdown() }
-            shutdownSafely("extensions") { extensions.emitEvent(ReposiliteDisposeEvent(this)) }
             shutdownSafely("web server") { webServer.stop() }
-            shutdownSafely("IO executor") { ioService.shutdown() }
+            shutdownSafely("IO executor") {
+                if (!ioService.shutdownGracefully(2, MINUTES)) {
+                    logger.warn("IO executor did not terminate")
+                }
+            }
+            shutdownSafely("extensions") { extensions.emitEvent(ReposiliteDisposeEvent(this)) }
             shutdownSafely("database") { databaseConnection.close() }
-            shutdownSafely("scheduler") { scheduler.shutdownNow() }
-            shutdownSafely("IO executor") { ioService.shutdownNow() }
             shutdownSafely("journalist") { journalist.shutdown() }
         }
 

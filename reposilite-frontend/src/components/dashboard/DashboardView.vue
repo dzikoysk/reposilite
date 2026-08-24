@@ -222,12 +222,12 @@ const plural = (count, singular, pluralText) =>
         </div>
         <div class="mt-3.5">
           <div class="flex justify-between items-baseline gap-3 text-sm mb-2 <sm:flex-wrap">
-            <span class="text-gray-500 dark:text-gray-400">Busy threads</span><span class="font-semibold tabular-nums">{{ instanceStatus.usedThreads }} <small class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.maxThreads }}</small></span>
+            <span class="text-gray-500 dark:text-gray-400">Threads</span><span class="font-semibold tabular-nums">{{ instanceStatus.usedThreads }} <small class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.maxThreads }}</small></span>
           </div>
           <div
             class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden"
             role="progressbar"
-            aria-label="Busy thread usage"
+            aria-label="Thread usage"
             aria-valuemin="0"
             aria-valuemax="100"
             :aria-valuenow="threadsUsage"
