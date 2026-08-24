@@ -77,7 +77,8 @@ const createClient = (defaultName, defaultSecret) => {
         const query = new URLSearchParams()
         if (dateRange.from) query.set("from", dateRange.from)
         if (dateRange.to) query.set("to", dateRange.to)
-        const suffix = query.size ? `?${query}` : ''
+        const encodedQuery = query.toString()
+        const suffix = encodedQuery ? `?${encodedQuery}` : ''
         return get(`/api/statistics/resolved/all${suffix}`)
       },
       resolvedEntries(limit, repository, phrase, offset = 0, dateRange = {}) {

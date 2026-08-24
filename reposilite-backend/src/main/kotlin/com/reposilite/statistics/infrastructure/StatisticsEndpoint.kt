@@ -18,6 +18,7 @@ package com.reposilite.statistics.infrastructure
 
 import com.reposilite.shared.DateRange
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
 import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
@@ -34,6 +35,7 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.asSuccess
+import java.time.DateTimeException
 import java.time.Instant
 import java.time.ZoneId
 
@@ -167,14 +169,16 @@ private fun parseDateRange(rawFrom: String?, rawTo: String?): Result<DateRange?,
         fromInstant != null && toInstant != null && fromInstant > toInstant ->
              badRequestError("Requested invalid statistics date range ($fromInstant must not be after $toInstant)")
         else ->
-             Result.ok(
-                 when (fromInstant) {
-                     null if toInstant == null -> null
-                     else -> DateRange(
-                         from = fromInstant?.atZone(ZoneId.systemDefault())?.toLocalDate(),
-                         to = toInstant?.atZone(ZoneId.systemDefault())?.toLocalDate()
-                     )
-                 }
-            )
+            Result.supplyThrowing(DateTimeException::class.java) {
+                when (fromInstant) {
+                    null if toInstant == null -> null
+                    else -> DateRange(
+                        from = fromInstant?.atZone(ZoneId.systemDefault())?.toLocalDate(),
+                        to = toInstant?.atZone(ZoneId.systemDefault())?.toLocalDate()
+                    )
+                }
+            }.mapErr {
+                badRequest("Requested statistics date range exceeds supported instant bounds")
+            }
     }
 }
