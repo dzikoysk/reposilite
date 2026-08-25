@@ -141,13 +141,6 @@ const filtered = computed(() => {
             {{ instanceStatus.failuresCount }}
           </dd>
         </div>
-        <div
-          class="text-sm rounded-full px-2 py-0.5"
-          :class="instanceStatus.failuresCount > 0 ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200'"
-        >
-          <dt class="sr-only">Review status</dt>
-          <dd>{{ instanceStatus.failuresCount > 0 ? 'review' : 'clean' }}</dd>
-        </div>
       </dl>
       <dl class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
         <div>

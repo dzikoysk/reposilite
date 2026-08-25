@@ -16,9 +16,12 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useClipboard } from '@vueuse/core'
 import { createErrorToast, createWarningToast } from '../../helpers/toast'
 import { useTokens } from '../../store/tokens'
 import { property } from '../../helpers/vue-extensions'
+import CopiedIcon from '../icons/CopiedIcon.vue'
+import CopyIcon from '../icons/CopyIcon.vue'
 import PencilIcon from '../icons/PencilIcon.vue'
 import TrashIcon from '../icons/TrashIcon.vue'
 import RefreshIcon from '../icons/RefreshIcon.vue'
@@ -43,7 +46,9 @@ const query = ref('')
 const editing = ref(null)
 const draft = ref({})
 const secret = ref(null)
+const copiedSecret = ref(false)
 const confirming = ref(null)
+const { copy: copyText } = useClipboard()
 
 const tid = (token) => token.name
 const isOpen = (key) => editing.value === key
@@ -66,6 +71,9 @@ const toDateInput = (value) => {
 }
 const minExpiry = () => toDateInput(Date.now())
 const routeLabel = (route) => [route.read && 'read', route.write && 'write'].filter(Boolean).join(' · ')
+const toggleClass = (selected) => selected
+  ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white'
+  : 'bg-white text-gray-600 dark:bg-gray-900 dark:text-gray-400'
 
 const DAY = 86400000
 const rel = (ms) => {
@@ -100,13 +108,30 @@ const persistRoute = (token) => {
 }
 
 const startCreate = () => { confirming.value = null; editing.value = 'newtoken'; draft.value = { name: '', type: 'PERSISTENT' } }
+const showSecret = (name, value) => {
+  copiedSecret.value = false
+  secret.value = { name, value }
+}
+const copySecret = async () => {
+  if (!secret.value || copiedSecret.value) return
+  const currentSecret = secret.value
+  await copyText(currentSecret.value)
+  copiedSecret.value = true
+  setTimeout(() => {
+    if (secret.value === currentSecret) copiedSecret.value = false
+  }, 2000)
+}
+const dismissSecret = () => {
+  secret.value = null
+  copiedSecret.value = false
+}
 const create = () => {
   const name = (draft.value.name || '').trim()
   if (name === '') { createWarningToast('Token name is required'); return }
   if (/[:/]/.test(name)) { createWarningToast("Token name cannot contain ':' or '/'"); return }
   if (tokens.value.some(token => token.name === name)) { createWarningToast(`A token named '${name}' already exists`); return }
   createToken(name, { type: draft.value.type })
-    .then(response => { secret.value = { name, value: response.secret }; close() })
+    .then(response => { showSecret(name, response.secret); close() })
     .catch(error => createErrorToast(errorMessage(error)))
 }
 
@@ -117,7 +142,7 @@ const runConfirm = (token) => {
   confirming.value = null
   if (action === 'revoke') deleteToken(token.name)
   else regenerateSecret(token.name)
-    .then(value => { secret.value = { name: token.name, value } })
+    .then(value => showSecret(token.name, value))
     .catch(error => createErrorToast(errorMessage(error)))
 }
 </script>
@@ -165,7 +190,7 @@ const runConfirm = (token) => {
 
       <div
         v-if="isOpen('newtoken')"
-        class="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-100 px-4.5 py-3 dark:border-gray-800 dark:bg-gray-800"
+        class="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-150 px-4.5 py-3 dark:border-gray-800 dark:bg-gray-800"
       >
         <input
           v-model="draft.name"
@@ -181,8 +206,8 @@ const runConfirm = (token) => {
         >
           <button
             type="button"
-            class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-            :class="{ 'bg-blue-600 text-white': draft.type === 'PERSISTENT' }"
+            class="h-8 border-r border-gray-300 px-3 text-xs last:border-r-0 dark:border-gray-700"
+            :class="toggleClass(draft.type === 'PERSISTENT')"
             :aria-pressed="draft.type === 'PERSISTENT'"
             @click="draft.type = 'PERSISTENT'"
           >
@@ -190,8 +215,8 @@ const runConfirm = (token) => {
           </button>
           <button
             type="button"
-            class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-            :class="{ 'bg-blue-600 text-white': draft.type === 'TEMPORARY' }"
+            class="h-8 border-r border-gray-300 px-3 text-xs last:border-r-0 dark:border-gray-700"
+            :class="toggleClass(draft.type === 'TEMPORARY')"
             :aria-pressed="draft.type === 'TEMPORARY'"
             @click="draft.type = 'TEMPORARY'"
           >
@@ -216,13 +241,34 @@ const runConfirm = (token) => {
 
       <div
         v-if="secret"
-        class="border-b border-gray-200 bg-blue-50 px-4.5 py-3 text-blue-900 dark:border-gray-800 dark:bg-blue-900 dark:text-blue-100"
+        class="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-gray-200 bg-blue-50 px-4.5 py-3 text-blue-900 dark:border-gray-800 dark:bg-blue-900 dark:text-blue-100"
         role="status"
       >
-        New secret for <strong>{{ secret.name }}</strong>: <code class="px-1 font-mono">{{ secret.value }}</code> — copy it now. <button
+        <span>New secret for <strong>{{ secret.name }}</strong>:</span>
+        <code class="min-w-0 break-all font-mono">{{ secret.value }}</code>
+        <button
           type="button"
-          class="ml-2 underline"
-          @click="secret = null"
+          class="inline-flex items-center gap-1 rounded-md bg-blue-700 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500"
+          :aria-label="copiedSecret ? 'Secret copied' : 'Copy secret'"
+          :title="copiedSecret ? 'Secret copied' : 'Copy secret'"
+          @click="copySecret"
+        >
+          <CopiedIcon
+            v-if="copiedSecret"
+            class="w-4 h-4"
+            aria-hidden="true"
+          />
+          <CopyIcon
+            v-else
+            class="w-4 h-4"
+            aria-hidden="true"
+          />
+          {{ copiedSecret ? 'Copied' : 'Copy' }}
+        </button>
+        <button
+          type="button"
+          class="text-xs underline"
+          @click="dismissSecret"
         >
           Dismiss
         </button>
@@ -311,8 +357,8 @@ const runConfirm = (token) => {
           <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
             <button
               type="button"
-              class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-              :class="{ 'bg-blue-600 text-white': draft.manager }"
+              class="h-8 border-r border-gray-300 px-3 text-xs last:border-r-0 dark:border-gray-700"
+              :class="toggleClass(draft.manager)"
               :aria-pressed="draft.manager"
               @click="draft.manager = !draft.manager"
             >
@@ -404,8 +450,8 @@ const runConfirm = (token) => {
               >
                 <button
                   type="button"
-                  class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                  :class="{ 'bg-blue-600 text-white': draft.read }"
+                  class="h-8 border-r border-gray-300 px-3 text-xs last:border-r-0 dark:border-gray-700"
+                  :class="toggleClass(draft.read)"
                   :aria-pressed="draft.read"
                   @click="draft.read = !draft.read"
                 >
@@ -413,8 +459,8 @@ const runConfirm = (token) => {
                 </button>
                 <button
                   type="button"
-                  class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                  :class="{ 'bg-blue-600 text-white': draft.write }"
+                  class="h-8 border-r border-gray-300 px-3 text-xs last:border-r-0 dark:border-gray-700"
+                  :class="toggleClass(draft.write)"
                   :aria-pressed="draft.write"
                   @click="draft.write = !draft.write"
                 >
@@ -441,7 +487,7 @@ const runConfirm = (token) => {
           <button
             v-if="!isOpen(`newroute:${tid(token)}`)"
             type="button"
-            class="flex min-h-11.5 cursor-pointer items-center gap-2 border-b border-gray-200 py-2 pl-9.5 pr-4.5 text-blue-600 hover:bg-gray-50 hover:text-blue-700 dark:border-gray-800 dark:text-blue-300 dark:hover:bg-gray-800 dark:hover:text-blue-200 <sm:flex-wrap <sm:items-start <sm:py-3 <sm:pl-4.5"
+            class="flex min-h-11.5 w-full cursor-pointer items-center gap-2 border-b border-gray-200 py-2 pl-9.5 pr-4.5 text-blue-600 hover:bg-gray-50 hover:text-blue-700 dark:border-gray-800 dark:text-blue-300 dark:hover:bg-gray-800 dark:hover:text-blue-200 <sm:flex-wrap <sm:items-start <sm:py-3 <sm:pl-4.5"
             @click="addRoute(token)"
           >
             <span class="whitespace-nowrap">+ Add route</span>
@@ -463,8 +509,8 @@ const runConfirm = (token) => {
             >
               <button
                 type="button"
-                class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                :class="{ 'bg-blue-600 text-white': draft.read }"
+                class="h-8 border-r border-gray-300 px-3 text-xs last:border-r-0 dark:border-gray-700"
+                :class="toggleClass(draft.read)"
                 :aria-pressed="draft.read"
                 @click="draft.read = !draft.read"
               >
@@ -472,8 +518,8 @@ const runConfirm = (token) => {
               </button>
               <button
                 type="button"
-                class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                :class="{ 'bg-blue-600 text-white': draft.write }"
+                class="h-8 border-r border-gray-300 px-3 text-xs last:border-r-0 dark:border-gray-700"
+                :class="toggleClass(draft.write)"
                 :aria-pressed="draft.write"
                 @click="draft.write = !draft.write"
               >
