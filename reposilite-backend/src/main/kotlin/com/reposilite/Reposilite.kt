@@ -25,6 +25,7 @@ import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
+import com.reposilite.shared.extensions.shutdownGracefully
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.web.HttpServer
@@ -35,6 +36,7 @@ import panda.std.asError
 import panda.std.peek
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit.MINUTES
 import java.util.concurrent.atomic.AtomicBoolean
 
 class Reposilite(
@@ -80,15 +82,26 @@ class Reposilite(
         alive.peek {
             alive.set(false)
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
-            scheduler.shutdown()
-            ioService.shutdown()
-            extensions.emitEvent(ReposiliteDisposeEvent(this))
-            webServer.stop()
-            databaseConnection.close()
-            scheduler.shutdownNow()
-            ioService.shutdownNow()
-            journalist.shutdown()
+            shutdownSafely("scheduler") { scheduler.shutdown() }
+            shutdownSafely("web server") { webServer.stop() }
+            shutdownSafely("IO executor") {
+                if (!ioService.shutdownGracefully(1, MINUTES)) {
+                    logger.warn("IO executor did not terminate")
+                }
+            }
+            shutdownSafely("extensions") { extensions.emitEvent(ReposiliteDisposeEvent(this)) }
+            shutdownSafely("database") { databaseConnection.close() }
+            shutdownSafely("journalist") { journalist.shutdown() }
         }
+
+    private inline fun shutdownSafely(component: String, action: () -> Unit) {
+        try {
+            action()
+        } catch (exception: Exception) {
+            logger.error("Failed to shut down $component")
+            logger.exception(exception)
+        }
+    }
 
     override fun getLogger(): Logger =
         journalist.logger

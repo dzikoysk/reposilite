@@ -16,14 +16,13 @@
 
 package com.reposilite.shared.extensions
 
-import io.javalin.util.ConcurrencyUtil
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 open class NamedThreadFactory(private val prefix: String) : ThreadFactory {
@@ -36,16 +35,39 @@ open class NamedThreadFactory(private val prefix: String) : ThreadFactory {
 
 }
 
-fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorService =
-    when (LoomExtensions.isLoomAvailable()) {
-        true -> ConcurrencyUtil.executorService("$prefix (virtual) - ", useLoom = false) // disable loom for now
-        false -> ThreadPoolExecutor(
-            min, max,
-            0L, MILLISECONDS,
-            LinkedBlockingQueue(),
-            NamedThreadFactory("$prefix ($max) - ")
-        )
+fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorService {
+    require(max > 0) { "Maximum thread pool size must be greater than 0" }
+    require(min == 0) { "Minimum thread pool size must be 0" }
+
+    return ThreadPoolExecutor(
+        max,
+        max,
+        60,
+        TimeUnit.SECONDS,
+        LinkedBlockingQueue(),
+        NamedThreadFactory("$prefix ($max) - ")
+    ).apply {
+        allowCoreThreadTimeOut(true)
     }
+}
 
 fun newSingleThreadScheduledExecutor(prefix: String): ScheduledExecutorService =
-    ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - "))
+    ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - ")).apply {
+        removeOnCancelPolicy = true
+        executeExistingDelayedTasksAfterShutdownPolicy = false
+    }
+
+internal fun ExecutorService.shutdownGracefully(timeout: Long, unit: TimeUnit): Boolean {
+    shutdown()
+    return try {
+        val terminated = awaitTermination(timeout, unit)
+        if (!terminated) {
+            shutdownNow()
+        }
+        terminated
+    } catch (_: InterruptedException) {
+        shutdownNow()
+        Thread.currentThread().interrupt()
+        false
+    }
+}

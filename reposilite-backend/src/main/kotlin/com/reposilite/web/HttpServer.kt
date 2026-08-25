@@ -29,6 +29,9 @@ import io.javalin.Javalin
 import io.javalin.util.ConcurrencyUtil
 import org.eclipse.jetty.io.EofException
 
+private const val MIN_WEB_THREAD_POOL_SIZE = 4
+private const val MIN_SSL_WEB_THREAD_POOL_SIZE = 6
+
 class HttpServer {
 
     private var javalin: Javalin? = null
@@ -37,10 +40,13 @@ class HttpServer {
         val extensionsManagement = reposilite.extensions
         val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
 
+        val maxThreads = localConfiguration.webThreadPool.get()
+        val minimum = if (localConfiguration.sslEnabled.get()) MIN_SSL_WEB_THREAD_POOL_SIZE else MIN_WEB_THREAD_POOL_SIZE
+        require(maxThreads >= minimum) { "Web thread pool size must be at least $minimum" }
         val webThreadPool = ConcurrencyUtil.jettyThreadPool(
-            name = "Reposilite | Web (${localConfiguration.webThreadPool.get()}) -",
-            minThreads = localConfiguration.webThreadPool.get(),
-            maxThreads = localConfiguration.webThreadPool.get(),
+            name = "Reposilite | Web ($maxThreads) -",
+            minThreads = MIN_WEB_THREAD_POOL_SIZE,
+            maxThreads = maxThreads,
             useLoom = false
         )
 
