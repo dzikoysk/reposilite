@@ -61,13 +61,13 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
 
         if (sharedConfigurationFacade.isMutable()) {
             val watcher = reposilite().scheduler.scheduleWithFixedDelay({
-                reposilite().ioService.execute {
-                    if (sharedConfigurationFacade.isUpdateRequired()) {
-                        logger.info("Propagation | Shared configuration has been changed in ${sharedConfigurationFacade.getProviderName()}, updating current instance...")
-                        sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationFacade.fetchConfiguration())
-                        logger.info("Propagation | Sources have been updated successfully")
-                    }
+                if (!sharedConfigurationFacade.isUpdateRequired()) {
+                    return@scheduleWithFixedDelay
                 }
+
+                logger.info("Propagation | Shared configuration has been changed in ${sharedConfigurationFacade.getProviderName()}, updating current instance...")
+                sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationFacade.fetchConfiguration())
+                logger.info("Propagation | Sources have been updated successfully")
             }, 10, 10, TimeUnit.SECONDS)
 
             event { _: ReposiliteDisposeEvent ->
