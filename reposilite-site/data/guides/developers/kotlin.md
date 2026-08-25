@@ -304,7 +304,7 @@ List of functions available on every object:
 | `with` | `with(user) { this.username }` | Username | Maps value with DSL function
 
 ### Error handling
-Reposilite uses `panda.std.Result<Value, Error>` wrapper from [expressible](https://github.com/panda-lang/expressible) 
+Reposilite uses the `Result<Value, Error>` wrapper from [Expressible](https://github.com/dzikoysk/expressible)
 library to handle errors gracefully, without unexpected runtime exceptions. 
 For instance, instead of:
 

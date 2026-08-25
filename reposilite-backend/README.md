@@ -9,7 +9,7 @@ Main libraries used by project:
 * [Javalin](https://javalin.io/) - HTTP server based on [Jetty](https://www.eclipse.org/jetty/)
 * [Exposed](https://github.com/JetBrains/Exposed) - SQLite, MySQL DSL support
 * [AWS S3 Client](https://github.com/aws/aws-sdk-java-v2) - Remote file storage
-* [Expressible](https://github.com/panda-lang/expressible) - Functional programming extensions, mostly used to work around `Result<Value, Error>` pattern
+* [Expressible](https://github.com/dzikoysk/expressible) - Functional programming extensions, mostly used to work around `Result<Value, Error>` pattern
 * [Picocli](https://picocli.info/) - Command line and command-like configuration properties support
 * [JUnit 5](https://junit.org/junit5/) - Unit & integration tests
 * [Testcontainers](https://www.testcontainers.org/) - Integration test, requires Docker (for Windows you need Docker Desktop). 

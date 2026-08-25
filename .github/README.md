@@ -42,7 +42,7 @@ This is a simple, extensible and scalable self-hosted solution that replaces man
   |
   <a href="https://hub.docker.com/r/dzikoysk/reposilite">DockerHub Images</a>
   |
-  <a href="https://panda-lang.org/support">Support</a>
+  <a href="https://reposilite.com/support">Support</a>
   |
   <a href="https://maven.reposilite.com">Demo</a>
  </div>
