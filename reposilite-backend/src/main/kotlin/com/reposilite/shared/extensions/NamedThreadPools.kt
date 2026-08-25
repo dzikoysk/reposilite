@@ -60,12 +60,11 @@ fun newSingleThreadScheduledExecutor(prefix: String): ScheduledExecutorService =
 internal fun ExecutorService.shutdownGracefully(timeout: Long, unit: TimeUnit): Boolean {
     shutdown()
     return try {
-        if (!awaitTermination(timeout, unit)) {
+        val terminated = awaitTermination(timeout, unit)
+        if (!terminated) {
             shutdownNow()
-            awaitTermination(timeout, unit)
-        } else {
-            true
         }
+        terminated
     } catch (_: InterruptedException) {
         shutdownNow()
         Thread.currentThread().interrupt()

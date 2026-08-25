@@ -85,7 +85,7 @@ class Reposilite(
             shutdownSafely("scheduler") { scheduler.shutdown() }
             shutdownSafely("web server") { webServer.stop() }
             shutdownSafely("IO executor") {
-                if (!ioService.shutdownGracefully(2, MINUTES)) {
+                if (!ioService.shutdownGracefully(1, MINUTES)) {
                     logger.warn("IO executor did not terminate")
                 }
             }
