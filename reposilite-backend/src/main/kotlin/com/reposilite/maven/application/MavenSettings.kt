@@ -80,7 +80,9 @@ data class RepositorySettings(
     """)
     val resolutionCacheMaxEntries: Int = 0,
     @get:Doc(title = "Mirrored repositories", description = "List of mirrored repositories associated with this repository.")
-    val proxied: List<MirroredRepositorySettings> = listOf()
+    val proxied: List<MirroredRepositorySettings> = listOf(),
+    @get:Doc(title = "Parallel metadata lookup", description = "Probe mirrors concurrently for Maven metadata and route later requests through the first matching mirror. Requires the resolution cache to be enabled.")
+    val parallelMetadataLookup: Boolean = false,
 ) : SharedSettings
 
 @Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")

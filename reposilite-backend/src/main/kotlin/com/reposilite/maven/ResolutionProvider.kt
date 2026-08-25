@@ -57,12 +57,13 @@ internal class ResolutionProvider(
             ?: repository.mirrorHosts
 
         val attempt = when {
-            cached is ResolutionCache.Origin.Remote || mirrorFirst -> tryRemoteFirst(tryLocal, tryRemote, hosts, notFoundMessage)
+            mirrorFirst || (cached is ResolutionCache.Origin.Remote && !repository.parallelMetadataLookup) ->
+                tryRemoteFirst(tryLocal, tryRemote, hosts, notFoundMessage)
             else -> tryLocalFirst(tryLocal, tryRemote, hosts, notFoundMessage)
         }
 
         if (cache != null && isMetadata) {
-            attempt.recordTo(cache, gav, authenticated)
+            attempt.recordTo(cache, gav, authenticated, repository.parallelMetadataLookup)
         }
 
         return attempt.result
@@ -104,7 +105,7 @@ internal class ResolutionProvider(
             else -> ResolveAttempt(tryLocal().flatMapErr { remote.toResult(notFoundMessage) }, remote)
         }
 
-    private fun <T> ResolveAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean) {
+    private fun <T> ResolveAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean, parallelMetadataLookup: Boolean) {
         val prefix = gav.getParent()
         if (prefix == Location.empty()) {
             return
@@ -125,9 +126,10 @@ internal class ResolutionProvider(
             return
         }
 
-        // Successful resolve: pin the host only when the mirror won't keep a local copy; otherwise we served locally.
+        // Parallel lookup retains the winning mirror for later misses, even when this request stored a local copy.
         val origin = when (remote) {
-            is MirrorResolution.Resolved if !remote.mirror.configuration.store -> ResolutionCache.Origin.Remote(remote.mirror.host)
+            is MirrorResolution.Resolved if parallelMetadataLookup || !remote.mirror.configuration.store ->
+                ResolutionCache.Origin.Remote(remote.mirror.host)
             else -> ResolutionCache.Origin.Local
         }
 

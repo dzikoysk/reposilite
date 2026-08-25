@@ -37,6 +37,7 @@ class Repository internal constructor(
     val storageProvider: StorageProvider,
     val storagePolicy: StoragePolicy,
     val metadataMaxAgeInSeconds: Long,
+    parallelMetadataLookup: Boolean,
     resolutionCacheMaxEntries: Int,
 ) {
 
@@ -46,6 +47,7 @@ class Repository internal constructor(
 
     internal val resolutionCache: ResolutionCache? =
         if (resolutionCacheMaxEntries > 0) ResolutionCache(resolutionCacheMaxEntries) else null
+    internal val parallelMetadataLookup = parallelMetadataLookup && resolutionCache != null
 
     fun acceptsDeploymentOf(location: Location): Boolean =
         redeployment || location.getSimpleName().contains(METADATA_FILE) || !storageProvider.exists(location)

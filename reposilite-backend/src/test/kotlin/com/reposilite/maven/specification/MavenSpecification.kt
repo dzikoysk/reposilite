@@ -116,6 +116,7 @@ internal abstract class MavenSpecification {
 
         val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
+                beforeRemoteHead(uri)
                 remoteRequestsByUri.computeIfAbsent(uri) { AtomicInteger() }.incrementAndGet()
                 if (uri.startsWith(REMOTE_REPOSITORY_BROKEN))
                     errorResponse(BAD_GATEWAY, "Simulated upstream failure")
@@ -194,6 +195,8 @@ internal abstract class MavenSpecification {
 
     protected fun findRepositories(accessToken: AccessTokenIdentifier?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }
+
+    protected open fun beforeRemoteHead(uri: String) = Unit
 
     protected fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory.toPath()

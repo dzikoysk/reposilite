@@ -23,7 +23,6 @@ import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.internalServer
-import com.reposilite.shared.notFound
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
@@ -38,6 +37,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.RejectedExecutionException
 
@@ -82,7 +82,13 @@ internal class MirrorService(
         accessToken: AccessTokenIdentifier? = null,
         hosts: List<MirrorHost> = repository.mirrorHosts,
     ): MirrorResolution<FileDetails> =
-        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
+        searchInRemoteRepositories(
+            repository = repository,
+            gav = gav,
+            accessToken = accessToken,
+            hosts = hosts,
+            parallel = repository.parallelMetadataLookup && gav.getSimpleName() == METADATA_FILE,
+        ) { (host, config, client) ->
             client.head("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
@@ -167,6 +173,7 @@ internal class MirrorService(
         gav: Location,
         accessToken: AccessTokenIdentifier?,
         hosts: List<MirrorHost>,
+        parallel: Boolean = false,
         fetch: (MirrorHost) -> Result<V, ErrorResponse>,
     ): MirrorResolution<V> {
         val eligibleHosts = hosts
@@ -184,22 +191,30 @@ internal class MirrorService(
             return MirrorResolution.NoEligibleHosts
         }
 
-        var allMissing = true
+        if (parallel && eligibleHosts.size > 1 && eligibleHosts.none { it.client is RepositoryLoopbackClient }) {
+            val completionService = ExecutorCompletionService<Pair<MirrorHost, Result<V, ErrorResponse>>>(ioService)
+            val tasks = eligibleHosts.map { host -> completionService.submit { host to fetch(host) } }
+            return try {
+                resolve((1..tasks.size).asSequence().map { completionService.take().get() })
+            } finally {
+                tasks.forEach { it.cancel(true) }
+            }
+        }
+
+        return resolve(eligibleHosts.asSequence().map { it to fetch(it) })
+    }
+
+    private fun <V> resolve(results: Sequence<Pair<MirrorHost, Result<V, ErrorResponse>>>): MirrorResolution<V> {
         var lastUpstreamError: ErrorResponse? = null
-        for (host in eligibleHosts) {
-            val result = fetch(host)
+        for ((host, result) in results) {
             if (result.isOk) {
                 return MirrorResolution.Resolved(result.get(), host)
             }
             if (result.error.status != 404) {
-                allMissing = false
                 lastUpstreamError = result.error
             }
         }
-        return when {
-            allMissing -> MirrorResolution.NotFound
-            else -> MirrorResolution.Failed(lastUpstreamError ?: notFound("Cannot find '$gav' in remote repositories"))
-        }
+        return lastUpstreamError?.let { MirrorResolution.Failed(it) } ?: MirrorResolution.NotFound
     }
 
     private enum class DisallowedReason {

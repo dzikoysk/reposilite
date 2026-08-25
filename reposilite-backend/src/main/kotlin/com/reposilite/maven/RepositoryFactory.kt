@@ -60,6 +60,7 @@ internal class RepositoryFactory(
                     ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
             storagePolicy = configuration.storagePolicy,
             metadataMaxAgeInSeconds = configuration.metadataMaxAge,
+            parallelMetadataLookup = configuration.parallelMetadataLookup,
             resolutionCacheMaxEntries = configuration.resolutionCacheMaxEntries,
         )
 
