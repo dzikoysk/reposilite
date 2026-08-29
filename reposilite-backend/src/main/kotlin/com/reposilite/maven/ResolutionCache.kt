@@ -51,10 +51,16 @@ internal class ResolutionCache(
             .build()
 
     fun lookup(gav: Location, authenticated: Boolean): State? {
-        find<State.MirrorsMissing>(Key(gav, authenticated))?.let { return it }
+        val missing = find<State.MirrorsMissing>(Key(gav, authenticated))
+        if (missing != null) {
+            return missing
+        }
 
         val direct = gav.getParent()
-        find<State.PinnedMirror>(Key(direct, authenticated))?.let { return it }
+        val pinned = find<State.PinnedMirror>(Key(direct, authenticated))
+        if (pinned != null) {
+            return pinned
+        }
 
         return when (gav.getSimpleName()) {
             METADATA_FILE -> null

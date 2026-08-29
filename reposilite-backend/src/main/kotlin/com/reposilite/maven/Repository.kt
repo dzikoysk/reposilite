@@ -47,8 +47,14 @@ class Repository internal constructor(
     }
 
     internal val resolutionCache: ResolutionCache? =
-        if (resolutionCacheMaxEntries > 0) ResolutionCache(resolutionCacheMaxEntries, resolutionCacheLevel) else null
-    internal val parallelMetadataLookup = parallelMetadataLookup && resolutionCache != null
+        when {
+            resolutionCacheMaxEntries > 0 -> ResolutionCache(maxEntries = resolutionCacheMaxEntries, level = resolutionCacheLevel)
+            else -> null
+        }
+
+    @JvmSynthetic
+    internal val parallelMetadataLookupEnabled: Boolean =
+        parallelMetadataLookup && resolutionCache != null
 
     fun acceptsDeploymentOf(location: Location): Boolean =
         redeployment || location.getSimpleName().contains(METADATA_FILE) || !storageProvider.exists(location)

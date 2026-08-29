@@ -87,7 +87,7 @@ internal class MirrorService(
             gav = gav,
             accessToken = accessToken,
             hosts = hosts,
-            parallel = repository.parallelMetadataLookup && gav.getSimpleName() == METADATA_FILE,
+            parallel = repository.parallelMetadataLookupEnabled && gav.getSimpleName() == METADATA_FILE,
         ) { (host, config, client) ->
             client.head("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
