@@ -73,7 +73,7 @@ internal class ResolutionCacheTest {
         cache.recordPinnedMirror("c/$METADATA_FILE".toLocation(), false, "host-c")
 
         // then: Caffeine evicts an entry to preserve the configured bound
-        assertThat(cache.size()).isEqualTo(2)
+        assertThat(cache.purge()).isEqualTo(2)
     }
 
     @Test

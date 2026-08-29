@@ -20,7 +20,6 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.Location
-import java.util.concurrent.atomic.LongAdder
 
 enum class ResolutionCacheLevel {
     PINNING,
@@ -34,37 +33,31 @@ internal class ResolutionCache(
 
     private data class Key(val location: Location, val authenticated: Boolean)
 
-    private class Entry(val state: State) {
-        val hitCount = LongAdder()
-    }
-
     sealed interface State {
         data class PinnedMirror(val host: String) : State
         data object MirrorsMissing : State
     }
 
-    data class ResolutionCacheEntry(val location: Location, val authenticated: Boolean, val state: State, val hitCount: Long)
-
-    private val entries: Cache<Key, Entry> =
+    private val entries: Cache<Key, State> =
         Caffeine.newBuilder()
             .maximumSize(maxEntries.toLong())
             .build()
 
     fun lookup(gav: Location, authenticated: Boolean): State? {
-        val missing = find<State.MirrorsMissing>(Key(gav, authenticated))
-        if (missing != null) {
+        val missing = entries.getIfPresent(Key(gav, authenticated))
+        if (missing is State.MirrorsMissing) {
             return missing
         }
 
-        val direct = gav.getParent()
-        val pinned = find<State.PinnedMirror>(Key(direct, authenticated))
-        if (pinned != null) {
+        val parent = gav.getParent()
+        val pinned = entries.getIfPresent(Key(parent, authenticated))
+        if (pinned is State.PinnedMirror) {
             return pinned
         }
 
         return when (gav.getSimpleName()) {
             METADATA_FILE -> null
-            else -> find<State.PinnedMirror>(Key(direct.getParent(), authenticated))
+            else -> entries.getIfPresent(Key(parent.getParent(), authenticated)) as? State.PinnedMirror
         }
     }
 
@@ -83,40 +76,18 @@ internal class ResolutionCache(
         entries.invalidate(Key(gav, authenticated = false))
     }
 
-    fun purge() {
+    fun purge(): Int {
+        entries.cleanUp()
+        val size = entries.estimatedSize().toInt()
         entries.invalidateAll()
-    }
-
-    fun size(): Int {
-        entries.cleanUp()
-        return entries.estimatedSize().toInt()
-    }
-
-    fun stats(top: Int): List<ResolutionCacheEntry> {
-        entries.cleanUp()
-        return entries.asMap().entries.asSequence()
-            .map { (key, entry) -> ResolutionCacheEntry(key.location, key.authenticated, entry.state, entry.hitCount.sum()) }
-            .sortedByDescending { it.hitCount }
-            .take(top.coerceAtLeast(0))
-            .toList()
-    }
-
-    private inline fun <reified T : State> find(key: Key): T? {
-        val entry = entries.getIfPresent(key) ?: return null
-        if (entry.state !is T) {
-            return null
-        }
-        entry.hitCount.increment()
-        return entry.state
+        return size
     }
 
     private fun record(key: Key, state: State) {
         if (key.location == Location.empty()) {
             return
         }
-        entries.asMap().compute(key) { _, entry ->
-            entry?.takeIf { it.state == state } ?: Entry(state)
-        }
+        entries.put(key, state)
     }
 
 }

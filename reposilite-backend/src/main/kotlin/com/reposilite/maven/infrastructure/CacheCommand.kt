@@ -21,27 +21,20 @@ import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.Repository
-import com.reposilite.maven.ResolutionCache
 import picocli.CommandLine.Command
-import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 
-private const val DEFAULT_TOP = 20
-
-@Command(name = "cache", description = ["Inspect or purge a Reposilite cache. Usage: cache <target> <action> [<repository>]. Targets: resolution. Actions: stats, purge."])
+@Command(name = "cache", description = ["Purge a Reposilite cache. Usage: cache <target> <action> [<repository>]. Targets: resolution. Actions: purge."])
 internal class CacheCommand(private val mavenFacade: MavenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<target>", description = ["Cache to operate on. Supported: 'resolution'."])
     private lateinit var target: String
 
-    @Parameters(index = "1", paramLabel = "<action>", description = ["Action to perform. Supported: 'stats', 'purge'."])
+    @Parameters(index = "1", paramLabel = "<action>", description = ["Action to perform. Supported: 'purge'."])
     private lateinit var action: String
 
     @Parameters(index = "2", paramLabel = "[<repository>]", defaultValue = "", description = ["Limit to a single repository. Defaults to all."])
     private lateinit var repository: String
-
-    @Option(names = ["--top"], description = ["Number of top entries to display per repository for 'stats' (default: $DEFAULT_TOP)."], defaultValue = "$DEFAULT_TOP")
-    private var top: Int = DEFAULT_TOP
 
     override fun execute(context: CommandContext) {
         when (target) {
@@ -60,36 +53,8 @@ internal class CacheCommand(private val mavenFacade: MavenFacade) : ReposiliteCo
         }
 
         when (action) {
-            "stats" -> stats(repositories, context)
             "purge" -> purge(repositories, context)
-            else -> context.fail("Unknown action '$action'. Supported: stats, purge")
-        }
-    }
-
-    private fun stats(repositories: List<Repository>, context: CommandContext) {
-        repositories.forEach { repo ->
-            val cache = repo.resolutionCache
-            if (cache == null) {
-                context.append("${repo.name}: resolution cache disabled")
-                return@forEach
-            }
-            context.append("${repo.name}: ${cache.size()} cached entries")
-            val snapshots = cache.stats(top)
-            if (snapshots.isEmpty()) {
-                context.append("  ~ no entries ~")
-                return@forEach
-            }
-            snapshots.forEach { snap ->
-                val destination = when (val state = snap.state) {
-                    is ResolutionCache.State.PinnedMirror -> state.host
-                    ResolutionCache.State.MirrorsMissing -> "(missing from mirrors)"
-                }
-                val auth = when {
-                    snap.authenticated -> "auth"
-                    else -> "anon"
-                }
-                context.append("  [$auth] /${snap.location} -> $destination  (hits: ${snap.hitCount})")
-            }
+            else -> context.fail("Unknown action '$action'. Supported: purge")
         }
     }
 
@@ -98,8 +63,7 @@ internal class CacheCommand(private val mavenFacade: MavenFacade) : ReposiliteCo
         var affected = 0
         repositories.forEach { repo ->
             val cache = repo.resolutionCache ?: return@forEach
-            totalCleared += cache.size()
-            cache.purge()
+            totalCleared += cache.purge()
             affected++
         }
         context.append("Cleared $totalCleared resolution cache entries across $affected repositor${if (affected == 1) "y" else "ies"}.")
