@@ -121,13 +121,7 @@ dependencies {
     val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "2.2.0"
-    implementation("com.google.http-client:google-http-client:$httpClient") {
-        exclude(group = "commons-codec", module = "commons-codec")
-        exclude(group = "com.google.guava", module = "guava")
-    }
     api("commons-codec:commons-codec:1.22.1")
-    testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
     val journalist = "1.0.12"
     api("com.reposilite:journalist:$journalist")

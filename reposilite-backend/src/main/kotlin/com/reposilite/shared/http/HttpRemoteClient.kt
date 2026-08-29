@@ -16,11 +16,6 @@
 
 package com.reposilite.shared.http
 
-import com.google.api.client.http.GenericUrl
-import com.google.api.client.http.HttpMethods
-import com.google.api.client.http.HttpRequest
-import com.google.api.client.http.HttpResponse
-import com.google.api.client.http.javanet.NetHttpTransport
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
@@ -40,9 +35,16 @@ import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
 import java.net.Proxy
+import java.net.URI
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.util.Base64
+
+private const val HTTP_GET = "GET"
+private const val HTTP_HEAD = "HEAD"
+private const val USER_AGENT = "Reposilite"
 
 interface RemoteClientProvider {
 
@@ -65,95 +67,103 @@ class HttpRemoteClientProvider(private val journalist: Journalist) : RemoteClien
 
 class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : RemoteClient, Journalist {
 
-    private val requestFactory = NetHttpTransport.Builder()
-        .setProxy(proxy)
-        .build()
-        .createRequestFactory()
+    private val httpClient = HttpClient(USER_AGENT, proxy)
 
     override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse> =
-        createRequest(HttpMethods.HEAD, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
-            .flatMap { request ->
-                request.execute { response ->
-                    response.disconnect()
-                    val headers = response.headers
+        execute(HTTP_HEAD, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds) { response ->
+            // Nexus can send misleading for client content-length of chunked responses
+            // ~ https://github.com/dzikoysk/reposilite/issues/549
+            val contentLength = response.contentLength
+                .takeUnless { "gzip" == response.contentEncoding } // remove content-length header
+                ?: UNKNOWN_LENGTH
 
-                    // Nexus can send misleading for client content-length of chunked responses
-                    // ~ https://github.com/dzikoysk/reposilite/issues/549
-                    val contentLength = headers.contentLength
-                        ?.takeUnless { "gzip" == headers.contentEncoding } // remove content-length header
-                        ?: UNKNOWN_LENGTH
+            val contentType = response.contentType
+                ?.let { ContentType.contentType(it) }
+                ?: ContentType.contentTypeByExtension(uri.getExtension())
+                ?: ContentType.APPLICATION_OCTET_STREAM
 
-                    val contentType = headers.contentType
-                        ?.let { ContentType.contentType(it) }
-                        ?: ContentType.contentTypeByExtension(uri.getExtension())
-                        ?: ContentType.APPLICATION_OCTET_STREAM
-
-                    val lastModified = headers.lastModified
-                        ?.trim()
-                        ?.takeIf { it.isNotEmpty() }
-                        ?.let {
-                            try {
-                                ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()
-                            } catch (_: DateTimeParseException) {
-                                null
-                            }
-                        }
-
-                    DocumentInfo(
-                        name = uri.substringAfterLast('/'),
-                        contentType = contentType,
-                        contentLength = contentLength,
-                        lastModifiedTime = lastModified,
-                    ).asSuccess()
+            val lastModified = response
+                .getHeader("Last-Modified")
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?.let {
+                    try {
+                        ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()
+                    } catch (_: DateTimeParseException) {
+                        null
+                    }
                 }
-            }
+
+            response.close()
+            DocumentInfo(
+                name = uri.substringAfterLast('/'),
+                contentType = contentType,
+                contentLength = contentLength,
+                lastModifiedTime = lastModified,
+            ).asSuccess()
+        }
 
     override fun get(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<InputStream, ErrorResponse> {
-        return createRequest(HttpMethods.GET, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
-            .flatMap { it.execute { response -> response.content.asSuccess() } }
+        return execute(HTTP_GET, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds) { response ->
+            response.openBody().asSuccess()
+        }
     }
 
-    private fun createRequest(method: String, uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<HttpRequest, ErrorResponse> {
+    private fun <R> execute(
+        method: String,
+        uri: String,
+        credentials: RemoteCredentials?,
+        connectTimeout: Int,
+        readTimeout: Int,
+        consumer: (HttpResponse) -> Result<R, ErrorResponse>,
+    ): Result<R, ErrorResponse> {
         val url = try {
-            GenericUrl(uri)
-        } catch (_: IllegalArgumentException) {
+            URI(uri).toURL()
+        } catch (_: Exception) {
             return badRequestError("Invalid remote URI: $uri")
         }
-        val request = requestFactory.buildRequest(method, url, null)
-        request.throwExceptionOnExecuteError = false
-        request.connectTimeout = connectTimeout * 1000
-        request.readTimeout = readTimeout * 1000
-        request.authenticateWith(credentials)
-        return request.asSuccess()
-    }
+        val response = try {
+            httpClient.execute(
+                HttpRequest(
+                    method = method,
+                    url = url,
+                    headers = credentials.toHeaders(),
+                    connectTimeoutInMillis = connectTimeout * 1000,
+                    readTimeoutInMillis = readTimeout * 1000,
+                )
+            )
+        } catch (exception: Exception) {
+            return createExceptionResponse(url.toString(), exception)
+        }
 
-    private fun <R> HttpRequest.execute(consumer: (HttpResponse) -> Result<R, ErrorResponse>): Result<R, ErrorResponse> =
-        try {
-            val response = this.execute()
-            logger.debug("HttpRemoteClient | $url responded with ${response.statusCode} (Content-Type: ${response.contentType})")
+        return try {
+            logger.debug("HttpRemoteClient | ${response.url} responded with ${response.statusCode} (Content-Type: ${response.contentType})")
 
             when {
-                !response.isSuccessStatusCode -> when (response.statusCode) {
+                response.statusCode !in 200..299 -> when (response.statusCode) {
                     404, 429 -> Result.error(ErrorResponse(response.statusCode, "Unsuccessful request (${response.statusCode})"))
                     else -> NOT_ACCEPTABLE.toErrorResult("Unsuccessful request (${response.statusCode})")
                 }
                 response.contentType == ContentType.HTML -> NOT_ACCEPTABLE.toErrorResult("Illegal file type (${response.contentType})")
                 else -> consumer(response)
             }.onError {
-                response.disconnect()
+                response.close()
             }
         } catch (exception: Exception) {
-            createExceptionResponse(this.url.toString(), exception)
-        }
-
-    private fun HttpRequest.authenticateWith(credentials: RemoteCredentials?): HttpRequest = also {
-        if (credentials != null) {
-            when (credentials.method) {
-                BASIC, LOOPBACK_LINK -> it.headers.setBasicAuthentication(credentials.login, credentials.password)
-                CUSTOM_HEADER -> it.headers[credentials.login] = credentials.password
-            }
+            response.close()
+            createExceptionResponse(url.toString(), exception)
         }
     }
+
+    private fun RemoteCredentials?.toHeaders(): Map<String, String> =
+        when (this?.method) {
+            BASIC, LOOPBACK_LINK -> {
+                val value = Base64.getEncoder().encodeToString("$login:$password".toByteArray(UTF_8))
+                mapOf("Authorization" to "Basic $value")
+            }
+            CUSTOM_HEADER -> mapOf(login to password)
+            null -> emptyMap()
+        }
 
     private fun <V> createExceptionResponse(uri: String, exception: Exception): Result<V, ErrorResponse> {
         logger.debug("HttpRemoteClient | Cannot get $uri")
