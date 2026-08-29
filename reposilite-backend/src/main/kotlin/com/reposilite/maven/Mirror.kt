@@ -20,6 +20,7 @@ import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClient
 import com.reposilite.shared.notFoundError
+import com.reposilite.storage.api.Location
 import panda.std.Result
 
 data class MirrorHost(
@@ -40,9 +41,9 @@ internal sealed interface MirrorResolution<out T> {
     data class Resolved<T>(val value: T, val mirror: MirrorHost) : MirrorResolution<T>
 }
 
-internal fun <T : Any> MirrorResolution<T>.toResult(notFoundMessage: String): Result<T, ErrorResponse> =
+internal fun <T : Any> MirrorResolution<T>.toResult(gav: Location): Result<T, ErrorResponse> =
     when (this) {
         is MirrorResolution.Resolved -> Result.ok(value)
         is MirrorResolution.Failed -> Result.error(error)
-        MirrorResolution.NoEligibleHosts, MirrorResolution.NotFound -> notFoundError(notFoundMessage)
+        MirrorResolution.NoEligibleHosts, MirrorResolution.NotFound -> notFoundError("Cannot find '$gav' in local or remote repositories")
     }

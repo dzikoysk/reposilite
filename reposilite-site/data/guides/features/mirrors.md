@@ -63,7 +63,9 @@ com.internal
 Groups listed here are never requested from this mirror.
 Blocked groups take precedence over allowed groups, so a group that appears in both lists is blocked.
 
-Mirrors are consulted in the order they are configured, and the first one to answer wins.
+By default, mirrors are consulted in the order they are configured, and the first successful one wins.
+Repositories with a resolution cache can enable parallel metadata lookup to probe eligible remote mirrors
+concurrently for `maven-metadata.xml`. The first successful mirror is cached for subsequent artifact requests.
 Two situations follow from that:
 
 - Steering resolution. When two mirrors carry the same group at different versions,
@@ -181,8 +183,6 @@ while storing is enabled on its Maven Central mirror entry.
 Together, these settings reduce repeated requests to Maven Central,
 but cannot prevent rate limiting caused by other traffic using the same public network address.
 
-An upstream `429` response may currently be exposed to clients as `406 Not Acceptable`.
-Some older Reposilite versions may report `404 Not Found` after trying the remaining mirrors instead.
-Check the Reposilite server logs to identify the original Maven Central response.
-
-We are exploring further improvements to make proxying Maven Central more reliable.
+When neither local storage nor another mirror can satisfy a request,
+Reposilite preserves an upstream `429 Too Many Requests` response so clients can distinguish
+rate limiting from a missing artifact.

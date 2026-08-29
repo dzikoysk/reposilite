@@ -20,7 +20,6 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
@@ -29,7 +28,7 @@ internal class ResolutionProvider(
     private val journalist: Journalist,
 ) : Journalist {
 
-    private data class ResolveAttempt<T>(
+    private data class ResolutionAttempt<T>(
         val result: Result<T, ErrorResponse>,
         val remote: MirrorResolution<T>?,
     )
@@ -46,49 +45,57 @@ internal class ResolutionProvider(
         val authenticated = accessToken != null
         val cached = cache?.lookup(gav, authenticated)
         val isMetadata = gav.isResolutionMetadata()
-        val notFoundMessage = "Cannot find '$gav' in local or remote repositories"
 
-        if (isMetadata && cached == ResolutionCache.Origin.MissingMetadata) {
-            return notFoundError(notFoundMessage)
-        }
-
-        val hosts = (cached as? ResolutionCache.Origin.Remote)
-            ?.let { decision -> repository.mirrorHosts.filter { it.host == decision.host }.ifEmpty { repository.mirrorHosts } }
+        val hosts = (cached as? ResolutionCache.State.PinnedMirror)
+            ?.let { state -> repository.mirrorHosts.sortedBy { it.host != state.host } }
             ?: repository.mirrorHosts
 
         val attempt = when {
-            cached is ResolutionCache.Origin.Remote || mirrorFirst -> tryRemoteFirst(tryLocal, tryRemote, hosts, notFoundMessage)
-            else -> tryLocalFirst(tryLocal, tryRemote, hosts, notFoundMessage)
+            isMetadata && cached == ResolutionCache.State.MirrorsMissing ->
+                ResolutionAttempt(result = tryLocal(), remote = MirrorResolution.NotFound)
+            mirrorFirst ->
+                tryRemoteFirst(tryLocal = tryLocal, tryRemote = tryRemote, hosts = hosts, gav = gav)
+            else ->
+                tryLocalFirst(tryLocal = tryLocal, tryRemote = tryRemote, hosts = hosts, gav = gav)
         }
 
         if (cache != null && isMetadata) {
-            attempt.recordTo(cache, gav, authenticated)
+            attempt.recordTo(
+                cache = cache,
+                gav = gav,
+                authenticated = authenticated,
+                parallelMetadataLookup = repository.parallelMetadataLookupEnabled
+            )
         }
 
         return attempt.result
     }
 
-    fun invalidate(repository: Repository, gav: Location): Boolean {
-        if (gav.isResolutionMetadata()) {
-            repository.resolutionCache?.invalidate(gav)
-            return true
+    fun invalidate(repository: Repository, gav: Location): Boolean =
+        when {
+            gav.isResolutionMetadata() -> {
+                repository.resolutionCache?.invalidate(gav)
+                true
+            }
+            else -> false
         }
-
-        return false
-    }
 
     private fun <T : Any> tryLocalFirst(
         tryLocal: () -> Result<T, ErrorResponse>,
         tryRemote: (List<MirrorHost>) -> MirrorResolution<T>,
         hosts: List<MirrorHost>,
-        notFoundMessage: String,
-    ): ResolveAttempt<T> =
+        gav: Location,
+    ): ResolutionAttempt<T> =
         tryLocal().let { local ->
             when {
-                local.isOk -> ResolveAttempt(local, remote = null)
+                local.isOk -> ResolutionAttempt(result = local, remote = null)
                 else -> {
                     val remote = tryRemote(hosts)
-                    ResolveAttempt(remote.toResult(notFoundMessage).flatMapErr { local }, remote)
+                    val result = when {
+                        remote is MirrorResolution.Failed && remote.error.status == 429 -> Result.error(remote.error)
+                        else -> remote.toResult(gav).flatMapErr { local }
+                    }
+                    ResolutionAttempt(result = result, remote = remote)
                 }
             }
         }
@@ -97,41 +104,24 @@ internal class ResolutionProvider(
         tryLocal: () -> Result<T, ErrorResponse>,
         tryRemote: (List<MirrorHost>) -> MirrorResolution<T>,
         hosts: List<MirrorHost>,
-        notFoundMessage: String,
-    ): ResolveAttempt<T> =
+        gav: Location,
+    ): ResolutionAttempt<T> =
         when (val remote = tryRemote(hosts)) {
-            is MirrorResolution.Resolved -> ResolveAttempt(Result.ok(remote.value), remote)
-            else -> ResolveAttempt(tryLocal().flatMapErr { remote.toResult(notFoundMessage) }, remote)
+            is MirrorResolution.Resolved -> ResolutionAttempt(result = Result.ok(remote.value), remote = remote)
+            else -> ResolutionAttempt(tryLocal().flatMapErr { remote.toResult(gav) }, remote)
         }
 
-    private fun <T> ResolveAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean) {
-        val prefix = gav.getParent()
-        if (prefix == Location.empty()) {
-            return
+    private fun <T> ResolutionAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean, parallelMetadataLookup: Boolean) {
+        when {
+            remote is MirrorResolution.NotFound ->
+                cache.recordMirrorsMissing(gav = gav, authenticated = authenticated)
+            result.isOk && remote is MirrorResolution.Failed ->
+                logger.warn("Resolution | Upstream failed (${remote.error.status}: ${remote.error.message}) - served '$gav' from local fallback")
+            result.isOk && remote is MirrorResolution.Resolved && (parallelMetadataLookup || !remote.mirror.configuration.store) ->
+                cache.recordPinnedMirror(gav = gav, authenticated = authenticated, host = remote.mirror.host)
+            else ->
+                Unit // Ignored: NoEligibleHosts and failed resolutions other than NotFound are transient
         }
-
-        // Successful resolve but upstream actually failed — we served a local fallback.
-        // Log it for visibility, but do not cache: the upstream may recover.
-        if (result.isOk && remote is MirrorResolution.Failed) {
-            logger.warn("Resolution | Upstream failed (${remote.error.status}: ${remote.error.message}) — served '$gav' from local fallback")
-            return
-        }
-
-        // Failed resolve: only NotFound is a stable signal worth caching. Everything else is transient.
-        if (!result.isOk) {
-            if (remote is MirrorResolution.NotFound) {
-                cache.record(prefix, authenticated, ResolutionCache.Origin.MissingMetadata)
-            }
-            return
-        }
-
-        // Successful resolve: pin the host only when the mirror won't keep a local copy; otherwise we served locally.
-        val origin = when (remote) {
-            is MirrorResolution.Resolved if !remote.mirror.configuration.store -> ResolutionCache.Origin.Remote(remote.mirror.host)
-            else -> ResolutionCache.Origin.Local
-        }
-
-        cache.record(prefix, authenticated, origin)
     }
 
     private fun Location.isResolutionMetadata(): Boolean =

@@ -16,99 +16,78 @@
 
 package com.reposilite.maven
 
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.Location
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.LongAdder
 
-internal class ResolutionCache(private val maxEntries: Int) {
+enum class ResolutionCacheLevel {
+    PINNING,
+    NEGATIVE_CACHING,
+}
 
-    private data class Key(val prefix: Location, val authenticated: Boolean)
+internal class ResolutionCache(
+    maxEntries: Int,
+    private val level: ResolutionCacheLevel,
+) {
 
-    private class Entry(val origin: Origin) {
-        val hitCount = LongAdder()
+    private data class Key(val location: Location, val authenticated: Boolean)
+
+    sealed interface State {
+        data class PinnedMirror(val host: String) : State
+        data object MirrorsMissing : State
     }
 
-    sealed interface Origin {
-        data object Local : Origin
-        data class Remote(val host: String) : Origin
-        // Recorded when any resolution-metadata file (maven-metadata.xml, *.pom, etc.) at this exact prefix
-        // is missing both locally and from every probed mirror. Does not inherit to descendants.
-        data object MissingMetadata : Origin
+    private val entries: Cache<Key, State> =
+        Caffeine.newBuilder()
+            .maximumSize(maxEntries.toLong())
+            .build()
+
+    fun lookup(gav: Location, authenticated: Boolean): State? {
+        val missing = entries.getIfPresent(Key(gav, authenticated))
+        if (missing is State.MirrorsMissing) {
+            return missing
+        }
+
+        val parent = gav.getParent()
+        val pinned = entries.getIfPresent(Key(parent, authenticated))
+        if (pinned is State.PinnedMirror) {
+            return pinned
+        }
+
+        return when (gav.getSimpleName()) {
+            METADATA_FILE -> null
+            else -> entries.getIfPresent(Key(parent.getParent(), authenticated)) as? State.PinnedMirror
+        }
     }
 
-    data class ResolutionCacheEntry(val prefix: Location, val authenticated: Boolean, val origin: Origin, val hitCount: Long)
-
-    private val entries = ConcurrentHashMap<Key, Entry>()
-    private val evictionLock = Any()
-
-    fun lookup(gav: Location, authenticated: Boolean): Origin? {
-        val exactPrefix = gav.getParent()
-        var prefix = exactPrefix
-        while (prefix != Location.empty()) {
-            val entry = entries[Key(prefix, authenticated)]
-            if (entry != null) {
-                // Negative is authoritative only at the exact prefix — it says "this metadata file returned 404",
-                // not "every descendant is empty." Local/Remote pins still inherit down (routing decisions).
-                if (entry.origin is Origin.MissingMetadata && prefix != exactPrefix) {
-                    prefix = prefix.getParent()
-                    continue
-                }
-                entry.hitCount.increment()
-                return entry.origin
-            }
-            prefix = prefix.getParent()
-        }
-        return null
+    fun recordPinnedMirror(gav: Location, authenticated: Boolean, host: String) {
+        record(Key(gav.getParent(), authenticated), State.PinnedMirror(host))
     }
 
-    fun record(prefix: Location, authenticated: Boolean, origin: Origin) {
-        if (prefix == Location.empty()) {
-            return
+    fun recordMirrorsMissing(gav: Location, authenticated: Boolean) {
+        if (level == ResolutionCacheLevel.NEGATIVE_CACHING) {
+            record(Key(gav, authenticated), State.MirrorsMissing)
         }
-        val key = Key(prefix, authenticated)
-        // preserve accumulated hitCount on same-origin refresh
-        if (entries[key]?.origin == origin) {
-            return
-        }
-        // Size check + insert is intentionally not synchronized — maxEntries is a soft cap that may
-        // transiently overshoot under concurrent writes; the next record self-heals via eviction.
-        if (!entries.containsKey(key) && entries.size >= maxEntries) {
-            evictDownTo(maxEntries - 1)
-        }
-        entries[key] = Entry(origin)
     }
 
     fun invalidate(gav: Location) {
-        // Only the exact parent prefix — ancestor pins (e.g. group-level routing) remain valid after a child write.
-        val prefix = gav.getParent()
-        if (prefix == Location.empty()) {
+        entries.invalidate(Key(gav, authenticated = true))
+        entries.invalidate(Key(gav, authenticated = false))
+    }
+
+    fun purge(): Int {
+        entries.cleanUp()
+        val size = entries.estimatedSize().toInt()
+        entries.invalidateAll()
+        return size
+    }
+
+    private fun record(key: Key, state: State) {
+        if (key.location == Location.empty()) {
             return
         }
-        entries.remove(Key(prefix, authenticated = true))
-        entries.remove(Key(prefix, authenticated = false))
-    }
-
-    fun purge() {
-        entries.clear()
-    }
-
-    fun size(): Int =
-        entries.size
-
-    fun stats(top: Int): List<ResolutionCacheEntry> =
-        entries.entries.asSequence()
-            .map { (key, entry) -> ResolutionCacheEntry(key.prefix, key.authenticated, entry.origin, entry.hitCount.sum()) }
-            .sortedByDescending { it.hitCount }
-            .take(top.coerceAtLeast(0))
-            .toList()
-
-    private fun evictDownTo(targetSize: Int) {
-        synchronized(evictionLock) {
-            while (entries.size > targetSize) {
-                val victim = entries.entries.minByOrNull { it.value.hitCount.sum() } ?: return
-                entries.remove(victim.key, victim.value)
-            }
-        }
+        entries.put(key, state)
     }
 
 }
