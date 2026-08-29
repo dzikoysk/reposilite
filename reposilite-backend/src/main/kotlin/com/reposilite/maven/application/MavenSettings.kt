@@ -85,7 +85,7 @@ data class RepositorySettings(
     val proxied: List<MirroredRepositorySettings> = listOf(),
     @get:Doc(title = "Parallel metadata lookup", description = "Probe mirrors concurrently for Maven metadata and route later requests through the first matching mirror. Requires the resolution cache to be enabled.")
     val parallelMetadataLookup: Boolean = false,
-    @get:Doc(title = "Resolution cache level", description = "PINNING remembers the mirror serving metadata. NEGATIVE_CACHING also caches exact metadata misses from mirrors for metadataMaxAge seconds.")
+    @get:Doc(title = "Resolution cache level", description = "PINNING remembers the mirror serving metadata. NEGATIVE_CACHING also caches exact metadata misses from mirrors until eviction or invalidation.")
     val resolutionCacheLevel: ResolutionCacheLevel = NEGATIVE_CACHING,
 ) : SharedSettings
 

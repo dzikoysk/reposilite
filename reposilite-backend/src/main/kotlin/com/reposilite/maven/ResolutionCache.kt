@@ -16,11 +16,10 @@
 
 package com.reposilite.maven
 
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.Location
-import java.time.Clock
-import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.LongAdder
 
 enum class ResolutionCacheLevel {
@@ -29,15 +28,13 @@ enum class ResolutionCacheLevel {
 }
 
 internal class ResolutionCache(
-    private val maxEntries: Int,
+    maxEntries: Int,
     private val level: ResolutionCacheLevel,
-    private val missingMaxAgeInSeconds: Long,
-    private val clock: Clock = Clock.systemUTC(),
 ) {
 
     private data class Key(val location: Location, val authenticated: Boolean)
 
-    private class Entry(val state: State, val expiresAt: Instant? = null) {
+    private class Entry(val state: State) {
         val hitCount = LongAdder()
     }
 
@@ -48,8 +45,10 @@ internal class ResolutionCache(
 
     data class ResolutionCacheEntry(val location: Location, val authenticated: Boolean, val state: State, val hitCount: Long)
 
-    private val entries = ConcurrentHashMap<Key, Entry>()
-    private val evictionLock = Any()
+    private val entries: Cache<Key, Entry> =
+        Caffeine.newBuilder()
+            .maximumSize(maxEntries.toLong())
+            .build()
 
     fun lookup(gav: Location, authenticated: Boolean): State? {
         find<State.MirrorsMissing>(Key(gav, authenticated))?.let { return it }
@@ -68,28 +67,28 @@ internal class ResolutionCache(
     }
 
     fun recordMirrorsMissing(gav: Location, authenticated: Boolean) {
-        if (level == ResolutionCacheLevel.NEGATIVE_CACHING && missingMaxAgeInSeconds > 0) {
-            record(Key(gav, authenticated), State.MirrorsMissing, clock.instant().plusSeconds(missingMaxAgeInSeconds))
+        if (level == ResolutionCacheLevel.NEGATIVE_CACHING) {
+            record(Key(gav, authenticated), State.MirrorsMissing)
         }
     }
 
     fun invalidate(gav: Location) {
-        entries.remove(Key(gav, authenticated = true))
-        entries.remove(Key(gav, authenticated = false))
+        entries.invalidate(Key(gav, authenticated = true))
+        entries.invalidate(Key(gav, authenticated = false))
     }
 
     fun purge() {
-        entries.clear()
+        entries.invalidateAll()
     }
 
     fun size(): Int {
-        removeExpired()
-        return entries.size
+        entries.cleanUp()
+        return entries.estimatedSize().toInt()
     }
 
     fun stats(top: Int): List<ResolutionCacheEntry> {
-        removeExpired()
-        return entries.entries.asSequence()
+        entries.cleanUp()
+        return entries.asMap().entries.asSequence()
             .map { (key, entry) -> ResolutionCacheEntry(key.location, key.authenticated, entry.state, entry.hitCount.sum()) }
             .sortedByDescending { it.hitCount }
             .take(top.coerceAtLeast(0))
@@ -97,11 +96,7 @@ internal class ResolutionCache(
     }
 
     private inline fun <reified T : State> find(key: Key): T? {
-        val entry = entries[key] ?: return null
-        if (entry.expiresAt?.isAfter(clock.instant()) == false) {
-            entries.remove(key, entry)
-            return null
-        }
+        val entry = entries.getIfPresent(key) ?: return null
         if (entry.state !is T) {
             return null
         }
@@ -109,41 +104,13 @@ internal class ResolutionCache(
         return entry.state
     }
 
-    private fun record(key: Key, state: State, expiresAt: Instant? = null) {
+    private fun record(key: Key, state: State) {
         if (key.location == Location.empty()) {
             return
         }
-        synchronized(evictionLock) {
-            if (entries[key]?.state == state) {
-                return
-            }
-            if (!entries.containsKey(key) && entries.size >= maxEntries && !evictFor(state)) {
-                return
-            }
-            entries[key] = Entry(state, expiresAt)
+        entries.asMap().compute(key) { _, entry ->
+            entry?.takeIf { it.state == state } ?: Entry(state)
         }
-    }
-
-    private fun evictFor(state: State): Boolean {
-        val now = clock.instant()
-        val victim = entries.entries.asSequence()
-            .filter { it.value.expiresAt?.isAfter(now) == false }
-            .minByOrNull { it.value.hitCount.sum() }
-            ?: entries.entries.asSequence()
-                .filter { it.value.state == State.MirrorsMissing }
-                .minByOrNull { it.value.hitCount.sum() }
-            ?: entries.entries
-                .takeIf { state is State.PinnedMirror }
-                ?.asSequence()
-                ?.minByOrNull { it.value.hitCount.sum() }
-            ?: return false
-
-        return entries.remove(victim.key, victim.value)
-    }
-
-    private fun removeExpired() {
-        val now = clock.instant()
-        entries.entries.removeIf { it.value.expiresAt?.isAfter(now) == false }
     }
 
 }

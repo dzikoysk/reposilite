@@ -24,17 +24,13 @@ import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.toLocation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZoneOffset.UTC
 
 internal class ResolutionCacheTest {
 
     @Test
     fun `pin applies only to explicit version and GA scopes`() {
         // given: distinct pins discovered through GA and version metadata
-        val cache = ResolutionCache(4, PINNING, 0)
+        val cache = ResolutionCache(4, PINNING)
         cache.recordPinnedMirror("org/example/foo/$METADATA_FILE".toLocation(), false, "central")
         cache.recordPinnedMirror("org/example/foo/1.0/$METADATA_FILE".toLocation(), false, "snapshots")
 
@@ -50,76 +46,40 @@ internal class ResolutionCacheTest {
     }
 
     @Test
-    fun `negative caching stores exact mirror misses until metadata max age expires`() {
-        // given: a negative cache with a controllable clock
-        val clock = TestClock()
-        val cache = ResolutionCache(4, NEGATIVE_CACHING, 60, clock)
-        val metadata = "org/example/foo/$METADATA_FILE".toLocation()
-        cache.recordMirrorsMissing(metadata, false)
-
-        // when: the exact path, a sibling, and the expired path are looked up
-        val exact = cache.lookup(metadata, false)
-        val sibling = cache.lookup("org/example/foo/foo.pom".toLocation(), false)
-        clock.now = clock.now.plusSeconds(60)
-        val expired = cache.lookup(metadata, false)
-
-        // then: only the unexpired exact metadata path fails fast
-        assertThat(exact).isEqualTo(MirrorsMissing)
-        assertThat(sibling).isNull()
-        assertThat(expired).isNull()
-    }
-
-    @Test
-    fun `pinning level and zero max age do not retain mirror misses`() {
-        // given: caches that do not permit a useful negative entry
-        val pinning = ResolutionCache(2, PINNING, 60)
-        val alwaysRefresh = ResolutionCache(2, NEGATIVE_CACHING, 0)
+    fun `negative caching retains exact mirror misses`() {
+        // given: negative and pinning-only caches
+        val negative = ResolutionCache(4, NEGATIVE_CACHING)
+        val pinning = ResolutionCache(4, PINNING)
         val metadata = "org/example/foo/$METADATA_FILE".toLocation()
 
-        // when: the mirror miss is recorded
+        // when: the same mirror miss is recorded in both caches
+        negative.recordMirrorsMissing(metadata, false)
         pinning.recordMirrorsMissing(metadata, false)
-        alwaysRefresh.recordMirrorsMissing(metadata, false)
 
-        // then: neither cache retains the miss
-        assertThat(pinning.size()).isZero()
-        assertThat(alwaysRefresh.size()).isZero()
+        // then: only the negative cache retains the exact path
+        assertThat(negative.lookup(metadata, false)).isEqualTo(MirrorsMissing)
+        assertThat(negative.lookup("org/example/foo/foo.pom".toLocation(), false)).isNull()
+        assertThat(pinning.lookup(metadata, false)).isNull()
     }
 
     @Test
-    fun `mirror miss entries cannot displace mirror pins`() {
-        // given: a cache filled with mirror pins
-        val cache = ResolutionCache(2, NEGATIVE_CACHING, 60)
+    fun `cache remains bounded`() {
+        // given: a cache at capacity
+        val cache = ResolutionCache(2, NEGATIVE_CACHING)
         cache.recordPinnedMirror("a/$METADATA_FILE".toLocation(), false, "host-a")
-        cache.recordPinnedMirror("b/$METADATA_FILE".toLocation(), false, "host-b")
-
-        // when: a mirror miss is recorded at capacity
-        cache.recordMirrorsMissing("missing/$METADATA_FILE".toLocation(), false)
-
-        // then: both pins remain and the lower-priority miss is rejected
-        assertThat(cache.lookup("a/1/a.jar".toLocation(), false)).isEqualTo(PinnedMirror("host-a"))
-        assertThat(cache.lookup("b/1/b.jar".toLocation(), false)).isEqualTo(PinnedMirror("host-b"))
-        assertThat(cache.lookup("missing/$METADATA_FILE".toLocation(), false)).isNull()
-    }
-
-    @Test
-    fun `mirror pins replace mirror misses at capacity`() {
-        // given: a cache filled with exact mirror misses
-        val cache = ResolutionCache(2, NEGATIVE_CACHING, 60)
-        cache.recordMirrorsMissing("a/$METADATA_FILE".toLocation(), false)
         cache.recordMirrorsMissing("b/$METADATA_FILE".toLocation(), false)
 
-        // when: a mirror is pinned at capacity
+        // when: another entry is recorded
         cache.recordPinnedMirror("c/$METADATA_FILE".toLocation(), false, "host-c")
 
-        // then: a miss is evicted in favor of the pin
+        // then: Caffeine evicts an entry to preserve the configured bound
         assertThat(cache.size()).isEqualTo(2)
-        assertThat(cache.lookup("c/1/c.jar".toLocation(), false)).isEqualTo(PinnedMirror("host-c"))
     }
 
     @Test
     fun `authentication buckets are isolated and exact entries can be invalidated`() {
         // given: different states for anonymous and authenticated requests
-        val cache = ResolutionCache(4, NEGATIVE_CACHING, 60)
+        val cache = ResolutionCache(4, NEGATIVE_CACHING)
         val metadata = "org/example/foo/$METADATA_FILE".toLocation()
         cache.recordPinnedMirror(metadata, false, "public")
         cache.recordPinnedMirror(metadata, true, "private")
@@ -132,12 +92,6 @@ internal class ResolutionCacheTest {
         // then: both misses are removed without removing either routing pin
         assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), false)).isEqualTo(PinnedMirror("public"))
         assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), true)).isEqualTo(PinnedMirror("private"))
-    }
-
-    private class TestClock(var now: Instant = Instant.EPOCH) : Clock() {
-        override fun getZone(): ZoneId = UTC
-        override fun withZone(zone: ZoneId): Clock = this
-        override fun instant(): Instant = now
     }
 
 }
