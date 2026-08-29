@@ -16,99 +16,134 @@
 
 package com.reposilite.maven
 
+import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.Location
+import java.time.Clock
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.LongAdder
 
-internal class ResolutionCache(private val maxEntries: Int) {
+enum class ResolutionCacheLevel {
+    PINNING,
+    NEGATIVE_CACHING,
+}
 
-    private data class Key(val prefix: Location, val authenticated: Boolean)
+internal class ResolutionCache(
+    private val maxEntries: Int,
+    private val level: ResolutionCacheLevel,
+    private val missingMaxAgeInSeconds: Long,
+    private val clock: Clock = Clock.systemUTC(),
+) {
 
-    private class Entry(val origin: Origin) {
+    private data class Key(val location: Location, val authenticated: Boolean)
+
+    private class Entry(val state: State, val expiresAt: Instant? = null) {
         val hitCount = LongAdder()
     }
 
-    sealed interface Origin {
-        data object Local : Origin
-        data class Remote(val host: String) : Origin
-        // Recorded when any resolution-metadata file (maven-metadata.xml, *.pom, etc.) at this exact prefix
-        // is missing both locally and from every probed mirror. Does not inherit to descendants.
-        data object MissingMetadata : Origin
+    sealed interface State {
+        data class PinnedMirror(val host: String) : State
+        data object MirrorsMissing : State
     }
 
-    data class ResolutionCacheEntry(val prefix: Location, val authenticated: Boolean, val origin: Origin, val hitCount: Long)
+    data class ResolutionCacheEntry(val location: Location, val authenticated: Boolean, val state: State, val hitCount: Long)
 
     private val entries = ConcurrentHashMap<Key, Entry>()
     private val evictionLock = Any()
 
-    fun lookup(gav: Location, authenticated: Boolean): Origin? {
-        val exactPrefix = gav.getParent()
-        var prefix = exactPrefix
-        while (prefix != Location.empty()) {
-            val entry = entries[Key(prefix, authenticated)]
-            if (entry != null) {
-                // Negative is authoritative only at the exact prefix — it says "this metadata file returned 404",
-                // not "every descendant is empty." Local/Remote pins still inherit down (routing decisions).
-                if (entry.origin is Origin.MissingMetadata && prefix != exactPrefix) {
-                    prefix = prefix.getParent()
-                    continue
-                }
-                entry.hitCount.increment()
-                return entry.origin
-            }
-            prefix = prefix.getParent()
+    fun lookup(gav: Location, authenticated: Boolean): State? {
+        find<State.MirrorsMissing>(Key(gav, authenticated))?.let { return it }
+
+        val direct = gav.getParent()
+        find<State.PinnedMirror>(Key(direct, authenticated))?.let { return it }
+
+        return when (gav.getSimpleName()) {
+            METADATA_FILE -> null
+            else -> find<State.PinnedMirror>(Key(direct.getParent(), authenticated))
         }
-        return null
     }
 
-    fun record(prefix: Location, authenticated: Boolean, origin: Origin) {
-        if (prefix == Location.empty()) {
-            return
+    fun recordPinnedMirror(gav: Location, authenticated: Boolean, host: String) {
+        record(Key(gav.getParent(), authenticated), State.PinnedMirror(host))
+    }
+
+    fun recordMirrorsMissing(gav: Location, authenticated: Boolean) {
+        if (level == ResolutionCacheLevel.NEGATIVE_CACHING && missingMaxAgeInSeconds > 0) {
+            record(Key(gav, authenticated), State.MirrorsMissing, clock.instant().plusSeconds(missingMaxAgeInSeconds))
         }
-        val key = Key(prefix, authenticated)
-        // preserve accumulated hitCount on same-origin refresh
-        if (entries[key]?.origin == origin) {
-            return
-        }
-        // Size check + insert is intentionally not synchronized — maxEntries is a soft cap that may
-        // transiently overshoot under concurrent writes; the next record self-heals via eviction.
-        if (!entries.containsKey(key) && entries.size >= maxEntries) {
-            evictDownTo(maxEntries - 1)
-        }
-        entries[key] = Entry(origin)
     }
 
     fun invalidate(gav: Location) {
-        // Only the exact parent prefix — ancestor pins (e.g. group-level routing) remain valid after a child write.
-        val prefix = gav.getParent()
-        if (prefix == Location.empty()) {
-            return
-        }
-        entries.remove(Key(prefix, authenticated = true))
-        entries.remove(Key(prefix, authenticated = false))
+        entries.remove(Key(gav, authenticated = true))
+        entries.remove(Key(gav, authenticated = false))
     }
 
     fun purge() {
         entries.clear()
     }
 
-    fun size(): Int =
-        entries.size
+    fun size(): Int {
+        removeExpired()
+        return entries.size
+    }
 
-    fun stats(top: Int): List<ResolutionCacheEntry> =
-        entries.entries.asSequence()
-            .map { (key, entry) -> ResolutionCacheEntry(key.prefix, key.authenticated, entry.origin, entry.hitCount.sum()) }
+    fun stats(top: Int): List<ResolutionCacheEntry> {
+        removeExpired()
+        return entries.entries.asSequence()
+            .map { (key, entry) -> ResolutionCacheEntry(key.location, key.authenticated, entry.state, entry.hitCount.sum()) }
             .sortedByDescending { it.hitCount }
             .take(top.coerceAtLeast(0))
             .toList()
+    }
 
-    private fun evictDownTo(targetSize: Int) {
-        synchronized(evictionLock) {
-            while (entries.size > targetSize) {
-                val victim = entries.entries.minByOrNull { it.value.hitCount.sum() } ?: return
-                entries.remove(victim.key, victim.value)
-            }
+    private inline fun <reified T : State> find(key: Key): T? {
+        val entry = entries[key] ?: return null
+        if (entry.expiresAt?.isAfter(clock.instant()) == false) {
+            entries.remove(key, entry)
+            return null
         }
+        if (entry.state !is T) {
+            return null
+        }
+        entry.hitCount.increment()
+        return entry.state
+    }
+
+    private fun record(key: Key, state: State, expiresAt: Instant? = null) {
+        if (key.location == Location.empty()) {
+            return
+        }
+        synchronized(evictionLock) {
+            if (entries[key]?.state == state) {
+                return
+            }
+            if (!entries.containsKey(key) && entries.size >= maxEntries && !evictFor(state)) {
+                return
+            }
+            entries[key] = Entry(state, expiresAt)
+        }
+    }
+
+    private fun evictFor(state: State): Boolean {
+        val now = clock.instant()
+        val victim = entries.entries.asSequence()
+            .filter { it.value.expiresAt?.isAfter(now) == false }
+            .minByOrNull { it.value.hitCount.sum() }
+            ?: entries.entries.asSequence()
+                .filter { it.value.state == State.MirrorsMissing }
+                .minByOrNull { it.value.hitCount.sum() }
+            ?: entries.entries
+                .takeIf { state is State.PinnedMirror }
+                ?.asSequence()
+                ?.minByOrNull { it.value.hitCount.sum() }
+            ?: return false
+
+        return entries.remove(victim.key, victim.value)
+    }
+
+    private fun removeExpired() {
+        val now = clock.instant()
+        entries.entries.removeIf { it.value.expiresAt?.isAfter(now) == false }
     }
 
 }

@@ -17,11 +17,12 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
+import com.reposilite.maven.ResolutionCache.State.MirrorsMissing
+import com.reposilite.maven.ResolutionCache.State.PinnedMirror
+import com.reposilite.maven.ResolutionCacheLevel.PINNING
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
-import com.reposilite.maven.api.Metadata
-import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
@@ -30,447 +31,186 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit.MINUTES
 
 internal class ResolutionCacheIntegrationTest : MavenSpecification() {
 
-    // CACHED          — STRICT, non-storing whitelist mirror that 404s anything not ending in "/allow" → exercises Local / MissingMetadata paths.
-    // MIRROR_STORE    — PRIORITIZE_UPSTREAM_METADATA, mirror with store=true, maxAge=60 → exercises the "we own a local copy now, cache as Local" path.
-    // MIRROR_PIN      — PRIORITIZE_UPSTREAM_METADATA, mirror with store=false → exercises Remote(host) pinning.
-    // MIRROR_REFRESH  — PRIORITIZE_UPSTREAM_METADATA, mirror with store=true, maxAge=0 → exercises stale-local refresh (cached Local must not override the policy).
-    // MIRROR_FAIL     — PRIORITIZE_UPSTREAM_METADATA, whitelist mirror that always 404s, maxAge=0 → exercises the "remote 404, fall back to local" backup.
-    // MULTI_MIRROR    — PRIORITIZE_UPSTREAM_METADATA, two mirrors (failing whitelist + working REMOTE_REPOSITORY) → exercises pinning effectiveness across reads.
     override fun repositories() = listOf(
         RepositorySettings(
-            id = "CACHED",
+            id = "NEGATIVE_CACHE",
             visibility = PUBLIC,
             storagePolicy = StoragePolicy.STRICT,
+            metadataMaxAge = 60,
             resolutionCacheMaxEntries = 16,
-            proxied = listOf(
-                MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST),
-            ),
+            proxied = listOf(MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST)),
         ),
         RepositorySettings(
-            id = "MIRROR_STORE",
+            id = "PINNING_ONLY",
             visibility = PUBLIC,
-            storagePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
-            metadataMaxAge = 60L,
+            storagePolicy = StoragePolicy.STRICT,
+            metadataMaxAge = 60,
             resolutionCacheMaxEntries = 16,
-            proxied = listOf(
-                MirroredRepositorySettings(
-                    reference = REMOTE_REPOSITORY,
-                    store = true,
-                    authorization = REMOTE_AUTH,
-                ),
-            ),
-        ),
-        RepositorySettings(
-            id = "MIRROR_PIN",
-            visibility = PUBLIC,
-            storagePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
-            metadataMaxAge = 60L,
-            resolutionCacheMaxEntries = 16,
-            proxied = listOf(
-                MirroredRepositorySettings(
-                    reference = REMOTE_REPOSITORY,
-                    store = false,
-                    authorization = REMOTE_AUTH,
-                ),
-            ),
-        ),
-        RepositorySettings(
-            id = "MIRROR_REFRESH",
-            visibility = PUBLIC,
-            storagePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
-            metadataMaxAge = 0L,
-            resolutionCacheMaxEntries = 16,
-            proxied = listOf(
-                MirroredRepositorySettings(
-                    reference = REMOTE_REPOSITORY,
-                    store = true,
-                    authorization = REMOTE_AUTH,
-                ),
-            ),
-        ),
-        RepositorySettings(
-            id = "MIRROR_FAIL",
-            visibility = PUBLIC,
-            storagePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
-            metadataMaxAge = 0L,
-            resolutionCacheMaxEntries = 16,
-            proxied = listOf(
-                MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST),
-            ),
+            resolutionCacheLevel = PINNING,
+            proxied = listOf(MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST)),
         ),
         RepositorySettings(
             id = "MULTI_MIRROR",
             visibility = PUBLIC,
-            storagePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
-            metadataMaxAge = 60L,
+            metadataMaxAge = 60,
             resolutionCacheMaxEntries = 16,
+            resolutionCacheLevel = PINNING,
             proxied = listOf(
                 MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST),
                 MirroredRepositorySettings(reference = REMOTE_REPOSITORY, authorization = REMOTE_AUTH),
             ),
         ),
         RepositorySettings(
-            id = "MIRROR_TRANSIENT",
+            id = "PARALLEL",
             visibility = PUBLIC,
-            storagePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
-            metadataMaxAge = 0L,
+            metadataMaxAge = 60,
             resolutionCacheMaxEntries = 16,
+            resolutionCacheLevel = PINNING,
+            parallelMetadataLookup = true,
             proxied = listOf(
-                MirroredRepositorySettings(reference = REMOTE_REPOSITORY_BROKEN),
+                MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST),
+                MirroredRepositorySettings(reference = REMOTE_REPOSITORY, authorization = REMOTE_AUTH, store = true),
             ),
         ),
     )
 
-    private fun upstreamMetadataUri(gav: String): String =
-        "$REMOTE_REPOSITORY_WITH_WHITELIST/$gav/$METADATA_FILE"
-
-    private fun upstreamFileUri(gav: String): String =
-        "$REMOTE_REPOSITORY_WITH_WHITELIST/$gav"
-
-    private fun storingMirrorUri(gav: String): String =
-        "$REMOTE_REPOSITORY/$gav/$METADATA_FILE"
-
     @Test
-    fun `negative metadata result is cached and short-circuits repeated reads of the same metadata`() {
-        // given: a GA whose metadata does not exist upstream
-        val ga = "com/missing/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
+    fun `negative cache retains an exact mirror miss`() {
+        // given: metadata that does not exist in the negative-cache repository
+        val metadata = "com/missing/foo/$METADATA_FILE".toLocation()
 
-        // when: the metadata is requested twice
-        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
-        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
+        // when: the same metadata is requested twice
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "NEGATIVE_CACHE", metadata)))
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "NEGATIVE_CACHE", metadata)))
 
-        // then: the upstream was only probed once — Negative at the exact prefix short-circuits the second read
-        assertThat(remoteRequestsByUri[upstreamMetadataUri(ga)]?.get()).isEqualTo(1)
+        // then: the remote is probed once and the exact miss is cached
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(1)
+        assertThat(mavenFacade.getRepository("NEGATIVE_CACHE")!!.resolutionCache!!.lookup(metadata, false)).isEqualTo(MirrorsMissing)
     }
 
     @Test
-    fun `metadata resolved locally is recorded as Local so subsequent requests skip the upstream probe`() {
-        // given: a metadata file already present in local storage
-        val ga = "com/locally/present"
-        addFileToRepository(FileSpec("CACHED", "/$ga/$METADATA_FILE", "<metadata/>"))
+    fun `pinning level does not cache metadata misses`() {
+        // given: metadata that does not exist in a pinning-only repository
+        val metadata = "com/missing/pinning/$METADATA_FILE".toLocation()
 
-        // when: the metadata is requested twice
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", "$ga/$METADATA_FILE".toLocation())))
-        mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", "$ga/$METADATA_FILE".toLocation()))
+        // when: the same metadata is requested twice
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "PINNING_ONLY", metadata)))
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "PINNING_ONLY", metadata)))
 
-        // then: the cache records Local and no upstream call was made
-        val origin = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-            .lookup("$ga/$METADATA_FILE".toLocation(), authenticated = false)
-        assertThat(origin).isEqualTo(ResolutionCache.Origin.Local)
-        assertThat(remoteRequestsByUri[upstreamMetadataUri(ga)]).isNull()
+        // then: both requests probe the remote and no state is retained
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(2)
+        assertThat(mavenFacade.getRepository("PINNING_ONLY")!!.resolutionCache!!.lookup(metadata, false)).isNull()
     }
 
     @Test
-    fun `metadata deployment under a cached prefix invalidates the entry`() {
-        // given: a Negative-cached prefix
-        val ga = "com/deployed/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata))
-        assertThat(remoteRequestsByUri[upstreamMetadataUri(ga)]?.get()).isEqualTo(1)
+    fun `cached mirror miss does not hide locally deployed metadata`() {
+        // given: metadata deployed after an exact mirror miss was cached
+        val metadata = "com/deployed/foo/$METADATA_FILE".toLocation()
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "NEGATIVE_CACHE", metadata)))
+        val repository = mavenFacade.getRepository("NEGATIVE_CACHE")!!
+        val cache = repository.resolutionCache!!
+        assertOk(mavenFacade.deployFile(DeployRequest(
+            repository = repository,
+            gav = metadata,
+            by = "test",
+            content = "<metadata/>".byteInputStream(),
+            generateChecksums = false,
+        )))
+        cache.recordMirrorsMissing(metadata, false)
 
-        // when: a metadata file is deployed under that prefix
-        val deploy = mavenFacade.deployFile(
-            DeployRequest(
-                repository = mavenFacade.getRepository("CACHED")!!,
-                gav = metadata,
-                by = "test",
-                content = "<metadata/>".byteInputStream(),
-                generateChecksums = false,
-            )
-        )
-        assertOk(deploy)
+        // when: metadata is requested while the stale remote miss is still cached
+        val result = mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "NEGATIVE_CACHE", metadata))
 
-        // then: a fresh request re-probes and resolves locally
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
-        val origin = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-            .lookup(metadata, authenticated = false)
-        assertThat(origin).isEqualTo(ResolutionCache.Origin.Local)
+        // then: local storage remains authoritative
+        assertOk(result).content.close()
     }
 
     @Test
-    fun `non-metadata deployment leaves the cached entry intact`() {
-        // given: a Negative-cached prefix
-        val ga = "com/jaronly/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata))
-        assertThat(remoteRequestsByUri[upstreamMetadataUri(ga)]?.get()).isEqualTo(1)
-
-        // when: a JAR is deployed under that prefix
-        val deploy = mavenFacade.deployFile(
-            DeployRequest(
-                repository = mavenFacade.getRepository("CACHED")!!,
-                gav = "$ga/1.0/foo.jar".toLocation(),
-                by = "test",
-                content = "payload".byteInputStream(),
-                generateChecksums = false,
-            )
-        )
-        assertOk(deploy)
-
-        // then: the cache is untouched and a subsequent metadata request stays short-circuited
-        mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata))
-        assertThat(remoteRequestsByUri[upstreamMetadataUri(ga)]?.get()).isEqualTo(1)
-    }
-
-    @Test
-    fun `mirror with store=true caches metadata as Local since we own the copy after the first fetch`() {
-        // given: a fresh fetch through a storing mirror has populated the cache as Local
-        val ga = "com/storing/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_STORE", metadata)))
-        val origin = mavenFacade.getRepository("MIRROR_STORE")!!.resolutionCache!!
-            .lookup(metadata, authenticated = false)
-        assertThat(origin).isEqualTo(ResolutionCache.Origin.Local)
-        val firstCallCount = remoteRequestsByUri[storingMirrorUri(ga)]!!.get()
-
-        // when: the metadata is requested again within the maxAge window
-        mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_STORE", metadata))
-
-        // then: no additional upstream call was issued
-        assertThat(remoteRequestsByUri[storingMirrorUri(ga)]?.get()).isEqualTo(firstCallCount)
-    }
-
-    @Test
-    fun `mirror with store=false pins to the winning host`() {
-        // given: a PRIORITIZE_UPSTREAM_METADATA repo backed by a non-storing mirror
-        val ga = "com/pinning/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-
-        // when: the metadata is fetched from upstream
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_PIN", metadata)))
-
-        // then: the cache pins the prefix to the winning host
-        val origin = mavenFacade.getRepository("MIRROR_PIN")!!.resolutionCache!!
-            .lookup(metadata, authenticated = false)
-        assertThat(origin).isEqualTo(ResolutionCache.Origin.Remote(REMOTE_REPOSITORY))
-    }
-
-    @Test
-    fun `saveMetadata invalidates the cached entry for the prefix`() {
-        // given: a prefix cached as Negative
-        val ga = "com/savemetadata/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata))
-        val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.MissingMetadata)
-
-        // when: a server-side metadata write happens (saveMetadata bypasses deployFile)
-        val saved = mavenFacade.saveMetadata(
-            SaveMetadataRequest(
-                repository = mavenFacade.getRepository("CACHED")!!,
-                gav = ga.toLocation(),
-                metadata = Metadata()
-            )
-        )
-        assertOk(saved)
-
-        // then: the Negative entry is cleared and a subsequent read promotes the prefix to Local
-        assertThat(cache.lookup(metadata, authenticated = false)).isNull()
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.Local)
-    }
-
-    @Test
-    fun `cached Local does not override PRIORITIZE_UPSTREAM_METADATA when metadata is stale`() {
-        // given: a fresh fetch under maxAge=0 (always-stale) has populated the cache as Local
-        val ga = "com/refresh/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        // findFile returns a LockedFilterInputStream holding a READ lock; leaving it open deadlocks the next putFile.
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_REFRESH", metadata))).content.close()
-        val origin = mavenFacade.getRepository("MIRROR_REFRESH")!!.resolutionCache!!
-            .lookup(metadata, authenticated = false)
-        assertThat(origin).isEqualTo(ResolutionCache.Origin.Local)
-        val callsAfterFirst = remoteRequestsByUri[storingMirrorUri(ga)]!!.get()
+    fun `cached mirror is tried first on subsequent requests`() {
+        // given: metadata resolved by the second mirror
+        val metadata = "com/pinned/foo/$METADATA_FILE".toLocation()
+        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MULTI_MIRROR", metadata))).content.close()
+        val firstMirror = "$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"
+        val secondMirror = "$REMOTE_REPOSITORY/$metadata"
+        val firstMirrorRequests = remoteRequestsByUri[firstMirror]?.get()
+        val secondMirrorRequests = remoteRequestsByUri[secondMirror]?.get() ?: 0
 
         // when: the metadata is requested again
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_REFRESH", metadata))).content.close()
+        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MULTI_MIRROR", metadata))).content.close()
 
-        // then: another upstream call was issued — the policy refresh wins over the cached hint
-        assertThat(remoteRequestsByUri[storingMirrorUri(ga)]!!.get()).isGreaterThan(callsAfterFirst)
+        // then: the pinned mirror serves it without probing the first mirror again
+        assertThat(remoteRequestsByUri[firstMirror]?.get()).isEqualTo(firstMirrorRequests)
+        assertThat(remoteRequestsByUri[secondMirror]?.get()).isGreaterThan(secondMirrorRequests)
+        assertThat(mavenFacade.getRepository("MULTI_MIRROR")!!.resolutionCache!!.lookup(metadata, false))
+            .isEqualTo(PinnedMirror(REMOTE_REPOSITORY))
     }
 
     @Test
-    fun `local backup serves metadata when upstream refresh fails under PRIORITIZE_UPSTREAM_METADATA`() {
-        // given: a maxAge=0 repo with a 404-only mirror and a metadata file already present locally
-        val ga = "com/backup/foo"
-        val metadata = "$ga/$METADATA_FILE"
-        addFileToRepository(FileSpec("MIRROR_FAIL", "/$metadata", "<metadata/>"))
+    fun `mirror pin does not override locally deployed metadata`() {
+        // given: metadata pinned to a mirror and then deployed locally
+        val metadata = "com/pinned/local/$METADATA_FILE".toLocation()
+        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MULTI_MIRROR", metadata))).content.close()
+        val repository = mavenFacade.getRepository("MULTI_MIRROR")!!
+        assertOk(mavenFacade.deployFile(DeployRequest(
+            repository = repository,
+            gav = metadata,
+            by = "test",
+            content = "local".byteInputStream(),
+            generateChecksums = false,
+        )))
+        val remote = "$REMOTE_REPOSITORY/$metadata"
+        val remoteRequests = remoteRequestsByUri[remote]?.get()
+
+        // when: the metadata is requested again
+        val result = assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MULTI_MIRROR", metadata)))
+
+        // then: local storage remains authoritative and the pin is only used for remote routing
+        assertThat(result.content.use { it.readBytes().decodeToString() }).isEqualTo("local")
+        assertThat(remoteRequestsByUri[remote]?.get()).isEqualTo(remoteRequests)
+    }
+
+    @Test
+    fun `stale mirror pin falls back to remaining mirrors`() {
+        // given: metadata incorrectly pinned to a mirror that does not contain it
+        val metadata = "com/stale/foo/$METADATA_FILE".toLocation()
+        val repository = mavenFacade.getRepository("MULTI_MIRROR")!!
+        val cache = repository.resolutionCache!!
+        cache.recordPinnedMirror(metadata, false, REMOTE_REPOSITORY_WITH_WHITELIST)
 
         // when: the metadata is requested
-        val result = mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_FAIL", metadata.toLocation()))
+        val result = mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MULTI_MIRROR", metadata))
 
-        // then: the upstream was probed, the local copy served, and the cache learned Local
-        assertOk(result)
-        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isGreaterThanOrEqualTo(1)
-        val origin = mavenFacade.getRepository("MIRROR_FAIL")!!.resolutionCache!!
-            .lookup(metadata.toLocation(), authenticated = false)
-        assertThat(origin).isEqualTo(ResolutionCache.Origin.Local)
-    }
-
-    @Test
-    fun `directly-uploaded JAR under a Negative-cached prefix is still served`() {
-        // given: a Negative-cached GA prefix and a JAR uploaded directly (no metadata)
-        val ga = "com/spring-like/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        val jar = "$ga/1.0.0/foo-1.0.0.jar".toLocation()
-        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
-        val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.MissingMetadata)
-        addFileToRepository(FileSpec("CACHED", "/$jar", "jarbytes"))
-
-        // when: the JAR is requested
-        val result = mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", jar))
-
-        // then: it is served
+        // then: resolution continues through the remaining mirrors and updates the pin
         assertOk(result).content.close()
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isGreaterThan(0)
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY/$metadata"]?.get()).isGreaterThan(0)
+        assertThat(cache.lookup(metadata, false)).isEqualTo(PinnedMirror(REMOTE_REPOSITORY))
     }
 
     @Test
-    fun `metadata deploy at the same prefix invalidates a Negative-cached entry`() {
-        // given: a Negative entry recorded at the artifact-level metadata prefix
-        val ga = "com/redeploy/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
-        val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.MissingMetadata)
+    fun `parallel metadata lookup retains the winner after a local metadata hit`() {
+        // given: metadata lookup synchronized across both configured mirrors
+        val metadata = "com/parallel/example/$METADATA_FILE"
+        val concurrentRequests = CyclicBarrier(2)
+        beforeRemoteHead = { uri ->
+            if (uri.endsWith(metadata)) {
+                concurrentRequests.await(1, MINUTES)
+            }
+        }
 
-        // when: the metadata itself is deployed at the same prefix
-        val deploy = mavenFacade.deployFile(
-            DeployRequest(
-                repository = mavenFacade.getRepository("CACHED")!!,
-                gav = metadata,
-                by = "test",
-                content = "<metadata/>".byteInputStream(),
-                generateChecksums = false,
-            )
-        )
-        assertOk(deploy)
+        // when: metadata is fetched, served locally, and followed by an artifact lookup
+        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "PARALLEL", metadata.toLocation()))).content.close()
+        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "PARALLEL", metadata.toLocation()))).content.close()
+        val artifact = "com/parallel/example/1.0/example-1.0.jar"
+        assertOk(mavenFacade.findDetails(LookupRequest(UNAUTHORIZED, "PARALLEL", artifact.toLocation())))
 
-        // then: the Negative entry at the exact prefix is cleared
-        assertThat(cache.lookup(metadata, authenticated = false)).isNull()
+        // then: the artifact is routed directly through the metadata winner
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$artifact"]).isNull()
     }
 
-    @Test
-    fun `checksum sibling deploy does not invalidate the cache`() {
-        // given: a metadata prefix cached as Local
-        val ga = "com/checksum/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        addFileToRepository(FileSpec("CACHED", "/$ga/$METADATA_FILE", "<metadata/>"))
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata))).content.close()
-        val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.Local)
-
-        // when: a checksum sibling of the metadata file is deployed
-        val deploy = mavenFacade.deployFile(
-            DeployRequest(
-                repository = mavenFacade.getRepository("CACHED")!!,
-                gav = "$ga/$METADATA_FILE.sha1".toLocation(),
-                by = "test",
-                content = "deadbeef".byteInputStream(),
-                generateChecksums = false,
-            )
-        )
-        assertOk(deploy)
-
-        // then: the Local entry is preserved
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.Local)
-    }
-
-    @Test
-    fun `pinning narrows subsequent requests to the winning host across multi-mirror setups`() {
-        // given: a repo with a failing mirror first and a serving mirror second; the first request has cached the winner
-        val ga = "com/multimirror/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        val h1Uri = "$REMOTE_REPOSITORY_WITH_WHITELIST/$ga/$METADATA_FILE"
-        val h2Uri = "$REMOTE_REPOSITORY/$ga/$METADATA_FILE"
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MULTI_MIRROR", metadata)))
-        val h1AfterFirst = remoteRequestsByUri[h1Uri]?.get() ?: 0
-        val h2AfterFirst = remoteRequestsByUri[h2Uri]?.get() ?: 0
-        assertThat(h1AfterFirst).isGreaterThanOrEqualTo(1)
-        assertThat(h2AfterFirst).isGreaterThanOrEqualTo(1)
-        assertThat(mavenFacade.getRepository("MULTI_MIRROR")!!.resolutionCache!!.lookup(metadata, authenticated = false))
-            .isEqualTo(ResolutionCache.Origin.Remote(REMOTE_REPOSITORY))
-
-        // when: the metadata is requested again
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MULTI_MIRROR", metadata)))
-
-        // then: only the pinned host is hit
-        assertThat(remoteRequestsByUri[h1Uri]?.get() ?: 0).isEqualTo(h1AfterFirst)
-        assertThat(remoteRequestsByUri[h2Uri]?.get() ?: 0).isGreaterThan(h2AfterFirst)
-    }
-
-    @Test
-    fun `child deploy must not invalidate cached ancestor prefixes`() {
-        // given: a group-level metadata read populates the cache at the ancestor prefix `org/example`
-        // (group-level metadata.xml is the real Maven concept for plugin discovery)
-        addFileToRepository(FileSpec("CACHED", "/org/example/$METADATA_FILE", "<metadata/>"))
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", "org/example/$METADATA_FILE".toLocation())))
-            .content.close()
-        val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-        assertThat(cache.lookup("org/example/$METADATA_FILE".toLocation(), authenticated = false))
-            .isEqualTo(ResolutionCache.Origin.Local)
-
-        // when: an unrelated nested POM is deployed deep under that prefix
-        val deploy = mavenFacade.deployFile(
-            DeployRequest(
-                repository = mavenFacade.getRepository("CACHED")!!,
-                gav = "org/example/foo/1.0/foo-1.0.pom".toLocation(),
-                by = "test",
-                content = "<project/>".byteInputStream(),
-                generateChecksums = false,
-            )
-        )
-        assertOk(deploy)
-
-        // then: the ancestor `org/example` entry survives — it carries a legitimate routing decision
-        // unrelated to the nested artifact, and invalidating it forces a re-probe of every group-level read.
-        assertThat(cache.lookup("org/example/$METADATA_FILE".toLocation(), authenticated = false))
-            .isEqualTo(ResolutionCache.Origin.Local)
-    }
-
-    @Test
-    fun `negative cached at an ancestor prefix must not swallow newly-appeared lower-prefix metadata`() {
-        // given: a tooling probe at the group-level metadata records Negative at `com/foo`
-        // (this is the case where a tool like versions:display-dependency-updates fires once)
-        val groupMetadata = "com/foo/$METADATA_FILE".toLocation()
-        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_FAIL", groupMetadata)))
-        val cache = mavenFacade.getRepository("MIRROR_FAIL")!!.resolutionCache!!
-        assertThat(cache.lookup(groupMetadata, authenticated = false))
-            .isEqualTo(ResolutionCache.Origin.MissingMetadata)
-
-        // and: a metadata file appears at a lower prefix via a path that bypasses deployFile
-        // (S3 copy, plugin-installed writer, manual fs write, partial-publish race — all real)
-        val artifactMetadata = "com/foo/bar/$METADATA_FILE"
-        addFileToRepository(FileSpec("MIRROR_FAIL", "/$artifactMetadata", "<metadata/>"))
-
-        // when: the lower-prefix metadata is requested
-        val result = mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_FAIL", artifactMetadata.toLocation()))
-
-        // then: it must be served from local — the ancestor's Negative says nothing about descendants
-        // that may have been populated independently.
-        assertOk(result).content.close()
-    }
-
-    @Test
-    fun `transient upstream failure with local fallback does not poison the cache as Local`() {
-        // given: PRIORITIZE_UPSTREAM_METADATA with maxAge=0 so every request takes the remote-first path,
-        // and a mirror that always responds with a 502 (non-404) — i.e. transient failure, not a definitive miss.
-        // Local has a pre-populated metadata that can serve as backup.
-        val ga = "com/transient/foo"
-        val metadata = "$ga/$METADATA_FILE".toLocation()
-        addFileToRepository(FileSpec("MIRROR_TRANSIENT", "/$metadata", "<metadata/>"))
-
-        // when: the metadata is requested — remote fails with 502, local serves as backup
-        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_TRANSIENT", metadata))).content.close()
-
-        // then: the cache must NOT record this prefix as Local — the upstream failure was transient
-        // and trusting "Local" here would let a future read silently keep serving stale through an outage
-        // (per the explicit "don't poison cache" intent at recordTo's else branch).
-        val cache = mavenFacade.getRepository("MIRROR_TRANSIENT")!!.resolutionCache!!
-        assertThat(cache.lookup(metadata, authenticated = false)).isNull()
-    }
 }

@@ -39,6 +39,7 @@ class Repository internal constructor(
     val metadataMaxAgeInSeconds: Long,
     parallelMetadataLookup: Boolean,
     resolutionCacheMaxEntries: Int,
+    resolutionCacheLevel: ResolutionCacheLevel,
 ) {
 
     init {
@@ -46,7 +47,7 @@ class Repository internal constructor(
     }
 
     internal val resolutionCache: ResolutionCache? =
-        if (resolutionCacheMaxEntries > 0) ResolutionCache(resolutionCacheMaxEntries) else null
+        if (resolutionCacheMaxEntries > 0) ResolutionCache(resolutionCacheMaxEntries, resolutionCacheLevel, metadataMaxAgeInSeconds) else null
     internal val parallelMetadataLookup = parallelMetadataLookup && resolutionCache != null
 
     fun acceptsDeploymentOf(location: Location): Boolean =

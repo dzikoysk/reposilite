@@ -133,8 +133,11 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
             logger.debug("HttpRemoteClient | $url responded with ${response.statusCode} (Content-Type: ${response.contentType})")
 
             when {
+                !response.isSuccessStatusCode -> when (response.statusCode) {
+                    404, 429 -> Result.error(ErrorResponse(response.statusCode, "Unsuccessful request (${response.statusCode})"))
+                    else -> NOT_ACCEPTABLE.toErrorResult("Unsuccessful request (${response.statusCode})")
+                }
                 response.contentType == ContentType.HTML -> NOT_ACCEPTABLE.toErrorResult("Illegal file type (${response.contentType})")
-                response.isSuccessStatusCode.not() -> NOT_ACCEPTABLE.toErrorResult("Unsuccessful request (${response.statusCode})")
                 else -> consumer(response)
             }.onError {
                 response.disconnect()

@@ -16,213 +16,128 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.ResolutionCache.Origin
+import com.reposilite.maven.ResolutionCache.State.MirrorsMissing
+import com.reposilite.maven.ResolutionCache.State.PinnedMirror
+import com.reposilite.maven.ResolutionCacheLevel.NEGATIVE_CACHING
+import com.reposilite.maven.ResolutionCacheLevel.PINNING
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.toLocation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset.UTC
 
 internal class ResolutionCacheTest {
 
     @Test
-    fun `lookup returns null on miss`() {
-        // given: an empty cache
-        val cache = ResolutionCache(maxEntries = 4)
+    fun `pin applies only to explicit version and GA scopes`() {
+        // given: distinct pins discovered through GA and version metadata
+        val cache = ResolutionCache(4, PINNING, 0)
+        cache.recordPinnedMirror("org/example/foo/$METADATA_FILE".toLocation(), false, "central")
+        cache.recordPinnedMirror("org/example/foo/1.0/$METADATA_FILE".toLocation(), false, "snapshots")
 
-        // when: a path is looked up
-        val result = cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false)
+        // when: artifacts within and outside those scopes are looked up
+        val version = cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), false)
+        val artifact = cache.lookup("org/example/foo/2.0/foo.jar".toLocation(), false)
+        val sibling = cache.lookup("org/example/bar/1.0/bar.jar".toLocation(), false)
 
-        // then: nothing is returned
-        assertThat(result).isNull()
+        // then: the closest explicit pin wins without inheriting from arbitrary group ancestors
+        assertThat(version).isEqualTo(PinnedMirror("snapshots"))
+        assertThat(artifact).isEqualTo(PinnedMirror("central"))
+        assertThat(sibling).isNull()
     }
 
     @Test
-    fun `remote entry pins matching host for any path under the prefix`() {
-        // given: a Remote entry recorded at a GA prefix
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Remote("https://repo1.maven.org"))
+    fun `negative caching stores exact mirror misses until metadata max age expires`() {
+        // given: a negative cache with a controllable clock
+        val clock = TestClock()
+        val cache = ResolutionCache(4, NEGATIVE_CACHING, 60, clock)
+        val metadata = "org/example/foo/$METADATA_FILE".toLocation()
+        cache.recordMirrorsMissing(metadata, false)
 
-        // when: paths under the prefix are looked up
-        val pomLookup = cache.lookup("org/example/foo/1.0/foo.pom".toLocation(), authenticated = false)
-        val jarLookup = cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false)
+        // when: the exact path, a sibling, and the expired path are looked up
+        val exact = cache.lookup(metadata, false)
+        val sibling = cache.lookup("org/example/foo/foo.pom".toLocation(), false)
+        clock.now = clock.now.plusSeconds(60)
+        val expired = cache.lookup(metadata, false)
 
-        // then: both inherit the pinned host
-        assertThat(pomLookup).isEqualTo(Origin.Remote("https://repo1.maven.org"))
-        assertThat(jarLookup).isEqualTo(Origin.Remote("https://repo1.maven.org"))
+        // then: only the unexpired exact metadata path fails fast
+        assertThat(exact).isEqualTo(MirrorsMissing)
+        assertThat(sibling).isNull()
+        assertThat(expired).isNull()
     }
 
     @Test
-    fun `local entry marks all paths under the prefix as locally resolvable`() {
-        // given: a Local entry recorded at a GA prefix
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
+    fun `pinning level and zero max age do not retain mirror misses`() {
+        // given: caches that do not permit a useful negative entry
+        val pinning = ResolutionCache(2, PINNING, 60)
+        val alwaysRefresh = ResolutionCache(2, NEGATIVE_CACHING, 0)
+        val metadata = "org/example/foo/$METADATA_FILE".toLocation()
 
-        // when: a JAR under the prefix is looked up
-        val result = cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false)
+        // when: the mirror miss is recorded
+        pinning.recordMirrorsMissing(metadata, false)
+        alwaysRefresh.recordMirrorsMissing(metadata, false)
 
-        // then: the prefix's Local origin is returned
-        assertThat(result).isEqualTo(Origin.Local)
+        // then: neither cache retains the miss
+        assertThat(pinning.size()).isZero()
+        assertThat(alwaysRefresh.size()).isZero()
     }
 
     @Test
-    fun `negative entry matches only at the exact prefix it was recorded for`() {
-        // given: a Negative entry recorded at a metadata prefix
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/missing/foo".toLocation(), authenticated = false, origin = Origin.MissingMetadata)
+    fun `mirror miss entries cannot displace mirror pins`() {
+        // given: a cache filled with mirror pins
+        val cache = ResolutionCache(2, NEGATIVE_CACHING, 60)
+        cache.recordPinnedMirror("a/$METADATA_FILE".toLocation(), false, "host-a")
+        cache.recordPinnedMirror("b/$METADATA_FILE".toLocation(), false, "host-b")
 
-        // when: looked up at exact prefix and at a deeper descendant
-        val exact = cache.lookup("org/missing/foo/$METADATA_FILE".toLocation(), authenticated = false)
-        val descendant = cache.lookup("org/missing/foo/1.0/foo-1.0.pom".toLocation(), authenticated = false)
+        // when: a mirror miss is recorded at capacity
+        cache.recordMirrorsMissing("missing/$METADATA_FILE".toLocation(), false)
 
-        // then: Negative matches only at the exact prefix — it says "this metadata 404'd", not "every descendant is empty"
-        assertThat(exact).isEqualTo(Origin.MissingMetadata)
-        assertThat(descendant).isNull()
+        // then: both pins remain and the lower-priority miss is rejected
+        assertThat(cache.lookup("a/1/a.jar".toLocation(), false)).isEqualTo(PinnedMirror("host-a"))
+        assertThat(cache.lookup("b/1/b.jar".toLocation(), false)).isEqualTo(PinnedMirror("host-b"))
+        assertThat(cache.lookup("missing/$METADATA_FILE".toLocation(), false)).isNull()
     }
 
     @Test
-    fun `lookup walks parents until a matching prefix is found`() {
-        // given: a version-level pin and a GA-level pin to different hosts
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo/1.0".toLocation(), authenticated = false, origin = Origin.Remote("https://snapshots"))
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Remote("https://central"))
+    fun `mirror pins replace mirror misses at capacity`() {
+        // given: a cache filled with exact mirror misses
+        val cache = ResolutionCache(2, NEGATIVE_CACHING, 60)
+        cache.recordMirrorsMissing("a/$METADATA_FILE".toLocation(), false)
+        cache.recordMirrorsMissing("b/$METADATA_FILE".toLocation(), false)
 
-        // when: paths under each prefix are looked up
-        val pinned = cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false)
-        val inherited = cache.lookup("org/example/foo/2.0/foo.jar".toLocation(), authenticated = false)
+        // when: a mirror is pinned at capacity
+        cache.recordPinnedMirror("c/$METADATA_FILE".toLocation(), false, "host-c")
 
-        // then: the closest matching prefix wins
-        assertThat(pinned).isEqualTo(Origin.Remote("https://snapshots"))
-        assertThat(inherited).isEqualTo(Origin.Remote("https://central"))
-    }
-
-    @Test
-    fun `auth bucket is isolated`() {
-        // given: distinct entries recorded for the same prefix in each auth bucket
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
-        cache.record("org/example/foo".toLocation(), authenticated = true, origin = Origin.Remote("https://private"))
-
-        // when: the same path is looked up in both buckets
-        val anonymous = cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false)
-        val authenticated = cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = true)
-
-        // then: each bucket returns its own entry
-        assertThat(anonymous).isEqualTo(Origin.Local)
-        assertThat(authenticated).isEqualTo(Origin.Remote("https://private"))
-    }
-
-    @Test
-    fun `invalidate removes only the exact parent prefix entries in both auth buckets`() {
-        // given: a version-level entry (both auth buckets) plus an unrelated ancestor pin
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
-        cache.record("org/example/foo/1.0".toLocation(), authenticated = false, origin = Origin.Remote("https://central"))
-        cache.record("org/example/foo/1.0".toLocation(), authenticated = true, origin = Origin.Remote("https://private"))
-
-        // when: invalidate is called for a file under the version prefix
-        cache.invalidate("org/example/foo/1.0/foo.jar".toLocation())
-
-        // then: the version-prefix entries are cleared in both auth buckets, but the ancestor pin survives
-        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false))
-            .isEqualTo(Origin.Local) // inherits from the ancestor pin at org/example/foo
-        assertThat(cache.lookup("org/example/foo/$METADATA_FILE".toLocation(), authenticated = false))
-            .isEqualTo(Origin.Local)
-        assertThat(cache.size()).isEqualTo(1)
-    }
-
-    @Test
-    fun `purge clears all entries`() {
-        // given: a cache with entries across both auth buckets
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("a".toLocation(), authenticated = false, origin = Origin.Remote("x"))
-        cache.record("b".toLocation(), authenticated = true, origin = Origin.MissingMetadata)
-        cache.record("c".toLocation(), authenticated = false, origin = Origin.Local)
-
-        // when: purge is called
-        cache.purge()
-
-        // then: the cache is empty
-        assertThat(cache.size()).isZero()
-    }
-
-    @Test
-    fun `eviction drops the lowest hit entry when over capacity`() {
-        // given: a cache at capacity with a hot and a warm entry
-        val cache = ResolutionCache(maxEntries = 2)
-        cache.record("hot".toLocation(), authenticated = false, origin = Origin.Remote("h1"))
-        cache.record("warm".toLocation(), authenticated = false, origin = Origin.Remote("h2"))
-        repeat(5) { cache.lookup("hot/anything".toLocation(), authenticated = false) }
-        cache.lookup("warm/anything".toLocation(), authenticated = false)
-
-        // when: a third entry is recorded
-        cache.record("cold".toLocation(), authenticated = false, origin = Origin.Remote("h3"))
-
-        // then: the least-popular entry is evicted to stay within the cap
+        // then: a miss is evicted in favor of the pin
         assertThat(cache.size()).isEqualTo(2)
-        assertThat(cache.lookup("hot/x".toLocation(), authenticated = false)).isEqualTo(Origin.Remote("h1"))
-        assertThat(cache.lookup("warm/x".toLocation(), authenticated = false)).isNull()
-        assertThat(cache.lookup("cold/x".toLocation(), authenticated = false)).isEqualTo(Origin.Remote("h3"))
+        assertThat(cache.lookup("c/1/c.jar".toLocation(), false)).isEqualTo(PinnedMirror("host-c"))
     }
 
     @Test
-    fun `stats returns top entries sorted by hit count`() {
-        // given: three recorded entries with differing lookup counts
-        val cache = ResolutionCache(maxEntries = 8)
-        cache.record("a".toLocation(), authenticated = false, origin = Origin.Remote("host-a"))
-        cache.record("b".toLocation(), authenticated = false, origin = Origin.Remote("host-b"))
-        cache.record("c".toLocation(), authenticated = false, origin = Origin.MissingMetadata)
-        repeat(3) { cache.lookup("b/anything".toLocation(), authenticated = false) }
-        repeat(1) { cache.lookup("a/anything".toLocation(), authenticated = false) }
+    fun `authentication buckets are isolated and exact entries can be invalidated`() {
+        // given: different states for anonymous and authenticated requests
+        val cache = ResolutionCache(4, NEGATIVE_CACHING, 60)
+        val metadata = "org/example/foo/$METADATA_FILE".toLocation()
+        cache.recordPinnedMirror(metadata, false, "public")
+        cache.recordPinnedMirror(metadata, true, "private")
+        cache.recordMirrorsMissing(metadata, false)
+        cache.recordMirrorsMissing(metadata, true)
 
-        // when: the top 2 entries are requested
-        val top = cache.stats(top = 2)
+        // when: the exact metadata path is invalidated
+        cache.invalidate(metadata)
 
-        // then: they are returned in descending hit-count order
-        assertThat(top.map { it.prefix.toString() }).containsExactly("b", "a")
-        assertThat(top[0].origin).isEqualTo(Origin.Remote("host-b"))
-        assertThat(top[0].hitCount).isEqualTo(3)
-        assertThat(top[1].origin).isEqualTo(Origin.Remote("host-a"))
+        // then: both misses are removed without removing either routing pin
+        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), false)).isEqualTo(PinnedMirror("public"))
+        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), true)).isEqualTo(PinnedMirror("private"))
     }
 
-    @Test
-    fun `record at empty prefix is a no-op`() {
-        // given: an empty cache
-        val cache = ResolutionCache(maxEntries = 4)
-
-        // when: a record is attempted at the empty prefix
-        cache.record("".toLocation(), authenticated = false, origin = Origin.Remote("x"))
-
-        // then: nothing is stored
-        assertThat(cache.size()).isZero()
-    }
-
-    @Test
-    fun `re-recording the same origin preserves accumulated hitCount`() {
-        // given: a recorded entry that has accumulated lookups
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
-        repeat(5) { cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false) }
-
-        // when: the same origin is recorded again
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
-
-        // then: the hit count is preserved
-        assertThat(cache.stats(top = 1).single().hitCount).isEqualTo(5)
-    }
-
-    @Test
-    fun `re-recording a different origin replaces the entry`() {
-        // given: a recorded entry with one origin
-        val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Remote("h1"))
-        cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false)
-
-        // when: a different origin is recorded for the same prefix
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
-
-        // then: subsequent lookups see the new origin
-        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false))
-            .isEqualTo(Origin.Local)
+    private class TestClock(var now: Instant = Instant.EPOCH) : Clock() {
+        override fun getZone(): ZoneId = UTC
+        override fun withZone(zone: ZoneId): Clock = this
+        override fun instant(): Instant = now
     }
 
 }

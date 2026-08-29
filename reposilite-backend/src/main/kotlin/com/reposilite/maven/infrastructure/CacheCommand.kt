@@ -80,16 +80,15 @@ internal class CacheCommand(private val mavenFacade: MavenFacade) : ReposiliteCo
                 return@forEach
             }
             snapshots.forEach { snap ->
-                val destination = when (val origin = snap.origin) {
-                    ResolutionCache.Origin.Local -> "(local)"
-                    is ResolutionCache.Origin.Remote -> origin.host
-                    ResolutionCache.Origin.MissingMetadata -> "(missing metadata)"
+                val destination = when (val state = snap.state) {
+                    is ResolutionCache.State.PinnedMirror -> state.host
+                    ResolutionCache.State.MirrorsMissing -> "(missing from mirrors)"
                 }
                 val auth = when {
                     snap.authenticated -> "auth"
                     else -> "anon"
                 }
-                context.append("  [$auth] /${snap.prefix} -> $destination  (hits: ${snap.hitCount})")
+                context.append("  [$auth] /${snap.location} -> $destination  (hits: ${snap.hitCount})")
             }
         }
     }

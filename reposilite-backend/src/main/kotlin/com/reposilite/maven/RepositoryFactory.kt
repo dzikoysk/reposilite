@@ -62,6 +62,7 @@ internal class RepositoryFactory(
             metadataMaxAgeInSeconds = configuration.metadataMaxAge,
             parallelMetadataLookup = configuration.parallelMetadataLookup,
             resolutionCacheMaxEntries = configuration.resolutionCacheMaxEntries,
+            resolutionCacheLevel = configuration.resolutionCacheLevel,
         )
 
     private fun createMirroredHostConfiguration(configurationSource: MirroredRepositorySettings): MirrorHost? {

@@ -19,6 +19,8 @@ package com.reposilite.maven.application
 import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.Min
 import com.reposilite.configuration.shared.api.SharedSettings
+import com.reposilite.maven.ResolutionCacheLevel
+import com.reposilite.maven.ResolutionCacheLevel.NEGATIVE_CACHING
 import com.reposilite.maven.StoragePolicy
 import com.reposilite.maven.RepositoryVisibility
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
@@ -70,12 +72,12 @@ data class RepositorySettings(
     @Min(0)
     @get:Doc(title = "Resolution cache size", description = """
         Caches routing decisions for metadata reads (maven-metadata.xml, *.pom, *.module, Ivy XML)
-        to speed up repeated requests. Size scales with the number of distinct GAVs touched
-        through your mirrors, not with user traffic:<br/>
-        0 — disabled (no mirrors, or caching not needed)<br/>
-        128 — proxying a small fixed set of artifacts (single vendor SDK, internal repos)<br/>
-        512 — proxying focused ecosystems (BOM + transitives, a few curated mirrors)<br/>
-        2048+ — proxying broad ecosystems like Maven Central<br/>
+        to speed up repeated requests. The cache never retains more than this number of entries.
+        As a rough estimate, 1 MB of JVM heap can hold around 3,000 entries:<br/>
+        0 - disabled (no mirrors, or caching not needed)<br/>
+        128 - proxying a small fixed set of artifacts (single vendor SDK, internal repos)<br/>
+        512 - proxying focused ecosystems (BOM + transitives, a few curated mirrors)<br/>
+        2048+ - proxying broad ecosystems like Maven Central<br/>
         (Default: 0)
     """)
     val resolutionCacheMaxEntries: Int = 0,
@@ -83,6 +85,8 @@ data class RepositorySettings(
     val proxied: List<MirroredRepositorySettings> = listOf(),
     @get:Doc(title = "Parallel metadata lookup", description = "Probe mirrors concurrently for Maven metadata and route later requests through the first matching mirror. Requires the resolution cache to be enabled.")
     val parallelMetadataLookup: Boolean = false,
+    @get:Doc(title = "Resolution cache level", description = "PINNING remembers the mirror serving metadata. NEGATIVE_CACHING also caches exact metadata misses from mirrors for metadataMaxAge seconds.")
+    val resolutionCacheLevel: ResolutionCacheLevel = NEGATIVE_CACHING,
 ) : SharedSettings
 
 @Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")

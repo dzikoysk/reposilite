@@ -31,11 +31,11 @@ import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.MirrorCredentials
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
-import com.reposilite.shared.http.AuthenticationMethod.BASIC
 import com.reposilite.shared.errorResponse
+import com.reposilite.shared.http.AuthenticationMethod.BASIC
 import com.reposilite.shared.http.FakeRemoteClientProvider
+import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.notFoundError
-import io.javalin.http.HttpStatus.BAD_GATEWAY
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
@@ -51,6 +51,7 @@ import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.application.AccessTokenComponents
 import io.javalin.http.ContentType.TEXT_XML
+import io.javalin.http.HttpStatus.BAD_GATEWAY
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -110,11 +111,13 @@ internal abstract class MavenSpecification {
 
     abstract fun repositories(): List<RepositorySettings>
 
+    protected open val remoteClientProviderOverride: RemoteClientProvider? = null
+
     @BeforeEach
     fun initializeFacade() {
         this.ioService = Executors.newCachedThreadPool()
 
-        val remoteClientProvider = FakeRemoteClientProvider(
+        val remoteClientProvider = remoteClientProviderOverride ?: FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 beforeRemoteHead(uri)
                 remoteRequestsByUri.computeIfAbsent(uri) { AtomicInteger() }.incrementAndGet()
@@ -196,7 +199,7 @@ internal abstract class MavenSpecification {
     protected fun findRepositories(accessToken: AccessTokenIdentifier?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }
 
-    protected open fun beforeRemoteHead(uri: String) = Unit
+    protected var beforeRemoteHead: (String) -> Unit = {}
 
     protected fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory.toPath()
