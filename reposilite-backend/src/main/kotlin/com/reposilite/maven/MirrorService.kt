@@ -205,16 +205,19 @@ internal class MirrorService(
     }
 
     private fun <V> resolve(results: Sequence<Pair<MirrorHost, Result<V, ErrorResponse>>>): MirrorResolution<V> {
+        var rateLimitError: ErrorResponse? = null
         var lastUpstreamError: ErrorResponse? = null
         for ((host, result) in results) {
             if (result.isOk) {
                 return MirrorResolution.Resolved(result.get(), host)
             }
-            if (result.error.status != 404) {
-                lastUpstreamError = result.error
+            when (result.error.status) {
+                404 -> Unit
+                429 -> rateLimitError = result.error
+                else -> lastUpstreamError = result.error
             }
         }
-        return lastUpstreamError?.let { MirrorResolution.Failed(it) } ?: MirrorResolution.NotFound
+        return (rateLimitError ?: lastUpstreamError)?.let { MirrorResolution.Failed(it) } ?: MirrorResolution.NotFound
     }
 
     private enum class DisallowedReason {

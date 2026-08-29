@@ -27,6 +27,7 @@ import com.reposilite.storage.api.toLocation
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
+import io.javalin.http.HttpStatus.SERVICE_UNAVAILABLE
 import io.javalin.http.HttpStatus.TOO_MANY_REQUESTS
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -58,6 +59,9 @@ internal class HttpRemoteMavenFacadeTest : MavenSpecification() {
                 config.routes.head("/missing/$gav") { ctx ->
                     ctx.contentType("application/xml").status(NOT_FOUND)
                 }
+                config.routes.head("/unavailable/$gav") { ctx ->
+                    ctx.contentType("text/html").status(SERVICE_UNAVAILABLE)
+                }
             }
             config.routes.head("/html/$POM") { ctx ->
                 ctx.contentType("text/html").status(OK)
@@ -79,6 +83,8 @@ internal class HttpRemoteMavenFacadeTest : MavenSpecification() {
         repository("MISSING", "missing"),
         repository("HTML", "html"),
         repository("MULTI", "rate-limited", "missing"),
+        repository("RATE_LIMIT_FIRST", "rate-limited", "unavailable"),
+        repository("RATE_LIMIT_LAST", "unavailable", "rate-limited"),
     )
 
     @ParameterizedTest
@@ -118,6 +124,17 @@ internal class HttpRemoteMavenFacadeTest : MavenSpecification() {
         val result = findFile("MULTI", JAR)
 
         // then: the actionable upstream status is preserved
+        assertError(result)
+        assertThat(result.error.status).isEqualTo(429)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["RATE_LIMIT_FIRST", "RATE_LIMIT_LAST"])
+    fun `should prioritize mirror 429 over other upstream failures`(repository: String) {
+        // when: one mirror rate-limits a request and another mirror is unavailable
+        val result = findFile(repository, JAR)
+
+        // then: the actionable upstream status is preserved regardless of mirror order
         assertError(result)
         assertThat(result.error.status).isEqualTo(429)
     }
