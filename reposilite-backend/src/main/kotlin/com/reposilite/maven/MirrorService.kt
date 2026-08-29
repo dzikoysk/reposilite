@@ -193,7 +193,17 @@ internal class MirrorService(
 
         if (parallel && eligibleHosts.size > 1 && eligibleHosts.none { it.client is RepositoryLoopbackClient }) {
             val completionService = ExecutorCompletionService<Pair<MirrorHost, Result<V, ErrorResponse>>>(ioService)
-            val tasks = eligibleHosts.map { host -> completionService.submit { host to fetch(host) } }
+            val tasks = eligibleHosts.map { host ->
+                completionService.submit {
+                    val result = try {
+                        fetch(host)
+                    } catch (exception: Exception) {
+                        failureFacade.throwException("Mirror lookup ${repository.name}/$gav", exception)
+                        error(internalServer("Mirror lookup failed: ${exception.message}"))
+                    }
+                    host to result
+                }
+            }
             return try {
                 resolve((1..tasks.size).asSequence().map { completionService.take().get() })
             } finally {

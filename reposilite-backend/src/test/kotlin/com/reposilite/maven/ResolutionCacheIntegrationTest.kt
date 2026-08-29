@@ -16,6 +16,7 @@
 
 package com.reposilite.maven
 
+import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.ResolutionCache.State.MirrorsMissing
 import com.reposilite.maven.ResolutionCache.State.PinnedMirror
@@ -26,12 +27,15 @@ import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
+import com.reposilite.status.application.FailureComponents
 import com.reposilite.storage.api.toLocation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
+import java.time.Clock
 import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 
 internal class ResolutionCacheIntegrationTest : MavenSpecification() {
@@ -51,6 +55,13 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
             resolutionCacheMaxEntries = 16,
             resolutionCacheLevel = PINNING,
             proxied = listOf(MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST)),
+        ),
+        RepositorySettings(
+            id = "TRANSIENT_FAILURE",
+            visibility = PUBLIC,
+            storagePolicy = StoragePolicy.STRICT,
+            resolutionCacheMaxEntries = 16,
+            proxied = listOf(MirroredRepositorySettings(reference = REMOTE_REPOSITORY_BROKEN)),
         ),
         RepositorySettings(
             id = "MULTI_MIRROR",
@@ -103,6 +114,20 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         // then: both requests probe the remote and no state is retained
         assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(2)
         assertThat(mavenFacade.getRepository("PINNING_ONLY")!!.resolutionCache!!.lookup(metadata, false)).isNull()
+    }
+
+    @Test
+    fun `transient mirror failures are not cached`() {
+        // given: metadata served by a failing mirror
+        val metadata = "com/failing/transient/$METADATA_FILE".toLocation()
+
+        // when: the metadata is requested twice
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "TRANSIENT_FAILURE", metadata)))
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "TRANSIENT_FAILURE", metadata)))
+
+        // then: both requests reach the mirror and no missing state is recorded
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_BROKEN/$metadata"]?.get()).isEqualTo(2)
+        assertThat(mavenFacade.getRepository("TRANSIENT_FAILURE")!!.resolutionCache!!.lookup(metadata, false)).isNull()
     }
 
     @Test
@@ -209,6 +234,36 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
 
         // then: the artifact is routed directly through the metadata winner
         assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$artifact"]).isNull()
+    }
+
+    @Test
+    fun `parallel metadata lookup continues after a mirror throws`() {
+        // given: the first mirror throws before the second mirror resolves the metadata
+        val metadata = "com/parallel/exception/$METADATA_FILE"
+        beforeRemoteHead = { uri ->
+            if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.endsWith(metadata)) {
+                error("Simulated mirror exception")
+            }
+        }
+        val ioService = Executors.newSingleThreadExecutor()
+        val journalist = InMemoryLogger()
+        val mirrorService = MirrorService(
+            journalist = journalist,
+            failureFacade = FailureComponents(journalist).failureFacade(),
+            clock = Clock.systemUTC(),
+            ioService = ioService,
+        )
+
+        // when: metadata is resolved through the parallel coordinator
+        val result = try {
+            mirrorService.findRemoteDetails(mavenFacade.getRepository("PARALLEL")!!, metadata.toLocation())
+        } finally {
+            ioService.shutdownNow()
+        }
+
+        // then: the healthy mirror still wins
+        assertThat(result).isInstanceOf(MirrorResolution.Resolved::class.java)
+        assertThat((result as MirrorResolution.Resolved<*>).mirror.host).isEqualTo(REMOTE_REPOSITORY)
     }
 
 }
