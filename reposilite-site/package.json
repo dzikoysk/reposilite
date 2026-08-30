@@ -1,12 +1,12 @@
 {
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=20.9.0",
     "npm": ">=9.5.0"
   },
   "dependencies": {
@@ -15,9 +15,9 @@
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@heroicons/react": "2.2.0",
-    "framer-motion": "13.0.0",
+    "framer-motion": "13.1.1",
     "gray-matter": "4.0.3",
-    "next": "15.5.23",
+    "next": "16.3.3",
     "next-mdx-remote": "6.0.0",
     "next-seo": "7.3.0",
     "nextjs-color-mode": "1.0.5",

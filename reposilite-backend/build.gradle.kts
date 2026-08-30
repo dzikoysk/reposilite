@@ -45,18 +45,18 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "7.2.2"
+    val javalin = "7.2.3"
     api("io.javalin:javalin:$javalin") {
         exclude(group = "org.eclipse.jetty", module = "jetty-server")
         exclude(group = "org.eclipse.jetty", module = "jetty-http")
     }
     api("io.javalin.community.ssl:javalin-ssl:$javalin")
 
-    val javalinOpenApi = "7.2.2"
+    val javalinOpenApi = "7.2.3"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
-    val javalinRouting = "7.2.2"
+    val javalinRouting = "7.2.3"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"
@@ -75,7 +75,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.46.3"
+    val awssdk = "2.54.7"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
     implementation("software.amazon.awssdk:s3:$awssdk") {
@@ -95,29 +95,29 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
-    val exposed = "1.3.0"
+    val exposed = "1.5.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
 
     // Drivers
-    implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.xerial:sqlite-jdbc:3.53.2.1")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.8")
-    implementation("org.postgresql:postgresql:42.7.11")
-    implementation("com.h2database:h2:2.3.232")
-    implementation("com.mysql:mysql-connector-j:9.7.0") {
+    implementation("com.zaxxer:HikariCP:7.1.0")
+    implementation("org.xerial:sqlite-jdbc:3.53.4.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.10")
+    implementation("org.postgresql:postgresql:42.7.13")
+    implementation("com.h2database:h2:2.4.240")
+    implementation("com.mysql:mysql-connector-j:26.7.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.35.1")
+    implementation("com.google.protobuf:protobuf-java:4.36.0")
 
-    val jackson = "2.21.3"
+    val jackson = "2.22.2"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    // Pinned at 4.x: jsonschema-generator 5.x requires Jackson 3.x (full tools.jackson.* package rename); we're on Jackson 2.21.x.
+    // Pinned at 4.x: jsonschema-generator 5.x requires Jackson 3.x (full tools.jackson.* package rename); we're on Jackson 2.22.x.
     val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 

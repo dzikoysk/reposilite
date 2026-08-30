@@ -15,7 +15,7 @@
  */
 
 plugins {
-    kotlin("jvm") version "1.5.30"
+    kotlin("jvm") version "2.4.10"
     application
 }
 
@@ -30,7 +30,7 @@ repositories {
     mavenCentral()
     maven {
         url = uri("http://localhost/private")
-        isAllowInsecureProtocol = true,
+        isAllowInsecureProtocol = true
         credentials {
             username = "name"
             password = "secret"
