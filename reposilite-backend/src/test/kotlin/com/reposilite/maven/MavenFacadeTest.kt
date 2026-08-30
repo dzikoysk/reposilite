@@ -16,9 +16,10 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.RepositoryVisibility.HIDDEN
-import com.reposilite.maven.RepositoryVisibility.PRIVATE
-import com.reposilite.maven.RepositoryVisibility.PUBLIC
+import com.reposilite.repository.api.RepositoryVisibility
+import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
+import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
+import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.Checksum
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest

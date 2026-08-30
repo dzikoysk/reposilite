@@ -17,7 +17,7 @@
 package com.reposilite.maven
 
 import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.maven.RepositoryVisibility.PUBLIC
+import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.ResolutionCache.State.MirrorsMissing
 import com.reposilite.maven.ResolutionCache.State.PinnedMirror
 import com.reposilite.maven.ResolutionCacheLevel.PINNING

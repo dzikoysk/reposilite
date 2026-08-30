@@ -31,6 +31,7 @@ import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
+import com.reposilite.repository.RepositoryFacade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.FileDetails
@@ -41,7 +42,7 @@ import java.io.InputStream
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
-    private val repositorySecurityProvider: RepositorySecurityProvider,
+    private val repositoryFacade: RepositoryFacade,
     private val repositoryProvider: RepositoryProvider,
     private val metadataService: MetadataService,
     private val latestService: LatestService,
@@ -74,11 +75,11 @@ class MavenFacade internal constructor(
         metadataService.findMetadata(repository, gav)
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
-        repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
+        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav.toString())
             .flatMap { metadataService.findVersions(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
 
     fun findLatestVersion(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
-        repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
+        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav.toString())
             .flatMap { metadataService.findLatestVersion(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
 
     fun <T> findLatestVersionFile(latestArtifactQueryRequest: LatestArtifactQueryRequest, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
@@ -91,10 +92,10 @@ class MavenFacade internal constructor(
     fun getAvailableFiles(request: LookupRequest, directoryInfo: DirectoryInfo): List<FileDetails> =
         getRepository(request.repository)!!.let { repository ->
             directoryInfo.files.filter {
-                repositorySecurityProvider.canBrowseResource(
+                repositoryFacade.canBrowseResource(
                     accessToken = request.accessToken,
                     repository = repository,
-                    gav = request.gav.resolve(it.name)
+                    resourcePath = request.gav.resolve(it.name).toString()
                 ).isOk
             }
         }
@@ -107,7 +108,7 @@ class MavenFacade internal constructor(
         getRepository(request.repository)?.acceptsCachingOf(request.gav) ?: false
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Unit, ErrorResponse> =
-        repositorySecurityProvider.canAccessResource(accessToken, repository, gav)
+        repositoryFacade.canAccessResource(accessToken, repository, gav.toString())
 
     fun findRepositories(accessToken: AccessTokenIdentifier?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)

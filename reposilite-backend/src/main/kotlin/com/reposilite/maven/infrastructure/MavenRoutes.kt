@@ -45,7 +45,7 @@ abstract class MavenRoutes(val mavenFacade: MavenFacade) : ReposiliteRoutes() {
     }
 
     fun <R> ContextDsl<R>.requireGav(block: (Location) -> Unit) {
-        Location.ofRequest(requireParameter("gav"))
+        Location.ofRequest(parameter("gav") ?: "")
             .peek { block(it) }
             .onError { response = it.asError() }
     }

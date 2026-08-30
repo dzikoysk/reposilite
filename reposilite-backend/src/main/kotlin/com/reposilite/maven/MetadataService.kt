@@ -36,6 +36,7 @@ import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.maven.api.extractReleaseVersions
 import com.reposilite.maven.api.extractSnapshotVersions
+import com.reposilite.repository.RepositoryFacade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.internalServer
 import com.reposilite.shared.notFound
@@ -48,7 +49,7 @@ import panda.std.mapToUnit
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-internal class MetadataService(private val repositorySecurityProvider: RepositorySecurityProvider) {
+internal class MetadataService(private val repositoryFacade: RepositoryFacade) {
 
     private val xml by lazy {
         XmlMapper.xmlBuilder()
@@ -82,7 +83,7 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
                 val currentDirectory = gav.getParent()
                 val parentDirectory = currentDirectory.getParent()
 
-                if (!repositorySecurityProvider.canModifyResource(accessToken, repository, parentDirectory)) {
+                if (!repositoryFacade.canModifyResource(accessToken, repository, parentDirectory.toString())) {
                     return unauthorizedError("Unauthorized access request")
                 }
 

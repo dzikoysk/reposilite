@@ -19,7 +19,9 @@ package com.reposilite.maven
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.plugin.Extensions
+import com.reposilite.repository.RepositoryFacade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.notFoundError
@@ -44,26 +46,29 @@ internal class RepositoryProvider(
     private val storageFacade: StorageFacade,
     mirrorService: MirrorService,
     resolutionProvider: ResolutionProvider,
-    repositorySecurityProvider: RepositorySecurityProvider,
+    private val repositoryFacade: RepositoryFacade,
     repositoriesSource: Reference<List<RepositorySettings>>,
 ) {
 
     val repositoryService = RepositoryService(
         journalist = journalist,
         repositoryProvider = this,
-        securityProvider = repositorySecurityProvider,
+        repositoryFacade = repositoryFacade,
         mirrorService = mirrorService,
         resolutionProvider = resolutionProvider,
         statisticsFacade = statisticsFacade,
         extensions = extensions
     )
 
+    @Volatile
     private var repositories: Map<String, Repository> = createRepositories(repositoriesSource.get())
 
     init {
-        repositoriesSource.subscribe {
-            repositories.forEach { (_, repository) -> repository.shutdown() }
-            this.repositories = createRepositories(it)
+        repositoriesSource.subscribe { settings ->
+            val updatedRepositories = createRepositories(settings)
+            val previousRepositories = repositories
+            repositories = updatedRepositories
+            previousRepositories.values.forEach { it.shutdown() }
         }
     }
 
@@ -79,6 +84,7 @@ internal class RepositoryProvider(
             repositoriesNames = repositoriesConfiguration.map { it.id },
         )
 
+        val duplicatedNames = repositoriesConfiguration.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys
         val sharedBucketConflicts = findS3SharedBucketConflicts(
             repositoriesConfiguration.mapNotNull { configuration ->
                 (configuration.storageProvider as? S3StorageProviderSettings)?.let { configuration.id to it }
@@ -87,19 +93,22 @@ internal class RepositoryProvider(
 
         return repositoriesConfiguration.asSequence()
             .mapNotNull { configuration ->
-                when (configuration.id) {
-                    in sharedBucketConflicts -> {
-                        failureFacade.throwException(
-                            identifier = "Cannot load repository '${configuration.id}'",
-                            throwable = IllegalStateException("Its S3 key namespace overlaps another repository sharing the same bucket. Give each repository a distinct 'prefix', or enable 'sharedBucket' on every repository sharing the bucket.")
-                        )
-                        null
+                runCatching {
+                    require(configuration.id !in duplicatedNames) {
+                        "Repository name '${configuration.id}' is duplicated in Maven repository settings"
                     }
-                    else ->
-                        runCatching { factory.createRepository(configuration.id, configuration) }
-                            .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
-                            .getOrNull()
+                    require(configuration.id !in sharedBucketConflicts) {
+                        "Its S3 key namespace overlaps another repository sharing the same bucket. Give each repository a distinct 'prefix', or enable 'sharedBucket' on every repository sharing the bucket"
+                    }
+                    require(configuration.id.length < REPOSITORY_NAME_MAX_LENGTH) {
+                        "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters"
+                    }
+                    repositoryFacade.validateRepositoryName("maven", configuration.id)
+
+                    factory.createRepository(configuration.id, configuration)
                 }
+                    .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
+                    .getOrNull()
             }
             .associateBy { it.name }
     }

@@ -21,6 +21,8 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.repository.infrastructure.createDirectoryIndexPage
+import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.extensions.uri
@@ -52,6 +54,15 @@ internal class MavenEndpoints(
     private val compressionStrategy: String
 ) : MavenRoutes(mavenFacade) {
 
+    private val findFileHandler: ContextDsl<Unit>.() -> Unit = {
+        accessed {
+            requireGav { gav ->
+                findFile(ctx, this?.identifier, requireParameter("repository"), gav)
+            }
+        }
+    }
+    private val findRepository = ReposiliteRoute("/{repository}", HEAD, GET, handler = findFileHandler)
+
     @OpenApi(
         path = "/{repository}/{gav}",
         methods = [HttpMethod.GET],
@@ -67,13 +78,7 @@ internal class MavenEndpoints(
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    private val findFile = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
-        accessed {
-            requireGav { gav ->
-                findFile(ctx, this?.identifier, requireParameter("repository"), gav)
-            }
-        }
-    }
+    private val findFileRoute = ReposiliteRoute("/{repository}/<gav>", HEAD, GET, handler = findFileHandler)
 
     fun findFile(ctx: Context, identifier: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> {
         val request = LookupRequest(accessToken = identifier, repository = repository, gav = gav)
@@ -171,6 +176,6 @@ internal class MavenEndpoints(
         }
     }
 
-    override val routes = routes(findFile, deployFile, deleteFile)
+    override val routes = routes(findRepository, findFileRoute, deployFile, deleteFile)
 
 }

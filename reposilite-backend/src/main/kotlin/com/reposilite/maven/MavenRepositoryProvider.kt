@@ -16,8 +16,19 @@
 
 package com.reposilite.maven
 
-enum class RepositoryVisibility {
-    PUBLIC,
-    HIDDEN,
-    PRIVATE
+import com.reposilite.repository.api.RepositoryProvider
+import com.reposilite.web.api.ReposiliteRoutes
+
+internal class MavenRepositoryProvider(
+    private val mavenFacade: MavenFacade,
+    override val routes: ReposiliteRoutes,
+) : RepositoryProvider {
+
+    override val id: String = "maven"
+
+    override fun findRepository(name: String): Repository? =
+        mavenFacade.getRepository(name)
+
+    override fun getRepositories(): Collection<Repository> =
+        mavenFacade.getRepositories()
 }

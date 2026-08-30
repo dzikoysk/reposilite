@@ -21,6 +21,7 @@ import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.MavenRepositoryProvider
 import com.reposilite.maven.PreservedBuildsListener
 import com.reposilite.maven.infrastructure.CacheCommand
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
@@ -33,18 +34,20 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
+import com.reposilite.repository.RepositoryFacade
 import com.reposilite.web.api.RoutingSetupEvent
 import java.time.Clock
 
 @Plugin(
     name = "maven",
-    dependencies = ["failure", "local-configuration", "shared-configuration", "statistics", "frontend", "authentication", "access-token", "storage"],
+    dependencies = ["failure", "local-configuration", "shared-configuration", "statistics", "frontend", "authentication", "access-token", "storage", "repository"],
     settings = MavenSettings::class
 )
 internal class MavenPlugin : ReposilitePlugin() {
 
     override fun initialize(): MavenFacade {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
+        val repositoryFacade = facade<RepositoryFacade>()
 
         val mavenFacade =
             MavenComponents(
@@ -56,7 +59,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 failureFacade = facade(),
                 storageFacade = facade(),
                 authenticationFacade = facade(),
-                accessTokenFacade = facade(),
+                repositoryFacade = repositoryFacade,
                 statisticsFacade = facade(),
                 ioService = reposilite().ioService,
                 mavenSettings = sharedConfigurationFacade.getDomainSettings<MavenSettings>(),
@@ -68,10 +71,16 @@ internal class MavenPlugin : ReposilitePlugin() {
         mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().lowercase()})") }
         logger.info("${mavenFacade.getRepositories().size} repositories have been found")
 
+        val localConfiguration = facade<LocalConfiguration>()
+        repositoryFacade.registerProvider(
+            MavenRepositoryProvider(
+                mavenFacade = mavenFacade,
+                routes = MavenEndpoints(mavenFacade, facade(), localConfiguration.compressionStrategy.get()),
+            )
+        )
+
         event { event: RoutingSetupEvent ->
-            val localConfiguration = facade<LocalConfiguration>()
             event.registerRoutes(MavenApiEndpoints(mavenFacade))
-            event.registerRoutes(MavenEndpoints(mavenFacade, facade(), localConfiguration.compressionStrategy.get()))
             event.registerRoutes(MavenLatestApiEndpoints(mavenFacade, localConfiguration.compressionStrategy.get()))
         }
 
