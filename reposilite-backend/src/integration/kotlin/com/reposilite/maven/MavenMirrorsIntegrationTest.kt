@@ -30,6 +30,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kong.unirest.core.Unirest.get
+import kong.unirest.core.Unirest.head
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -92,6 +93,34 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
 
             // then: response must not be 200-with-empty-body — Aether interprets that as "no checksums available" for .sha1 lookups
             assertThat(response.status == 200 && response.body.isNullOrEmpty()).isFalse
+        } finally {
+            upstream.stop()
+        }
+    }
+
+    @Test
+    fun `should not download or cache an artifact on head request`() {
+        val gav = "com/reposilite/head-only.jar"
+        val getHits = AtomicInteger()
+        val started = CountDownLatch(1)
+        val upstream = Javalin.start { config ->
+            config.jetty.port = reposilite.parameters.port + 1
+            config.events.serverStarted { started.countDown() }
+            config.routes.head("/releases/$gav") { ctx ->
+                ctx.contentType("application/java-archive").header("Content-Length", "10").status(200)
+            }
+            config.routes.get("/releases/$gav") { ctx ->
+                getHits.incrementAndGet()
+                ctx.result("0123456789")
+            }
+        }
+        assertThat(started.await(10, TimeUnit.SECONDS)).isTrue
+
+        try {
+            val response = head("$base/proxied-stored/$gav").asEmpty()
+
+            assertThat(response.isSuccess).isTrue
+            assertThat(getHits.get()).isZero()
         } finally {
             upstream.stop()
         }
