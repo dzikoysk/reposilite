@@ -22,11 +22,12 @@ interface RepositoryProvider {
     val id: String
 
     /**
-     * Protocol routes owned by this provider. Route handlers are responsible for protocol-specific
+     * Creates the protocol routes owned by this provider during HTTP server initialization.
+     * Route handlers are responsible for protocol-specific
      * authentication and should use [com.reposilite.repository.RepositoryFacade] for Reposilite's
      * shared repository visibility and token rules.
      */
-    val routes: ReposiliteRoutes
+    fun routes(): ReposiliteRoutes
 
     fun findRepository(name: String): Repository? =
         getRepositories().firstOrNull { it.name == name }

@@ -25,7 +25,6 @@ import com.reposilite.maven.MavenRepositoryProvider
 import com.reposilite.maven.PreservedBuildsListener
 import com.reposilite.maven.infrastructure.CacheCommand
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
-import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
@@ -75,7 +74,8 @@ internal class MavenPlugin : ReposilitePlugin() {
         repositoryFacade.registerProvider(
             MavenRepositoryProvider(
                 mavenFacade = mavenFacade,
-                routes = MavenEndpoints(mavenFacade, facade(), localConfiguration.compressionStrategy.get()),
+                frontendFacade = facade(),
+                compressionStrategy = localConfiguration.compressionStrategy.get(),
             )
         )
 

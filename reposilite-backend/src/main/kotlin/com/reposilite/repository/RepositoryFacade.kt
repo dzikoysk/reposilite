@@ -23,6 +23,7 @@ import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
+import com.reposilite.web.api.ReposiliteRoutes
 import panda.std.Result
 
 class RepositoryFacade internal constructor(
@@ -93,21 +94,21 @@ class RepositoryFacade internal constructor(
         }
     }
 
-    internal fun getProviders(): Collection<RepositoryProvider> =
-        providers.values.toList()
-
-    internal fun validateAndSeal() {
-        providers.values.forEach { provider ->
-            provider.routes.routes.forEach { route ->
-                require(route.path == "/{repository}" || route.path.startsWith("/{repository}/")) {
-                    "Repository provider '${provider.id}' route '${route.path}' has to start with '/{repository}'"
-                }
-                require(route.methods.isNotEmpty() && route.methods.all { it.isHttpMethod }) {
-                    "Repository provider '${provider.id}' route '${route.path}' has to declare HTTP methods only"
+    internal fun validateAndSeal(): Map<RepositoryProvider, ReposiliteRoutes> {
+        val providerRoutes = providers.values.associateWith { provider ->
+            provider.routes().also { routes ->
+                routes.routes.forEach { route ->
+                    require(route.path == "/{repository}" || route.path.startsWith("/{repository}/")) {
+                        "Repository provider '${provider.id}' route '${route.path}' has to start with '/{repository}'"
+                    }
+                    require(route.methods.isNotEmpty() && route.methods.all { it.isHttpMethod }) {
+                        "Repository provider '${provider.id}' route '${route.path}' has to declare HTTP methods only"
+                    }
                 }
             }
         }
         sealed = true
+        return providerRoutes
     }
 
     fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: Repository): Boolean =

@@ -16,15 +16,21 @@
 
 package com.reposilite.maven
 
+import com.reposilite.frontend.FrontendFacade
+import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.web.api.ReposiliteRoutes
 
 internal class MavenRepositoryProvider(
     private val mavenFacade: MavenFacade,
-    override val routes: ReposiliteRoutes,
+    private val frontendFacade: FrontendFacade,
+    private val compressionStrategy: String,
 ) : RepositoryProvider {
 
     override val id: String = "maven"
+
+    override fun routes(): ReposiliteRoutes =
+        MavenEndpoints(mavenFacade, frontendFacade, compressionStrategy)
 
     override fun findRepository(name: String): Repository? =
         mavenFacade.getRepository(name)

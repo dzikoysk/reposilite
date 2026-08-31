@@ -17,8 +17,10 @@
 package com.reposilite.repository.infrastructure
 
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.shared.extensions.error
 import com.reposilite.shared.internalServer
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.infrastructure.ReposiliteEndpointFactory
 import io.javalin.config.RouterConfig
 import io.javalin.http.Handler
@@ -30,12 +32,13 @@ import io.javalin.router.matcher.PathMatcher
 
 internal class RepositoryEndpointRouter(
     private val repositoryFacade: RepositoryFacade,
+    providerRoutes: Map<RepositoryProvider, ReposiliteRoutes>,
     endpointFactory: ReposiliteEndpointFactory,
     routerConfig: RouterConfig,
 ) {
 
-    private val providerEndpoints = repositoryFacade.getProviders().associateWith { provider ->
-        endpointFactory.createEndpoints(provider.routes)
+    private val providerEndpoints = providerRoutes.mapValues { (_, routes) ->
+        endpointFactory.createEndpoints(routes)
     }
 
     private val providerRouters = providerEndpoints.mapValues { (_, endpoints) ->
@@ -44,7 +47,7 @@ internal class RepositoryEndpointRouter(
         }
     }
 
-    private val fallbackProvider = repositoryFacade.getProviders().find { it.id == "maven" }
+    private val fallbackProvider = providerRoutes.keys.find { it.id == "maven" }
 
     private val gatewayHandler = createGatewayHandler()
 

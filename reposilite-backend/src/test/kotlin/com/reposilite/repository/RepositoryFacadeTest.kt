@@ -160,10 +160,12 @@ internal class RepositoryFacadeTest {
     private fun provider(id: String, repositories: Map<String, Repository>): RepositoryProvider =
         provider(id, repositories, emptyRoutes)
 
-    private fun provider(id: String, repositories: Map<String, Repository>, routes: ReposiliteRoutes): RepositoryProvider =
+    private fun provider(id: String, repositories: Map<String, Repository>, endpoints: ReposiliteRoutes): RepositoryProvider =
         object : RepositoryProvider {
             override val id = id
-            override val routes = routes
+
+            override fun routes(): ReposiliteRoutes =
+                endpoints
 
             override fun findRepository(name: String): Repository? =
                 repositories[name]
