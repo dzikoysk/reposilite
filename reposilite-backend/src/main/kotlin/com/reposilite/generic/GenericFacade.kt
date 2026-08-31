@@ -50,11 +50,11 @@ class GenericFacade internal constructor(
         repository: GenericRepository,
         location: Location,
     ): Result<FileDetails, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository, location.toString())
+        repositoryFacade.canAccessResource(accessToken, repository, location)
             .flatMap { repository.storageProvider.getFileDetails(location).map { it } }
             .flatMap { details ->
                 if (details.type == DIRECTORY) {
-                    repositoryFacade.canBrowseResource(accessToken, repository, location.toString()).map { details }
+                    repositoryFacade.canBrowseResource(accessToken, repository, location).map { details }
                 } else {
                     details.asSuccess()
                 }
@@ -65,7 +65,7 @@ class GenericFacade internal constructor(
         repository: GenericRepository,
         location: Location,
     ): Result<InputStream, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository, location.toString())
+        repositoryFacade.canAccessResource(accessToken, repository, location)
             .flatMap { repository.storageProvider.getFile(location) }
 
     fun getAvailableFiles(
@@ -75,7 +75,7 @@ class GenericFacade internal constructor(
         directory: DirectoryInfo,
     ): List<FileDetails> =
         directory.files.filter { child ->
-            repositoryFacade.canBrowseResource(accessToken, repository, location.resolve(child.name).toString()).isOk
+            repositoryFacade.canBrowseResource(accessToken, repository, location.resolve(child.name)).isOk
         }
 
     fun deployFile(
@@ -86,7 +86,7 @@ class GenericFacade internal constructor(
         by: String,
     ): Result<Unit, ErrorResponse> =
         when {
-            !repositoryFacade.canModifyResource(accessToken, repository, location.toString()) ->
+            !repositoryFacade.canModifyResource(accessToken, repository, location) ->
                 unauthorizedError("Unauthorized access request")
             !repository.redeployment && repository.storageProvider.exists(location) ->
                 errorResponse(CONFLICT, "Redeployment is not allowed")
@@ -101,7 +101,7 @@ class GenericFacade internal constructor(
         by: String,
     ): Result<Unit, ErrorResponse> =
         when {
-            repositoryFacade.canModifyResource(accessToken, repository, location.toString()) ->
+            repositoryFacade.canModifyResource(accessToken, repository, location) ->
                 repository.storageProvider.removeFile(location)
                     .peek { logger.info("DELETE | File $location has been deleted from ${repository.name} by $by") }
             else -> unauthorizedError("Unauthorized access request")
