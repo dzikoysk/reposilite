@@ -22,7 +22,6 @@ import com.reposilite.frontend.FrontendFacade
 import com.reposilite.generic.GenericFacade
 import com.reposilite.generic.GenericRepositoryProvider
 import com.reposilite.generic.GenericRepositoryStore
-import com.reposilite.generic.infrastructure.GenericEndpoints
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
@@ -57,11 +56,8 @@ internal class GenericPlugin : ReposilitePlugin() {
         repositoryFacade.registerProvider(
             GenericRepositoryProvider(
                 genericFacade = genericFacade,
-                routes = GenericEndpoints(
-                    genericFacade = genericFacade,
-                    frontendFacade = facade<FrontendFacade>(),
-                    compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get(),
-                ),
+                frontendFacade = facade<FrontendFacade>(),
+                compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get(),
             )
         )
 

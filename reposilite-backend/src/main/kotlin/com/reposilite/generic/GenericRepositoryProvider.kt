@@ -16,15 +16,21 @@
 
 package com.reposilite.generic
 
+import com.reposilite.frontend.FrontendFacade
+import com.reposilite.generic.infrastructure.GenericEndpoints
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.web.api.ReposiliteRoutes
 
 internal class GenericRepositoryProvider(
     private val genericFacade: GenericFacade,
-    override val routes: ReposiliteRoutes,
+    private val frontendFacade: FrontendFacade,
+    private val compressionStrategy: String,
 ) : RepositoryProvider {
 
     override val id: String = "generic"
+
+    override fun routes(): ReposiliteRoutes =
+        GenericEndpoints(genericFacade, frontendFacade, compressionStrategy)
 
     override fun findRepository(name: String): GenericRepository? =
         genericFacade.getRepository(name)
