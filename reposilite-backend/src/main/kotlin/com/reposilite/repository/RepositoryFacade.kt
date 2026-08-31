@@ -21,6 +21,7 @@ import com.reposilite.repository.api.ProvidedRepository
 import com.reposilite.repository.api.Repository
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
 
@@ -112,12 +113,12 @@ class RepositoryFacade internal constructor(
     fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: Repository): Boolean =
         accessResolver.canAccessRepository(accessToken, repository)
 
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: String): Result<Unit, ErrorResponse> =
+    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
         accessResolver.canAccessResource(accessToken, repository, resourcePath)
 
-    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: String): Result<Unit, ErrorResponse> =
+    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
         accessResolver.canBrowseResource(accessToken, repository, resourcePath)
 
-    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: String): Boolean =
+    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Boolean =
         accessResolver.canModifyResource(accessToken, repository, resourcePath)
 }

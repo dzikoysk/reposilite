@@ -104,7 +104,7 @@ internal class RepositoryService(
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> =
         with(deleteRequest) {
             when {
-                repositoryFacade.canModifyResource(accessToken, repository, gav.toString()) ->
+                repositoryFacade.canModifyResource(accessToken, repository, gav) ->
                     repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
@@ -139,7 +139,7 @@ internal class RepositoryService(
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
         repositoryProvider.findRepository(repository)
-            .flatMap { repositoryFacade.canAccessResource(accessToken, it, gav.toString()) }
+            .flatMap { repositoryFacade.canAccessResource(accessToken, it, gav) }
 
     private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
         findDetails(accessToken, repository, gav)
@@ -178,7 +178,7 @@ internal class RepositoryService(
         repository.storageProvider.getFileDetails(gav)
             .flatMap {
                 it.takeIf { it.type == DIRECTORY }
-                    ?.let { repositoryFacade.canBrowseResource(accessToken, repository, gav.toString()).map { _ -> it } }
+                    ?.let { repositoryFacade.canBrowseResource(accessToken, repository, gav).map { _ -> it } }
                     ?: it.asSuccess()
             }
 

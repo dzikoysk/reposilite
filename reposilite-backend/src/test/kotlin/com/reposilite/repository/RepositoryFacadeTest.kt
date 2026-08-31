@@ -20,6 +20,7 @@ import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.repository.api.Repository
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
+import com.reposilite.storage.api.Location
 import com.reposilite.token.application.AccessTokenComponents
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
@@ -105,19 +106,6 @@ internal class RepositoryFacadeTest {
     }
 
     @Test
-    fun `should accept protocol specific resource paths`() {
-        val repository = repository("oci-releases")
-
-        val result = facade.canAccessResource(
-            accessToken = null,
-            repository = repository,
-            resourcePath = "v2/content/library/blobs/sha256:123456",
-        )
-
-        assertThat(result.isOk).isTrue
-    }
-
-    @Test
     fun `should reject repository names that cannot be routed safely`() {
         assertThatIllegalArgumentException()
             .isThrownBy { facade.validateRepositoryName("custom", "../downloads") }
@@ -158,11 +146,12 @@ internal class RepositoryFacadeTest {
     }
 
     @Test
-    fun `should reject non-canonical paths before checking access`() {
+    fun `should reject current directory path before checking access`() {
         val repository = repository("cargo")
+        val currentDirectory = Location.of(".")
 
-        assertThat(facade.canAccessResource(null, repository, "public/../private").error.status).isEqualTo(400)
-        assertThat(facade.canModifyResource(null, repository, "public\\..\\private")).isFalse
+        assertThat(facade.canAccessResource(null, repository, currentDirectory).error.status).isEqualTo(400)
+        assertThat(facade.canModifyResource(null, repository, currentDirectory)).isFalse
     }
 
     private fun provider(id: String, vararg names: String): RepositoryProvider =

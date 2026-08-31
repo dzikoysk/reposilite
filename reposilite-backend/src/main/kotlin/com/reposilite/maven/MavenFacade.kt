@@ -75,11 +75,11 @@ class MavenFacade internal constructor(
         metadataService.findMetadata(repository, gav)
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
-        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav.toString())
+        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
             .flatMap { metadataService.findVersions(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
 
     fun findLatestVersion(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
-        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav.toString())
+        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
             .flatMap { metadataService.findLatestVersion(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
 
     fun <T> findLatestVersionFile(latestArtifactQueryRequest: LatestArtifactQueryRequest, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
@@ -95,7 +95,7 @@ class MavenFacade internal constructor(
                 repositoryFacade.canBrowseResource(
                     accessToken = request.accessToken,
                     repository = repository,
-                    resourcePath = request.gav.resolve(it.name).toString()
+                    resourcePath = request.gav.resolve(it.name)
                 ).isOk
             }
         }
@@ -108,7 +108,7 @@ class MavenFacade internal constructor(
         getRepository(request.repository)?.acceptsCachingOf(request.gav) ?: false
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Unit, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository, gav.toString())
+        repositoryFacade.canAccessResource(accessToken, repository, gav)
 
     fun findRepositories(accessToken: AccessTokenIdentifier?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)

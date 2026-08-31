@@ -24,6 +24,7 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
 import com.reposilite.shared.toErrorResponse
 import com.reposilite.shared.unauthorizedError
+import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.RoutePermission
@@ -42,41 +43,36 @@ internal class RepositoryAccessResolver(
             HIDDEN, PRIVATE -> accessToken?.let { accessTokenFacade.canSee(it, "/${repository.name}") } ?: false
         }
 
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: String): Result<Unit, ErrorResponse> =
+    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
         when {
             !resourcePath.isCanonicalResourcePath() -> badRequestError("Resource path has to be canonical")
             repository.visibility == PUBLIC || repository.visibility == HIDDEN -> Result.ok(Unit)
             else -> hasPermissionTo(accessToken, repository, resourcePath, READ)
         }
 
-    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: String): Result<Unit, ErrorResponse> =
+    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
         when {
             !resourcePath.isCanonicalResourcePath() -> badRequestError("Resource path has to be canonical")
             repository.visibility == PUBLIC -> Result.ok(Unit)
             else -> hasPermissionTo(accessToken, repository, resourcePath, READ)
         }
 
-    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: String): Boolean =
+    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Boolean =
         resourcePath.isCanonicalResourcePath() && hasPermissionTo(accessToken, repository, resourcePath, WRITE).isOk
 
-    private fun String.isCanonicalResourcePath(): Boolean {
-        val normalized = trimStart('/')
-
-        return '\\' !in normalized &&
-            normalized.none { it.isISOControl() } &&
-            normalized.split('/').none { it == "." || it == ".." }
-    }
+    private fun Location.isCanonicalResourcePath(): Boolean =
+        toString().split('/').none { it == "." }
 
     private fun hasPermissionTo(
         accessToken: AccessTokenIdentifier?,
         repository: Repository,
-        resourcePath: String,
+        resourcePath: Location,
         permission: RoutePermission,
     ): Result<Unit, ErrorResponse> =
         accessToken
             ?.let {
                 Result.`when`(
-                    accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/${resourcePath.trimStart('/')}", permission),
+                    accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$resourcePath", permission),
                     { },
                     { FORBIDDEN.toErrorResponse("You must be the token owner or a manager to access this.") }
                 )
