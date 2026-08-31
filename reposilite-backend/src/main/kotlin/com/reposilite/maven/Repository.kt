@@ -18,6 +18,7 @@ package com.reposilite.maven
 import com.reposilite.maven.api.Checksum
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
+import com.reposilite.repository.api.Repository as RepositoryApi
 import com.reposilite.repository.api.RepositoryVisibility
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.StorageProvider
@@ -41,7 +42,7 @@ class Repository internal constructor(
     parallelMetadataLookup: Boolean,
     resolutionCacheMaxEntries: Int,
     resolutionCacheLevel: ResolutionCacheLevel,
-) : com.reposilite.repository.api.Repository {
+) : RepositoryApi {
 
     internal val resolutionCache: ResolutionCache? =
         when {
