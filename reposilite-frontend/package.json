@@ -27,7 +27,7 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "ansi-to-html": "^0.7.2",
-    "apexcharts": "^6.10.0",
+    "apexcharts": "^7.0.0",
     "axios": "^1.20.0",
     "downloadjs": "^1.4.7",
     "extended-eventsource": "^2.1.0",
