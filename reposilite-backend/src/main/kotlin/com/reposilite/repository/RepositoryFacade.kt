@@ -25,6 +25,7 @@ import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.api.ReposiliteRoutes
 import panda.std.Result
+import panda.std.reactive.Reference
 
 class RepositoryFacade internal constructor(
     private val accessResolver: RepositoryAccessResolver,
@@ -32,11 +33,8 @@ class RepositoryFacade internal constructor(
 
     private class RegisteredProvider(
         val provider: RepositoryProvider,
-        repositories: Collection<Repository>,
-    ) {
-        @Volatile
-        var repositories = repositories
-    }
+        val repositories: Reference<Collection<Repository>>,
+    )
 
     private val providers = linkedMapOf<String, RegisteredProvider>()
     private var sealed = false
@@ -48,15 +46,12 @@ class RepositoryFacade internal constructor(
             "Repository provider '${provider.id}' is already registered"
         }
 
-        val repositories = provider.repositories()
-        val registeredProvider = RegisteredProvider(provider, repositories.get())
-        providers[provider.id] = registeredProvider
-        repositories.subscribe { registeredProvider.repositories = it }
+        providers[provider.id] = RegisteredProvider(provider, provider.repositories())
     }
 
     internal fun findRepositories(name: String): List<ProvidedRepository> =
         providers.values.flatMap { registeredProvider ->
-            registeredProvider.repositories
+            registeredProvider.repositories.get()
                 .filter { it.name == name }
                 .map { repository -> ProvidedRepository(registeredProvider.provider, repository) }
         }
@@ -67,7 +62,7 @@ class RepositoryFacade internal constructor(
     fun getRepositories(): Collection<ProvidedRepository> =
         providers.values
             .flatMap { registeredProvider ->
-                registeredProvider.repositories.map { repository -> ProvidedRepository(registeredProvider.provider, repository) }
+                registeredProvider.repositories.get().map { repository -> ProvidedRepository(registeredProvider.provider, repository) }
             }
             .groupBy { it.repository.name }
             .values
