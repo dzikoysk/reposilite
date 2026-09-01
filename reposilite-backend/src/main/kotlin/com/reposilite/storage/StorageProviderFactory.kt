@@ -20,6 +20,11 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import java.nio.file.Path
 
+data class StorageProviderOwner(
+    val providerId: String,
+    val repositoryName: String,
+)
+
 interface StorageProviderFactory<PROVIDER : StorageProvider, SETTINGS : StorageProviderSettings> {
 
     val type: String
@@ -29,7 +34,7 @@ interface StorageProviderFactory<PROVIDER : StorageProvider, SETTINGS : StorageP
         journalist: Journalist,
         failureFacade: FailureFacade,
         workingDirectory: Path,
-        repositoryName: String,
+        owner: StorageProviderOwner,
         settings: SETTINGS
     ): PROVIDER
 

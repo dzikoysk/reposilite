@@ -22,20 +22,21 @@ import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.plugin.Extensions
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.Repository as RepositoryApi
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.notFoundError
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
-import com.reposilite.storage.s3.S3StorageProviderSettings
-import com.reposilite.storage.s3.findS3SharedBucketConflicts
 import java.nio.file.Path
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.reactive.MutableReference
 import panda.std.reactive.Reference
+import panda.std.reactive.mutableReference
 
-internal class RepositoryProvider(
+internal class MavenRepositoryStore(
     private val journalist: Journalist,
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
@@ -52,7 +53,7 @@ internal class RepositoryProvider(
 
     val repositoryService = RepositoryService(
         journalist = journalist,
-        repositoryProvider = this,
+        repositoryStore = this,
         repositoryFacade = repositoryFacade,
         mirrorService = mirrorService,
         resolutionProvider = resolutionProvider,
@@ -62,12 +63,15 @@ internal class RepositoryProvider(
 
     @Volatile
     private var repositories: Map<String, Repository> = createRepositories(repositoriesSource.get())
+    private val repositoriesReference: MutableReference<Collection<RepositoryApi>> =
+        mutableReference(repositories.values)
 
     init {
         repositoriesSource.subscribe { settings ->
             val updatedRepositories = createRepositories(settings)
             val previousRepositories = repositories
             repositories = updatedRepositories
+            repositoriesReference.update(updatedRepositories.values)
             previousRepositories.values.forEach { it.shutdown() }
         }
     }
@@ -85,25 +89,16 @@ internal class RepositoryProvider(
         )
 
         val duplicatedNames = repositoriesConfiguration.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys
-        val sharedBucketConflicts = findS3SharedBucketConflicts(
-            repositoriesConfiguration.mapNotNull { configuration ->
-                (configuration.storageProvider as? S3StorageProviderSettings)?.let { configuration.id to it }
-            }
-        )
-
         return repositoriesConfiguration.asSequence()
             .mapNotNull { configuration ->
                 runCatching {
                     require(configuration.id !in duplicatedNames) {
                         "Repository name '${configuration.id}' is duplicated in Maven repository settings"
                     }
-                    require(configuration.id !in sharedBucketConflicts) {
-                        "Its S3 key namespace overlaps another repository sharing the same bucket. Give each repository a distinct 'prefix', or enable 'sharedBucket' on every repository sharing the bucket"
-                    }
                     require(configuration.id.length < REPOSITORY_NAME_MAX_LENGTH) {
                         "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters"
                     }
-                    repositoryFacade.validateRepositoryName("maven", configuration.id)
+                    repositoryFacade.validateRepositoryName(configuration.id)
 
                     factory.createRepository(configuration.id, configuration)
                 }
@@ -112,7 +107,6 @@ internal class RepositoryProvider(
             }
             .associateBy { it.name }
     }
-
 
     fun findRepository(name: String): Result<Repository, ErrorResponse> =
         getRepository(name)
@@ -124,5 +118,8 @@ internal class RepositoryProvider(
 
     fun getRepositories(): Collection<Repository> =
         repositories.values
+
+    fun repositories(): Reference<Collection<RepositoryApi>> =
+        repositoriesReference
 
 }

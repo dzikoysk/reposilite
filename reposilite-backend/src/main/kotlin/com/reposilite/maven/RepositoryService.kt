@@ -50,7 +50,7 @@ import java.io.InputStream
 
 internal class RepositoryService(
     private val journalist: Journalist,
-    val repositoryProvider: RepositoryProvider,
+    val repositoryStore: MavenRepositoryStore,
     private val repositoryFacade: RepositoryFacade,
     private val mirrorService: MirrorService,
     private val resolutionProvider: ResolutionProvider,
@@ -129,7 +129,8 @@ internal class RepositoryService(
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
         val (accessToken, repositoryName, gav) = lookupRequest
-        val repository = repositoryProvider.getRepository(lookupRequest.repository) ?: return notFoundError("Repository $repositoryName not found")
+        val repository = repositoryStore.getRepository(repositoryName)
+            ?: return notFoundError("Repository $repositoryName not found")
 
         return canAccessResource(lookupRequest.accessToken, repository.name, gav)
             .onError { logger.debug("ACCESS | Unauthorized attempt of access (token: $accessToken) to $gav from ${repository.name}") }
@@ -138,7 +139,7 @@ internal class RepositoryService(
     }
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
-        repositoryProvider.findRepository(repository)
+        repositoryStore.findRepository(repository)
             .flatMap { repositoryFacade.canAccessResource(accessToken, it, gav) }
 
     private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
@@ -189,7 +190,7 @@ internal class RepositoryService(
     }
 
     fun getRootDirectory(accessToken: AccessTokenIdentifier?): DirectoryInfo =
-        repositoryProvider.getRepositories()
+        repositoryStore.getRepositories()
             .filter { repositoryFacade.canAccessRepository(accessToken, it) }
             .map { SimpleDirectoryInfo(it.name) }
             .let { DirectoryInfo("/", it) }

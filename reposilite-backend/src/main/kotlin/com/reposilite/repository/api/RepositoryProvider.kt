@@ -17,6 +17,7 @@
 package com.reposilite.repository.api
 
 import com.reposilite.web.api.ReposiliteRoutes
+import panda.std.reactive.Reference
 
 interface RepositoryProvider {
     val id: String
@@ -29,11 +30,8 @@ interface RepositoryProvider {
      */
     fun routes(): ReposiliteRoutes
 
-    fun findRepository(name: String): Repository? =
-        getRepositories().firstOrNull { it.name == name }
-
-    /** Returns successfully initialized repositories. Invalid configurations should be reported and omitted. */
-    fun getRepositories(): Collection<Repository>
+    /** Returns successfully initialized repositories and publishes their replacements after configuration reloads. */
+    fun repositories(): Reference<Collection<Repository>>
 }
 
 data class ProvidedRepository(

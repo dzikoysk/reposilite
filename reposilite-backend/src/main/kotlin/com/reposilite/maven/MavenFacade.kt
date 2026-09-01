@@ -32,23 +32,25 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.Repository as RepositoryApi
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
+import panda.std.reactive.Reference
 import java.io.InputStream
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
     private val repositoryFacade: RepositoryFacade,
-    private val repositoryProvider: RepositoryProvider,
+    private val repositoryStore: MavenRepositoryStore,
     private val metadataService: MetadataService,
     private val latestService: LatestService,
 ) : Journalist, Facade {
 
-    private val repositoryService = repositoryProvider.repositoryService
+    private val repositoryService = repositoryStore.repositoryService
 
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
         repositoryService.findDetails(lookupRequest)
@@ -114,10 +116,13 @@ class MavenFacade internal constructor(
         repositoryService.getRootDirectory(accessToken)
 
     fun getRepository(name: String) =
-        repositoryService.repositoryProvider.getRepository(name)
+        repositoryService.repositoryStore.getRepository(name)
 
     fun getRepositories(): Collection<Repository> =
-        repositoryService.repositoryProvider.getRepositories()
+        repositoryService.repositoryStore.getRepositories()
+
+    internal fun repositories(): Reference<Collection<RepositoryApi>> =
+        repositoryStore.repositories()
 
     override fun getLogger(): Logger =
         journalist.logger

@@ -19,6 +19,7 @@ package com.reposilite.storage.filesystem
 import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
+import com.reposilite.storage.StorageProviderOwner
 import java.nio.file.Path
 import java.util.regex.Pattern
 import kotlin.io.path.createDirectories
@@ -94,12 +95,12 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
         journalist: Journalist,
         failureFacade: FailureFacade,
         workingDirectory: Path,
-        repositoryName: String,
+        owner: StorageProviderOwner,
         settings: FileSystemStorageProviderSettings,
     ): FileSystemStorageProvider {
         val repositoryDirectory =
             if (settings.mount.isEmpty())
-                workingDirectory.resolve(repositoryName)
+                workingDirectory.resolve(owner.repositoryName)
             else
                 workingDirectory.resolve(settings.mount)
 

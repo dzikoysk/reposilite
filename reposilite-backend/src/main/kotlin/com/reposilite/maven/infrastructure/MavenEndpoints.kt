@@ -22,7 +22,6 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.repository.infrastructure.createDirectoryIndexPage
-import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.extensions.uri
@@ -54,14 +53,11 @@ internal class MavenEndpoints(
     private val compressionStrategy: String
 ) : MavenRoutes(mavenFacade) {
 
-    private val findFileHandler: ContextDsl<Unit>.() -> Unit = {
+    private val browseRepositoryRoot = ReposiliteRoute<Unit>("/{repository}", HEAD, GET) {
         accessed {
-            requireGav { gav ->
-                findFile(ctx, this?.identifier, requireParameter("repository"), gav)
-            }
+            findFile(ctx, this?.identifier, requireParameter("repository"), Location.empty())
         }
     }
-    private val findRepository = ReposiliteRoute("/{repository}", HEAD, GET, handler = findFileHandler)
 
     @OpenApi(
         path = "/{repository}/{gav}",
@@ -71,14 +67,20 @@ internal class MavenEndpoints(
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true)
         ],
         responses = [
             OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    private val findFileRoute = ReposiliteRoute("/{repository}/<gav>", HEAD, GET, handler = findFileHandler)
+    private val findFileRoute = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
+        accessed {
+            requireGav { gav ->
+                findFile(ctx, this?.identifier, requireParameter("repository"), gav)
+            }
+        }
+    }
 
     fun findFile(ctx: Context, identifier: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> {
         val request = LookupRequest(accessToken = identifier, repository = repository, gav = gav)
@@ -103,7 +105,7 @@ internal class MavenEndpoints(
                         createDirectoryIndexPage(
                             basePath = frontendFacade.resolveBasePath(ctx.header(frontendFacade.forwardedPrefixHeader.get())),
                             uri = ctx.uri(),
-                            authenticatedFiles = mavenFacade.getAvailableFiles(request, details),
+                            visibleFiles = mavenFacade.getAvailableFiles(request, details),
                         )
                     )
                     Unit.asSuccess()
@@ -176,6 +178,6 @@ internal class MavenEndpoints(
         }
     }
 
-    override val routes = routes(findRepository, findFileRoute, deployFile, deleteFile)
+    override val routes = routes(browseRepositoryRoot, findFileRoute, deployFile, deleteFile)
 
 }
