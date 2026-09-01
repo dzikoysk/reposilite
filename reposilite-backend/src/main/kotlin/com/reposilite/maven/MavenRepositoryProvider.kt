@@ -18,8 +18,10 @@ package com.reposilite.maven
 
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.infrastructure.MavenEndpoints
+import com.reposilite.repository.api.Repository as RepositoryApi
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.web.api.ReposiliteRoutes
+import panda.std.reactive.Reference
 
 internal class MavenRepositoryProvider(
     private val mavenFacade: MavenFacade,
@@ -27,14 +29,13 @@ internal class MavenRepositoryProvider(
     private val compressionStrategy: String,
 ) : RepositoryProvider {
 
-    override val id: String = "maven"
+    override val id: String = MAVEN_REPOSITORY_PROVIDER_ID
 
     override fun routes(): ReposiliteRoutes =
         MavenEndpoints(mavenFacade, frontendFacade, compressionStrategy)
 
-    override fun findRepository(name: String): Repository? =
-        mavenFacade.getRepository(name)
-
-    override fun getRepositories(): Collection<Repository> =
-        mavenFacade.getRepositories()
+    override fun repositories(): Reference<Collection<RepositoryApi>> =
+        mavenFacade.repositories()
 }
+
+internal const val MAVEN_REPOSITORY_PROVIDER_ID = "maven"

@@ -19,7 +19,7 @@ package com.reposilite.repository.infrastructure
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType
 
-internal fun createDirectoryIndexPage(basePath: String, uri: String, authenticatedFiles: List<FileDetails>): String {
+internal fun createDirectoryIndexPage(basePath: String, uri: String, visibleFiles: List<FileDetails>): String {
     val formattedUri = basePath + uri.removePrefix("/")
     val parentUri = formattedUri.removeSuffix("/").substringBeforeLast("/").ifEmpty { "/" }
 
@@ -52,7 +52,7 @@ internal fun createDirectoryIndexPage(basePath: String, uri: String, authenticat
                     <li class='back'>
                         <a href='$parentUri'>Parent Directory</a>
                     </li>
-                    ${authenticatedFiles.flatMap {
+                    ${visibleFiles.flatMap {
                         val fileSeparator = if (it.type == FileType.DIRECTORY) "/" else ""
 
                         listOf(

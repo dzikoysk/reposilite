@@ -48,6 +48,16 @@ internal class RemoteMavenIntegrationTest : MavenIntegrationTest()
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
+    fun `should browse repository root`() {
+        useDocument("releases", "gav", "artifact.jar", "content", true)
+
+        val response = get("$base/releases").asString()
+
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).contains("gav")
+    }
+
+    @Test
     fun `should support head requests`() {
         // given: the details about an existing in repository file
         val (repository, gav, file, content) = useDocument("immutable", "gav", "artifact.jar", "content", true)

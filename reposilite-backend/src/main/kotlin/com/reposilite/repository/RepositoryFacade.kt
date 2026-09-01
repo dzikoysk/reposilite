@@ -25,55 +25,52 @@ import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.api.ReposiliteRoutes
 import panda.std.Result
+import panda.std.reactive.Reference
 
 class RepositoryFacade internal constructor(
     private val accessResolver: RepositoryAccessResolver,
 ) : Facade {
 
-    private val providers = linkedMapOf<String, RepositoryProvider>()
+    private class RegisteredProvider(
+        val provider: RepositoryProvider,
+        val repositories: Reference<Collection<Repository>>,
+    )
+
+    private val providers = linkedMapOf<String, RegisteredProvider>()
     private var sealed = false
 
     fun registerProvider(provider: RepositoryProvider) {
         check(!sealed) { "Repository providers have to be registered before the HTTP server starts" }
         require(provider.id.isNotBlank()) { "Repository provider id cannot be blank" }
-        require(providers.putIfAbsent(provider.id, provider) == null) {
+        require(provider.id !in providers) {
             "Repository provider '${provider.id}' is already registered"
         }
+
+        providers[provider.id] = RegisteredProvider(provider, provider.repositories())
     }
 
-    fun findRepository(name: String): ProvidedRepository? {
-        val matches = providers.values.mapNotNull { provider ->
-            provider.findRepository(name)?.let { repository -> ProvidedRepository(provider, repository) }
+    internal fun findRepositories(name: String): List<ProvidedRepository> =
+        providers.values.flatMap { registeredProvider ->
+            registeredProvider.repositories.get()
+                .filter { it.name == name }
+                .map { repository -> ProvidedRepository(registeredProvider.provider, repository) }
         }
 
-        require(matches.size <= 1) {
-            "Repository '$name' is provided by multiple providers: ${matches.joinToString { it.provider.id }}"
-        }
+    fun findRepository(name: String): ProvidedRepository? =
+        findRepositories(name).singleOrNull()
 
-        return matches.singleOrNull()
-    }
+    fun getRepositories(): Collection<ProvidedRepository> =
+        providers.values
+            .flatMap { registeredProvider ->
+                registeredProvider.repositories.get().map { repository -> ProvidedRepository(registeredProvider.provider, repository) }
+            }
+            .groupBy { it.repository.name }
+            .values
+            .filter { it.size == 1 }
+            .flatten()
 
-    fun getRepositories(): Collection<ProvidedRepository> {
-        val repositories = providers.values.flatMap { provider ->
-            provider.getRepositories().map { repository -> ProvidedRepository(provider, repository) }
-        }
-        val duplicatedNames = repositories.groupBy { it.repository.name }.filterValues { it.size > 1 }
-
-        require(duplicatedNames.isEmpty()) {
-            duplicatedNames.entries.joinToString(
-                prefix = "Repository names have to be unique across providers: ",
-                transform = { (name, matches) -> "$name (${matches.joinToString { it.provider.id }})" }
-            )
-        }
-
-        return repositories
-    }
-
-    /**
-     * Validates one repository configuration before its provider initializes it.
-     * Providers should report the exception and skip only the rejected configuration.
-     */
-    fun validateRepositoryName(providerId: String, repositoryName: String) {
+    /** Validates one repository configuration before its provider initializes it. */
+    fun validateRepositoryName(repositoryName: String) {
         require(
             repositoryName.isNotBlank() &&
                 repositoryName == repositoryName.trim() &&
@@ -83,19 +80,11 @@ class RepositoryFacade internal constructor(
         ) {
             "Repository name '$repositoryName' has to be a non-blank URL path segment"
         }
-
-        val owner = providers.values
-            .asSequence()
-            .filter { it.id != providerId }
-            .firstOrNull { it.findRepository(repositoryName) != null }
-
-        require(owner == null) {
-            "Repository '$repositoryName' is already provided by '${owner?.id}'"
-        }
     }
 
-    internal fun validateAndSeal(): Map<RepositoryProvider, ReposiliteRoutes> {
-        val providerRoutes = providers.values.associateWith { provider ->
+    internal fun validateAndSeal(): Map<String, ReposiliteRoutes> {
+        val providerRoutes = providers.mapValues { (_, registeredProvider) ->
+            val provider = registeredProvider.provider
             provider.routes().also { routes ->
                 routes.routes.forEach { route ->
                     require(route.path == "/{repository}" || route.path.startsWith("/{repository}/")) {

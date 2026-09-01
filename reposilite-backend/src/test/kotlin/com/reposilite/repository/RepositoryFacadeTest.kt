@@ -30,6 +30,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.assertj.core.api.Assertions.assertThatIllegalStateException
 import org.junit.jupiter.api.Test
+import panda.std.reactive.Reference
+import panda.std.reactive.mutableReference
+import panda.std.reactive.toReference
 
 internal class RepositoryFacadeTest {
 
@@ -59,13 +62,12 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should reflect repositories changed by provider`() {
-        // given: provider backed by a mutable repository map
-        val repositories = linkedMapOf("first" to repository("first"))
+        // given: provider backed by a repository reference
+        val repositories = mutableReference<Collection<Repository>>(listOf(repository("first")))
         facade.registerProvider(provider("custom", repositories))
 
         // when: provider configuration replaces its repositories
-        repositories.clear()
-        repositories["second"] = repository("second")
+        repositories.update(listOf(repository("second")))
 
         // then: facade queries the provider instead of serving a stale index
         assertThat(facade.findRepository("first")).isNull()
@@ -82,17 +84,18 @@ internal class RepositoryFacadeTest {
     }
 
     @Test
-    fun `should reject repository name shared by providers`() {
+    fun `should hide repository name shared by providers`() {
+        val customRepositories = mutableReference<Collection<Repository>>(listOf(repository("shared")))
         facade.registerProvider(provider("maven", "shared"))
-        facade.registerProvider(provider("custom", "shared"))
+        facade.registerProvider(provider("custom", customRepositories))
 
-        assertThatIllegalArgumentException()
-            .isThrownBy { facade.findRepository("shared") }
-            .withMessageContaining("provided by multiple providers")
+        assertThat(facade.findRepository("shared")).isNull()
+        assertThat(facade.getRepositories()).isEmpty()
 
-        assertThatIllegalArgumentException()
-            .isThrownBy { facade.getRepositories() }
-            .withMessageContaining("unique across providers")
+        customRepositories.update(emptyList())
+
+        assertThat(facade.findRepository("shared")?.provider?.id).isEqualTo("maven")
+        assertThat(facade.getRepositories()).hasSize(1)
     }
 
     @Test
@@ -108,17 +111,8 @@ internal class RepositoryFacadeTest {
     @Test
     fun `should reject repository names that cannot be routed safely`() {
         assertThatIllegalArgumentException()
-            .isThrownBy { facade.validateRepositoryName("custom", "../downloads") }
+            .isThrownBy { facade.validateRepositoryName("../downloads") }
             .withMessageContaining("URL path segment")
-    }
-
-    @Test
-    fun `should reject repository name owned by another provider`() {
-        facade.registerProvider(provider("maven", "releases"))
-
-        assertThatIllegalArgumentException()
-            .isThrownBy { facade.validateRepositoryName("custom", "releases") }
-            .withMessageContaining("already provided by 'maven'")
     }
 
     @Test
@@ -126,7 +120,7 @@ internal class RepositoryFacadeTest {
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/cargo/<crate>", GET) {})
         }
-        facade.registerProvider(provider("cargo", mapOf("cargo" to repository("cargo")), invalidRoutes))
+        facade.registerProvider(provider("cargo", listOf(repository("cargo")).toReference(), invalidRoutes))
 
         assertThatIllegalArgumentException()
             .isThrownBy { facade.validateAndSeal() }
@@ -138,7 +132,7 @@ internal class RepositoryFacadeTest {
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/{repository}/<path>", BEFORE) {})
         }
-        facade.registerProvider(provider("cargo", mapOf("cargo" to repository("cargo")), invalidRoutes))
+        facade.registerProvider(provider("cargo", listOf(repository("cargo")).toReference(), invalidRoutes))
 
         assertThatIllegalArgumentException()
             .isThrownBy { facade.validateAndSeal() }
@@ -155,23 +149,21 @@ internal class RepositoryFacadeTest {
     }
 
     private fun provider(id: String, vararg names: String): RepositoryProvider =
-        provider(id, names.associateWithTo(linkedMapOf()) { repository(it) })
+        provider(id, names.map { repository(it) }.toReference())
 
-    private fun provider(id: String, repositories: Map<String, Repository>): RepositoryProvider =
+    private fun provider(id: String, repositories: Reference<out Collection<Repository>>): RepositoryProvider =
         provider(id, repositories, emptyRoutes)
 
-    private fun provider(id: String, repositories: Map<String, Repository>, endpoints: ReposiliteRoutes): RepositoryProvider =
+    private fun provider(id: String, repositories: Reference<out Collection<Repository>>, endpoints: ReposiliteRoutes): RepositoryProvider =
         object : RepositoryProvider {
             override val id = id
+            private val repositoryReference = repositories.computed<Collection<Repository>> { it }
 
             override fun routes(): ReposiliteRoutes =
                 endpoints
 
-            override fun findRepository(name: String): Repository? =
-                repositories[name]
-
-            override fun getRepositories(): Collection<Repository> =
-                repositories.values
+            override fun repositories(): Reference<Collection<Repository>> =
+                repositoryReference
         }
 
     private fun repository(id: String): Repository =

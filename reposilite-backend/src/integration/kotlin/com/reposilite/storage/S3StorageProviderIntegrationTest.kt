@@ -56,7 +56,7 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
             journalist = logger,
             failureFacade = failureFacade,
             workingDirectory = rootDirectory.toPath(),
-            repository = "test-repository",
+            owner = StorageProviderOwner(providerId = "test", repositoryName = "test-repository"),
             storageSettings = S3StorageProviderSettings(
                 bucketName = "test-repository",
                 endpoint = "http://${floci.host}:${floci.getMappedPort(4566)}",
@@ -186,7 +186,7 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
             journalist = logger,
             failureFacade = FailureFacade(logger),
             workingDirectory = rootDirectory.toPath(),
-            repository = repository,
+            owner = StorageProviderOwner(providerId = "test", repositoryName = repository),
             storageSettings = S3StorageProviderSettings(
                 bucketName = "shared-bucket",
                 endpoint = "http://${floci.host}:${floci.getMappedPort(4566)}",

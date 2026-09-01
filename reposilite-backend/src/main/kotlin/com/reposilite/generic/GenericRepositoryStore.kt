@@ -19,11 +19,13 @@ package com.reposilite.generic
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.Repository as RepositoryApi
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
-import com.reposilite.storage.s3.S3StorageProviderSettings
-import com.reposilite.storage.s3.findS3SharedBucketConflicts
+import com.reposilite.storage.StorageProviderOwner
+import panda.std.reactive.MutableReference
 import panda.std.reactive.Reference
+import panda.std.reactive.mutableReference
 import java.nio.file.Path
 
 internal class GenericRepositoryStore(
@@ -37,12 +39,15 @@ internal class GenericRepositoryStore(
 
     @Volatile
     private var repositories = createRepositories(repositoriesSource.get())
+    private val repositoriesReference: MutableReference<Collection<RepositoryApi>> =
+        mutableReference(repositories.values)
 
     init {
         repositoriesSource.subscribe { settings ->
             val updatedRepositories = createRepositories(settings)
             val previousRepositories = repositories
             repositories = updatedRepositories
+            repositoriesReference.update(updatedRepositories.values)
             previousRepositories.values.forEach { it.storageProvider.shutdown() }
         }
     }
@@ -50,29 +55,21 @@ internal class GenericRepositoryStore(
     fun findRepository(name: String): GenericRepository? =
         repositories[name]
 
-    fun getRepositories(): Collection<GenericRepository> =
-        repositories.values
+    fun repositories(): Reference<Collection<RepositoryApi>> =
+        repositoriesReference
 
     fun shutdown() =
         repositories.values.forEach { it.storageProvider.shutdown() }
 
     private fun createRepositories(settings: List<GenericRepositorySettings>): Map<String, GenericRepository> {
         val duplicatedNames = settings.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys
-        val sharedBucketConflicts = findS3SharedBucketConflicts(
-            settings.mapNotNull { configuration ->
-                (configuration.storageProvider as? S3StorageProviderSettings)?.let { configuration.id to it }
-            }
-        )
 
         return settings.mapNotNull { configuration ->
             runCatching {
                 require(configuration.id !in duplicatedNames) {
                     "Repository name '${configuration.id}' is duplicated in generic repository settings"
                 }
-                require(configuration.id !in sharedBucketConflicts) {
-                    "Its S3 key namespace overlaps another generic repository sharing the same bucket"
-                }
-                repositoryFacade.validateRepositoryName("generic", configuration.id)
+                repositoryFacade.validateRepositoryName(configuration.id)
 
                 GenericRepository(
                     name = configuration.id,
@@ -82,7 +79,10 @@ internal class GenericRepositoryStore(
                         journalist = journalist,
                         failureFacade = failureFacade,
                         workingDirectory = workingDirectory.resolve("repositories"),
-                        repository = configuration.id,
+                        owner = StorageProviderOwner(
+                            providerId = GENERIC_REPOSITORY_PROVIDER_ID,
+                            repositoryName = configuration.id,
+                        ),
                         storageSettings = configuration.storageProvider,
                     ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
                 )

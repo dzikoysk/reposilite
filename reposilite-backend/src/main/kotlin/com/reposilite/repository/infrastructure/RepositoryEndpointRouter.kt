@@ -17,9 +17,6 @@
 package com.reposilite.repository.infrastructure
 
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.RepositoryProvider
-import com.reposilite.shared.extensions.error
-import com.reposilite.shared.internalServer
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.infrastructure.ReposiliteEndpointFactory
 import io.javalin.config.RouterConfig
@@ -32,7 +29,7 @@ import io.javalin.router.matcher.PathMatcher
 
 internal class RepositoryEndpointRouter(
     private val repositoryFacade: RepositoryFacade,
-    providerRoutes: Map<RepositoryProvider, ReposiliteRoutes>,
+    providerRoutes: Map<String, ReposiliteRoutes>,
     endpointFactory: ReposiliteEndpointFactory,
     routerConfig: RouterConfig,
 ) {
@@ -47,7 +44,7 @@ internal class RepositoryEndpointRouter(
         }
     }
 
-    private val fallbackProvider = providerRoutes.keys.find { it.id == "maven" }
+    private val fallbackProvider = providerRoutes.keys.find { it == "maven" }
 
     private val gatewayHandler = createGatewayHandler()
 
@@ -62,27 +59,28 @@ internal class RepositoryEndpointRouter(
             )
         }
 
-    private fun createGatewayHandler(): Handler = Handler { context ->
-        val provider = try {
-            repositoryFacade.findRepository(context.pathParam("repository"))?.provider ?: fallbackProvider
-        } catch (exception: IllegalArgumentException) {
-            context.error(internalServer(exception.message ?: "Repository configuration conflict"))
-            return@Handler
-        }
+    private fun createGatewayHandler(): Handler =
+        Handler { context ->
+            val repositories = repositoryFacade.findRepositories(context.pathParam("repository"))
+            val provider = when (repositories.size) {
+                0 -> fallbackProvider
+                1 -> repositories.single().provider.id
+                else -> null
+            }
 
-        if (provider == null) {
-            context.status(NOT_FOUND)
-            return@Handler
-        }
+            if (provider == null) {
+                context.status(NOT_FOUND)
+                return@Handler
+            }
 
-        val endpoint = providerRouters[provider]?.findFirstEntry(context.method(), context.path())
-        if (endpoint == null) {
-            context.status(NOT_FOUND)
-            return@Handler
-        }
+            val endpoint = providerRouters[provider]?.findFirstEntry(context.method(), context.path())
+            if (endpoint == null) {
+                context.status(NOT_FOUND)
+                return@Handler
+            }
 
-        val servletContext = context as JavalinServletContext
-        servletContext.update(endpoint.endpoint, endpoint.extractPathParams(context.path()))
-        endpoint.endpoint.handler.handle(servletContext)
-    }
+            val servletContext = context as JavalinServletContext
+            servletContext.update(endpoint.endpoint, endpoint.extractPathParams(context.path()))
+            endpoint.endpoint.handler.handle(servletContext)
+        }
 }

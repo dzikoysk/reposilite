@@ -21,12 +21,14 @@ import com.reposilite.generic.GenericFacade
 import com.reposilite.generic.GenericRepository
 import com.reposilite.repository.infrastructure.createDirectoryIndexPage
 import com.reposilite.shared.ContextDsl
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.extensions.uri
 import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
+import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import io.javalin.community.routing.Route.DELETE
@@ -35,6 +37,8 @@ import io.javalin.community.routing.Route.HEAD
 import io.javalin.community.routing.Route.POST
 import io.javalin.community.routing.Route.PUT
 import io.javalin.http.HandlerType.HEAD as HEAD_METHOD
+import io.javalin.http.Context
+import panda.std.Result
 import panda.std.asError
 import panda.std.asSuccess
 import java.io.InputStream
@@ -45,56 +49,70 @@ internal class GenericEndpoints(
     private val compressionStrategy: String,
 ) : ReposiliteRoutes() {
 
-    private val findFileHandler: ContextDsl<Unit>.() -> Unit = {
+    private val browseRepositoryRoot = ReposiliteRoute<Unit>("/{repository}", HEAD, GET) {
+        accessed {
+            requireRepository { repository ->
+                findFile(ctx, this?.identifier, repository, Location.empty())
+            }
+        }
+    }
+
+    private val browseRepositoryPath = ReposiliteRoute<Unit>("/{repository}/<path>", HEAD, GET) {
         accessed {
             requireRepository { repository ->
                 requireLocation { location ->
-                    response = genericFacade.findDetails(this?.identifier, repository, location)
-                        .flatMap { details ->
-                            when (details) {
-                                is DocumentInfo ->
-                                    when (ctx.method()) {
-                                        HEAD_METHOD -> InputStream.nullInputStream().asSuccess()
-                                        else -> genericFacade.findData(this?.identifier, repository, location)
-                                    }.map { data ->
-                                        ctx.resultAttachment(
-                                            name = details.name,
-                                            contentType = details.contentType,
-                                            contentLength = details.contentLength,
-                                            lastTimeModified = details.lastModifiedTime,
-                                            compressionStrategy = compressionStrategy,
-                                            cache = false,
-                                            data = data,
-                                        )
-                                    }
-                                is DirectoryInfo -> {
-                                    ctx.html(
-                                        createDirectoryIndexPage(
-                                            basePath = frontendFacade.resolveBasePath(ctx.header(frontendFacade.forwardedPrefixHeader.get())),
-                                            uri = ctx.uri(),
-                                            authenticatedFiles = genericFacade.getAvailableFiles(this?.identifier, repository, location, details),
-                                        )
-                                    )
-                                    Unit.asSuccess()
-                                }
-                                else -> throw IllegalStateException("Expected file details, but got $details")
-                            }
-                        }
-                        .onError { error ->
-                            ctx.status(error.status).html(
-                                frontendFacade.createNotFoundPage(
-                                    originUri = ctx.uri(),
-                                    details = error.message,
-                                    forwardedPrefix = ctx.header(frontendFacade.forwardedPrefixHeader.get()),
-                                )
-                            )
-                        }
+                    findFile(ctx, this?.identifier, repository, location)
                 }
             }
         }
     }
-    private val findRepository = ReposiliteRoute("/{repository}", HEAD, GET, handler = findFileHandler)
-    private val findFile = ReposiliteRoute("/{repository}/<path>", HEAD, GET, handler = findFileHandler)
+
+    private fun findFile(
+        ctx: Context,
+        identifier: AccessTokenIdentifier?,
+        repository: GenericRepository,
+        location: Location,
+    ): Result<Unit, ErrorResponse> =
+        genericFacade.findDetails(identifier, repository, location)
+            .flatMap { details ->
+                when (details) {
+                    is DocumentInfo ->
+                        when (ctx.method()) {
+                            HEAD_METHOD -> InputStream.nullInputStream().asSuccess()
+                            else -> genericFacade.findData(identifier, repository, location)
+                        }.map { data ->
+                            ctx.resultAttachment(
+                                name = details.name,
+                                contentType = details.contentType,
+                                contentLength = details.contentLength,
+                                lastTimeModified = details.lastModifiedTime,
+                                compressionStrategy = compressionStrategy,
+                                cache = false,
+                                data = data,
+                            )
+                        }
+                    is DirectoryInfo -> {
+                        ctx.html(
+                            createDirectoryIndexPage(
+                                basePath = frontendFacade.resolveBasePath(ctx.header(frontendFacade.forwardedPrefixHeader.get())),
+                                uri = ctx.uri(),
+                                visibleFiles = genericFacade.getAvailableFiles(identifier, repository, location, details),
+                            )
+                        )
+                        Unit.asSuccess()
+                    }
+                    else -> throw IllegalStateException("Expected file details, but got $details")
+                }
+            }
+            .onError { error ->
+                ctx.status(error.status).html(
+                    frontendFacade.createNotFoundPage(
+                        originUri = ctx.uri(),
+                        details = error.message,
+                        forwardedPrefix = ctx.header(frontendFacade.forwardedPrefixHeader.get()),
+                    )
+                )
+            }
 
     private val deployFile = ReposiliteRoute<Unit>("/{repository}/<path>", POST, PUT) {
         authorized {
@@ -116,7 +134,7 @@ internal class GenericEndpoints(
         }
     }
 
-    override val routes = routes(findRepository, findFile, deployFile, deleteFile)
+    override val routes = routes(browseRepositoryRoot, browseRepositoryPath, deployFile, deleteFile)
 
     private fun <R> ContextDsl<R>.requireRepository(block: (GenericRepository) -> Unit) {
         genericFacade.getRepository(requireParameter("repository"))
@@ -125,7 +143,7 @@ internal class GenericEndpoints(
     }
 
     private fun <R> ContextDsl<R>.requireLocation(block: (Location) -> Unit) {
-        Location.ofRequest(parameter("path") ?: "")
+        Location.ofRequest(requireParameter("path"))
             .peek(block)
             .onError { response = it.asError() }
     }

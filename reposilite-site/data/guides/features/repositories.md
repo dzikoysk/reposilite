@@ -83,4 +83,5 @@ Generic repositories have their own `generic` settings domain and do not need a 
 }
 ```
 
-Repository ids must be unique across all providers and must be a single non-blank URL path segment.
+Repository ids must be a single non-blank URL path segment. Keep them unique across providers: if multiple
+providers expose the same id, that repository URL returns 404 until the conflict is removed.

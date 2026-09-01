@@ -65,6 +65,7 @@ class S3StorageProvider(
     private val s3: S3Client,
     private val bucket: String,
     private val keyPrefix: String = "",
+    private val releaseNamespace: () -> Unit = {},
 ) : StorageProvider, Journalist {
 
     init {
@@ -92,7 +93,11 @@ class S3StorageProvider(
     }
 
     override fun shutdown() {
-        s3.close()
+        try {
+            s3.close()
+        } finally {
+            releaseNamespace()
+        }
     }
 
     override fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =

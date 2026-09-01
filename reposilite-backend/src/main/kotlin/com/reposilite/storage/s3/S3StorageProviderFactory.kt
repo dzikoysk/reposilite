@@ -22,6 +22,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.shared.maskSecret
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
+import com.reposilite.storage.StorageProviderOwner
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer
@@ -43,11 +44,13 @@ enum class S3Signer {
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
+    private val namespaceClaims = S3NamespaceClaims()
+
     override fun create(
         journalist: Journalist,
         failureFacade: FailureFacade,
         workingDirectory: Path,
-        repositoryName: String,
+        owner: StorageProviderOwner,
         settings: S3StorageProviderSettings
     ): S3StorageProvider {
         val client = S3Client.builder()
@@ -116,16 +119,30 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
                 else -> client.build()
             }
 
-        val keyPrefix = settings.resolveKeyPrefix(repositoryName)
+        val keyPrefix = settings.resolveKeyPrefix(owner.repositoryName)
+        val releaseNamespace = try {
+            namespaceClaims.claim(
+                owner = owner,
+                endpoint = settings.endpoint,
+                bucket = settings.bucketName,
+                keyPrefix = keyPrefix,
+            )
+        } catch (exception: Exception) {
+            s3Client.close()
+            throw exception
+        }
 
         return try {
             S3StorageProvider(
                 failureFacade = failureFacade,
                 s3 = s3Client,
                 bucket = settings.bucketName,
-                keyPrefix = keyPrefix
+                keyPrefix = keyPrefix,
+                releaseNamespace = releaseNamespace,
             )
         } catch (exception: Exception) {
+            releaseNamespace()
+            s3Client.close()
             failureFacade.logger.error("Cannot connect to S3 storage provider: ${exception.message}")
             failureFacade.logger.error("S3 storage provider configuration:")
             failureFacade.logger.error("  - Bucket: ${settings.bucketName}")
@@ -146,4 +163,56 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
     override val type: String =
         "s3"
 
+}
+
+internal class S3NamespaceClaims {
+
+    private data class Namespace(
+        val endpoint: String,
+        val bucket: String,
+        val keyPrefix: String,
+    ) {
+        fun overlaps(other: Namespace): Boolean =
+            endpoint == other.endpoint &&
+                bucket == other.bucket &&
+                (keyPrefix.startsWith(other.keyPrefix) || other.keyPrefix.startsWith(keyPrefix))
+    }
+
+    private data class Claim(
+        val owner: StorageProviderOwner,
+        val namespace: Namespace,
+    )
+
+    private val claims = mutableMapOf<Any, Claim>()
+
+    fun claim(
+        owner: StorageProviderOwner,
+        endpoint: String,
+        bucket: String,
+        keyPrefix: String,
+    ): () -> Unit =
+        synchronized(claims) {
+            val namespace = Namespace(
+                endpoint = endpoint.trim().trimEnd('/'),
+                bucket = bucket.trim(),
+                keyPrefix = keyPrefix,
+            )
+            val conflict = claims.values.firstOrNull { claim ->
+                claim.owner != owner && claim.namespace.overlaps(namespace)
+            }
+
+            require(conflict == null) {
+                "S3 namespace for ${owner.providerId}:${owner.repositoryName} overlaps " +
+                    "${conflict?.owner?.providerId}:${conflict?.owner?.repositoryName}"
+            }
+
+            val token = Any()
+            claims[token] = Claim(owner, namespace)
+            val release: () -> Unit = {
+                synchronized(claims) {
+                    claims.remove(token)
+                }
+            }
+            release
+        }
 }

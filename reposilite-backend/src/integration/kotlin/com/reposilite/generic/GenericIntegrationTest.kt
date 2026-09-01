@@ -24,6 +24,7 @@ import com.reposilite.ReposiliteSpecification
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.generic.application.GenericSettings
+import com.reposilite.repository.RepositoryFacade
 import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
 import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
 import com.reposilite.shared.ErrorResponse
@@ -33,6 +34,7 @@ import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.core.HeaderNames.CONTENT_LENGTH
+import kong.unirest.core.HeaderNames.CONTENT_TYPE
 import kong.unirest.core.Unirest.delete
 import kong.unirest.core.Unirest.get
 import kong.unirest.core.Unirest.head
@@ -110,6 +112,15 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
     }
 
     @Test
+    fun `should render missing files as html`() {
+        val response = get("$base/files/missing.txt").asString()
+
+        assertThat(response.status).isEqualTo(NOT_FOUND.code)
+        assertThat(response.headers.getFirst(CONTENT_TYPE)).startsWith("text/html")
+        assertThat(response.body).contains("Reposilite - 404 Not Found")
+    }
+
+    @Test
     fun `should reject unauthenticated writes`() {
         val response = put("$base/files/releases/application.zip")
             .body("content")
@@ -151,13 +162,16 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
     }
 
     @Test
-    fun `should skip invalid repository configurations`() {
+    fun `should skip invalid configurations and hide repository name conflicts`() {
         val genericSettings = useFacade<SharedConfigurationFacade>().getDomainSettings<GenericSettings>()
         genericSettings.update { settings ->
             settings.copy(
                 repositories = settings.repositories + listOf(
                     GenericRepositorySettings(id = "../invalid", storageProvider = _storageProvider!!),
-                    GenericRepositorySettings(id = "releases", storageProvider = _storageProvider!!),
+                    GenericRepositorySettings(
+                        id = "releases",
+                        storageProvider = FileSystemStorageProviderSettings(mount = "generic-name-conflict"),
+                    ),
                     GenericRepositorySettings(id = "duplicated", storageProvider = _storageProvider!!),
                     GenericRepositorySettings(id = "duplicated", storageProvider = _storageProvider!!),
                 )
@@ -166,10 +180,12 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
 
         val genericFacade = useFacade<GenericFacade>()
         assertThat(genericFacade.getRepository("../invalid")).isNull()
-        assertThat(genericFacade.getRepository("releases")).isNull()
+        assertThat(genericFacade.getRepository("releases")).isNotNull()
         assertThat(genericFacade.getRepository("duplicated")).isNull()
         assertThat(genericFacade.getRepository("files")).isNotNull()
         assertThat(mavenFacade.getRepository("releases")).isNotNull()
+        assertThat(useFacade<RepositoryFacade>().findRepository("releases")).isNull()
+        assertThat(get("$base/releases").asEmpty().status).isEqualTo(NOT_FOUND.code)
     }
 
     @Test

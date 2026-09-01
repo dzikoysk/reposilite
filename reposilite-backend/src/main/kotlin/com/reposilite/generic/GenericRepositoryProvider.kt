@@ -18,8 +18,10 @@ package com.reposilite.generic
 
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.generic.infrastructure.GenericEndpoints
+import com.reposilite.repository.api.Repository as RepositoryApi
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.web.api.ReposiliteRoutes
+import panda.std.reactive.Reference
 
 internal class GenericRepositoryProvider(
     private val genericFacade: GenericFacade,
@@ -27,14 +29,13 @@ internal class GenericRepositoryProvider(
     private val compressionStrategy: String,
 ) : RepositoryProvider {
 
-    override val id: String = "generic"
+    override val id: String = GENERIC_REPOSITORY_PROVIDER_ID
 
     override fun routes(): ReposiliteRoutes =
         GenericEndpoints(genericFacade, frontendFacade, compressionStrategy)
 
-    override fun findRepository(name: String): GenericRepository? =
-        genericFacade.getRepository(name)
-
-    override fun getRepositories(): Collection<GenericRepository> =
-        genericFacade.getRepositories()
+    override fun repositories(): Reference<Collection<RepositoryApi>> =
+        genericFacade.repositories()
 }
+
+internal const val GENERIC_REPOSITORY_PROVIDER_ID = "generic"

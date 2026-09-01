@@ -33,14 +33,14 @@ class StorageFacade : Facade {
         journalist: Journalist,
         failureFacade: FailureFacade,
         workingDirectory: Path,
-        repository: String,
+        owner: StorageProviderOwner,
         storageSettings: StorageProviderSettings,
     ): StorageProvider? =
         storageProviderFactories[storageSettings.type]?.create(
             journalist = journalist,
             failureFacade = failureFacade,
             workingDirectory = workingDirectory,
-            repositoryName = repository,
+            owner = owner,
             settings = storageSettings
         )
 

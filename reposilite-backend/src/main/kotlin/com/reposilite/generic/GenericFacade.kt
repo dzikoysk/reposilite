@@ -20,6 +20,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.Repository as RepositoryApi
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.unauthorizedError
@@ -31,6 +32,7 @@ import com.reposilite.token.AccessTokenIdentifier
 import io.javalin.http.HttpStatus.CONFLICT
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.reactive.Reference
 import java.io.InputStream
 
 class GenericFacade internal constructor(
@@ -42,16 +44,16 @@ class GenericFacade internal constructor(
     fun getRepository(name: String): GenericRepository? =
         repositoryStore.findRepository(name)
 
-    fun getRepositories(): Collection<GenericRepository> =
-        repositoryStore.getRepositories()
+    internal fun repositories(): Reference<Collection<RepositoryApi>> =
+        repositoryStore.repositories()
 
     fun findDetails(
         accessToken: AccessTokenIdentifier?,
         repository: GenericRepository,
         location: Location,
-    ): Result<FileDetails, ErrorResponse> =
+    ): Result<out FileDetails, ErrorResponse> =
         repositoryFacade.canAccessResource(accessToken, repository, location)
-            .flatMap { repository.storageProvider.getFileDetails(location).map { it } }
+            .flatMap { repository.storageProvider.getFileDetails(location) }
             .flatMap { details ->
                 if (details.type == DIRECTORY) {
                     repositoryFacade.canBrowseResource(accessToken, repository, location).map { details }
