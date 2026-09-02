@@ -21,6 +21,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.reposilite.journalist.Journalist
 import com.reposilite.shared.maskSecret
 import com.reposilite.status.FailureFacade
+import com.reposilite.storage.LEGACY_REPOSITORY_TYPE
 import com.reposilite.storage.StorageProviderFactory
 import com.reposilite.storage.StorageProviderOwner
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
@@ -45,6 +46,21 @@ enum class S3Signer {
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
     private val namespaceClaims = S3NamespaceClaims()
+
+    override fun create(
+        journalist: Journalist,
+        failureFacade: FailureFacade,
+        workingDirectory: Path,
+        repositoryName: String,
+        settings: S3StorageProviderSettings,
+    ): S3StorageProvider =
+        create(
+            journalist = journalist,
+            failureFacade = failureFacade,
+            workingDirectory = workingDirectory,
+            owner = StorageProviderOwner(LEGACY_REPOSITORY_TYPE, repositoryName),
+            settings = settings,
+        )
 
     override fun create(
         journalist: Journalist,
@@ -202,8 +218,8 @@ internal class S3NamespaceClaims {
             }
 
             require(conflict == null) {
-                "S3 namespace for ${owner.providerId}:${owner.repositoryName} overlaps " +
-                    "${conflict?.owner?.providerId}:${conflict?.owner?.repositoryName}"
+                "S3 namespace for ${owner.repositoryType}:${owner.repositoryName} overlaps " +
+                    "${conflict?.owner?.repositoryType}:${conflict?.owner?.repositoryName}"
             }
 
             val token = Any()

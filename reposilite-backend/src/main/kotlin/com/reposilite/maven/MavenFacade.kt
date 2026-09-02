@@ -32,7 +32,7 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.Repository as RepositoryApi
+import com.reposilite.repository.api.RepositoryDescriptor
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.FileDetails
@@ -45,12 +45,12 @@ import java.io.InputStream
 class MavenFacade internal constructor(
     private val journalist: Journalist,
     private val repositoryFacade: RepositoryFacade,
-    private val repositoryStore: MavenRepositoryStore,
+    private val repositoryProvider: RepositoryProvider,
     private val metadataService: MetadataService,
     private val latestService: LatestService,
 ) : Journalist, Facade {
 
-    private val repositoryService = repositoryStore.repositoryService
+    private val repositoryService = repositoryProvider.repositoryService
 
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
         repositoryService.findDetails(lookupRequest)
@@ -77,11 +77,11 @@ class MavenFacade internal constructor(
         metadataService.findMetadata(repository, gav)
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
-        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
+        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository.descriptor, lookupRequest.gav)
             .flatMap { metadataService.findVersions(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
 
     fun findLatestVersion(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
-        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
+        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository.descriptor, lookupRequest.gav)
             .flatMap { metadataService.findLatestVersion(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
 
     fun <T> findLatestVersionFile(latestArtifactQueryRequest: LatestArtifactQueryRequest, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
@@ -96,7 +96,7 @@ class MavenFacade internal constructor(
             directoryInfo.files.filter {
                 repositoryFacade.canBrowseResource(
                     accessToken = request.accessToken,
-                    repository = repository,
+                    descriptor = repository.descriptor,
                     resourcePath = request.gav.resolve(it.name)
                 ).isOk
             }
@@ -110,19 +110,19 @@ class MavenFacade internal constructor(
         getRepository(request.repository)?.acceptsCachingOf(request.gav) ?: false
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Unit, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository, gav)
+        repositoryFacade.canAccessResource(accessToken, repository.descriptor, gav)
 
     fun findRepositories(accessToken: AccessTokenIdentifier?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)
 
     fun getRepository(name: String) =
-        repositoryService.repositoryStore.getRepository(name)
+        repositoryService.repositoryProvider.getRepository(name)
 
     fun getRepositories(): Collection<Repository> =
-        repositoryService.repositoryStore.getRepositories()
+        repositoryService.repositoryProvider.getRepositories()
 
-    internal fun repositories(): Reference<Collection<RepositoryApi>> =
-        repositoryStore.repositories()
+    internal fun repositoryDescriptors(): Reference<Collection<RepositoryDescriptor>> =
+        repositoryProvider.descriptors()
 
     override fun getLogger(): Logger =
         journalist.logger

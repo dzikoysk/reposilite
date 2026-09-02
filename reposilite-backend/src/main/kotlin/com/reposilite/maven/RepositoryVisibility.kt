@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.repository.api
-
-interface Repository {
-    val name: String
-    val visibility: RepositoryVisibility
-}
+package com.reposilite.maven
 
 enum class RepositoryVisibility {
     PUBLIC,

@@ -21,10 +21,10 @@ import com.reposilite.configuration.shared.api.Min
 import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.maven.ResolutionCacheLevel
 import com.reposilite.maven.ResolutionCacheLevel.NEGATIVE_CACHING
+import com.reposilite.maven.RepositoryVisibility
+import com.reposilite.maven.RepositoryVisibility.PRIVATE
+import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.StoragePolicy
-import com.reposilite.repository.api.RepositoryVisibility
-import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
-import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
 import com.reposilite.shared.http.AuthenticationMethod
 import com.reposilite.shared.http.RemoteCredentials
 import com.reposilite.storage.StorageProviderSettings

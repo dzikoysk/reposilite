@@ -16,10 +16,10 @@
 
 package com.reposilite.repository
 
-import com.reposilite.repository.api.Repository
-import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
-import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
-import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
+import com.reposilite.repository.api.RepositoryAccessMode.HIDDEN
+import com.reposilite.repository.api.RepositoryAccessMode.PRIVATE
+import com.reposilite.repository.api.RepositoryAccessMode.PUBLIC
+import com.reposilite.repository.api.RepositoryDescriptor
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
 import com.reposilite.shared.toErrorResponse
@@ -37,42 +37,42 @@ internal class RepositoryAccessResolver(
     private val accessTokenFacade: AccessTokenFacade,
 ) {
 
-    fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: Repository): Boolean =
-        when (repository.visibility) {
+    fun canAccessRepository(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor): Boolean =
+        when (descriptor.accessMode) {
             PUBLIC -> true
-            HIDDEN, PRIVATE -> accessToken?.let { accessTokenFacade.canSee(it, "/${repository.name}") } ?: false
+            HIDDEN, PRIVATE -> accessToken?.let { accessTokenFacade.canSee(it, "/${descriptor.name}") } ?: false
         }
 
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
+    fun canAccessResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Result<Unit, ErrorResponse> =
         when {
             !resourcePath.isCanonicalResourcePath() -> badRequestError("Resource path has to be canonical")
-            repository.visibility == PUBLIC || repository.visibility == HIDDEN -> Result.ok(Unit)
-            else -> hasPermissionTo(accessToken, repository, resourcePath, READ)
+            descriptor.accessMode == PUBLIC || descriptor.accessMode == HIDDEN -> Result.ok(Unit)
+            else -> hasPermissionTo(accessToken, descriptor, resourcePath, READ)
         }
 
-    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
+    fun canBrowseResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Result<Unit, ErrorResponse> =
         when {
             !resourcePath.isCanonicalResourcePath() -> badRequestError("Resource path has to be canonical")
-            repository.visibility == PUBLIC -> Result.ok(Unit)
-            else -> hasPermissionTo(accessToken, repository, resourcePath, READ)
+            descriptor.accessMode == PUBLIC -> Result.ok(Unit)
+            else -> hasPermissionTo(accessToken, descriptor, resourcePath, READ)
         }
 
-    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Boolean =
-        resourcePath.isCanonicalResourcePath() && hasPermissionTo(accessToken, repository, resourcePath, WRITE).isOk
+    fun canModifyResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Boolean =
+        resourcePath.isCanonicalResourcePath() && hasPermissionTo(accessToken, descriptor, resourcePath, WRITE).isOk
 
     private fun Location.isCanonicalResourcePath(): Boolean =
         toString().split('/').none { it == "." }
 
     private fun hasPermissionTo(
         accessToken: AccessTokenIdentifier?,
-        repository: Repository,
+        descriptor: RepositoryDescriptor,
         resourcePath: Location,
         permission: RoutePermission,
     ): Result<Unit, ErrorResponse> =
         accessToken
             ?.let {
                 Result.`when`(
-                    accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$resourcePath", permission),
+                    accessTokenFacade.hasPermissionTo(accessToken, "/${descriptor.name}/$resourcePath", permission),
                     { },
                     { FORBIDDEN.toErrorResponse("You must be the token owner or a manager to access this.") }
                 )

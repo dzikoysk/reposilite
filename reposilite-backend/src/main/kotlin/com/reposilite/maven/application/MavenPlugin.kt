@@ -20,11 +20,12 @@ import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.frontend.application.FrontendSettings
+import com.reposilite.maven.MAVEN_REPOSITORY_TYPE
 import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.MavenRepositoryProvider
 import com.reposilite.maven.PreservedBuildsListener
 import com.reposilite.maven.infrastructure.CacheCommand
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
+import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
@@ -71,12 +72,14 @@ internal class MavenPlugin : ReposilitePlugin() {
         logger.info("${mavenFacade.getRepositories().size} repositories have been found")
 
         val localConfiguration = facade<LocalConfiguration>()
-        repositoryFacade.registerProvider(
-            MavenRepositoryProvider(
+        repositoryFacade.register(
+            type = MAVEN_REPOSITORY_TYPE,
+            routes = MavenEndpoints(
                 mavenFacade = mavenFacade,
                 frontendFacade = facade(),
                 compressionStrategy = localConfiguration.compressionStrategy.get(),
-            )
+            ),
+            repositories = mavenFacade.repositoryDescriptors(),
         )
 
         event { event: RoutingSetupEvent ->

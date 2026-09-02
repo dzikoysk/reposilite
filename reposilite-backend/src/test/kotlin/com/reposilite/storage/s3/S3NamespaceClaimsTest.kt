@@ -69,6 +69,6 @@ internal class S3NamespaceClaimsTest {
         }.doesNotThrowAnyException()
     }
 
-    private fun owner(provider: String, repository: String): StorageProviderOwner =
-        StorageProviderOwner(providerId = provider, repositoryName = repository)
+    private fun owner(type: String, repository: String): StorageProviderOwner =
+        StorageProviderOwner(repositoryType = type, repositoryName = repository)
 }

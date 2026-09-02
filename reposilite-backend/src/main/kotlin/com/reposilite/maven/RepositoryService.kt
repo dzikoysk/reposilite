@@ -50,7 +50,7 @@ import java.io.InputStream
 
 internal class RepositoryService(
     private val journalist: Journalist,
-    val repositoryStore: MavenRepositoryStore,
+    val repositoryProvider: RepositoryProvider,
     private val repositoryFacade: RepositoryFacade,
     private val mirrorService: MirrorService,
     private val resolutionProvider: ResolutionProvider,
@@ -104,7 +104,7 @@ internal class RepositoryService(
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> =
         with(deleteRequest) {
             when {
-                repositoryFacade.canModifyResource(accessToken, repository, gav) ->
+                repositoryFacade.canModifyResource(accessToken, repository.descriptor, gav) ->
                     repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
@@ -129,7 +129,7 @@ internal class RepositoryService(
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
         val (accessToken, repositoryName, gav) = lookupRequest
-        val repository = repositoryStore.getRepository(repositoryName)
+        val repository = repositoryProvider.getRepository(repositoryName)
             ?: return notFoundError("Repository $repositoryName not found")
 
         return canAccessResource(lookupRequest.accessToken, repository.name, gav)
@@ -139,8 +139,8 @@ internal class RepositoryService(
     }
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
-        repositoryStore.findRepository(repository)
-            .flatMap { repositoryFacade.canAccessResource(accessToken, it, gav) }
+        repositoryProvider.findRepository(repository)
+            .flatMap { repositoryFacade.canAccessResource(accessToken, it.descriptor, gav) }
 
     private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
         findDetails(accessToken, repository, gav)
@@ -179,7 +179,7 @@ internal class RepositoryService(
         repository.storageProvider.getFileDetails(gav)
             .flatMap {
                 it.takeIf { it.type == DIRECTORY }
-                    ?.let { repositoryFacade.canBrowseResource(accessToken, repository, gav).map { _ -> it } }
+                    ?.let { repositoryFacade.canBrowseResource(accessToken, repository.descriptor, gav).map { _ -> it } }
                     ?: it.asSuccess()
             }
 
@@ -190,8 +190,8 @@ internal class RepositoryService(
     }
 
     fun getRootDirectory(accessToken: AccessTokenIdentifier?): DirectoryInfo =
-        repositoryStore.getRepositories()
-            .filter { repositoryFacade.canAccessRepository(accessToken, it) }
+        repositoryProvider.getRepositories()
+            .filter { repositoryFacade.canAccessRepository(accessToken, it.descriptor) }
             .map { SimpleDirectoryInfo(it.name) }
             .let { DirectoryInfo("/", it) }
 

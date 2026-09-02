@@ -17,9 +17,7 @@
 package com.reposilite.repository
 
 import com.reposilite.plugin.api.Facade
-import com.reposilite.repository.api.ProvidedRepository
-import com.reposilite.repository.api.Repository
-import com.reposilite.repository.api.RepositoryProvider
+import com.reposilite.repository.api.RepositoryDescriptor
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
@@ -31,45 +29,57 @@ class RepositoryFacade internal constructor(
     private val accessResolver: RepositoryAccessResolver,
 ) : Facade {
 
-    private class RegisteredProvider(
-        val provider: RepositoryProvider,
-        val repositories: Reference<Collection<Repository>>,
+    private class Registration(
+        val routes: ReposiliteRoutes,
+        val repositories: Reference<out Collection<RepositoryDescriptor>>,
     )
 
-    private val providers = linkedMapOf<String, RegisteredProvider>()
+    private data class RegisteredRepository(
+        val type: String,
+        val descriptor: RepositoryDescriptor,
+    )
+
+    private val registrations = linkedMapOf<String, Registration>()
     private var sealed = false
 
-    fun registerProvider(provider: RepositoryProvider) {
-        check(!sealed) { "Repository providers have to be registered before the HTTP server starts" }
-        require(provider.id.isNotBlank()) { "Repository provider id cannot be blank" }
-        require(provider.id !in providers) {
-            "Repository provider '${provider.id}' is already registered"
+    /** Registers the routes and live repositories of one repository type before HTTP startup. */
+    fun register(
+        type: String,
+        routes: ReposiliteRoutes,
+        repositories: Reference<out Collection<RepositoryDescriptor>>,
+    ) {
+        check(!sealed) { "Repository types have to be registered before the HTTP server starts" }
+        require(type.isNotBlank()) { "Repository type cannot be blank" }
+        require(type !in registrations) {
+            "Repository type '$type' is already registered"
         }
 
-        providers[provider.id] = RegisteredProvider(provider, provider.repositories())
+        registrations[type] = Registration(routes, repositories)
     }
 
-    internal fun findRepositories(name: String): List<ProvidedRepository> =
-        providers.values.flatMap { registeredProvider ->
-            registeredProvider.repositories.get()
+    private fun findRepositories(name: String): List<RegisteredRepository> =
+        registrations.flatMap { (type, registration) ->
+            registration.repositories.get()
                 .filter { it.name == name }
-                .map { repository -> ProvidedRepository(registeredProvider.provider, repository) }
+                .map { repository -> RegisteredRepository(type, repository) }
         }
 
-    fun findRepository(name: String): ProvidedRepository? =
-        findRepositories(name).singleOrNull()
+    internal fun findRepositoryTypes(name: String): List<String> =
+        findRepositories(name).map { it.type }
 
-    fun getRepositories(): Collection<ProvidedRepository> =
-        providers.values
-            .flatMap { registeredProvider ->
-                registeredProvider.repositories.get().map { repository -> ProvidedRepository(registeredProvider.provider, repository) }
-            }
-            .groupBy { it.repository.name }
+    fun findRepository(name: String): RepositoryDescriptor? =
+        findRepositories(name).singleOrNull()?.descriptor
+
+    fun getRepositories(): Collection<RepositoryDescriptor> =
+        registrations.flatMap { (type, registration) ->
+            registration.repositories.get().map { repository -> RegisteredRepository(type, repository) }
+        }
+            .groupBy { it.descriptor.name }
             .values
             .filter { it.size == 1 }
-            .flatten()
+            .map { it.single().descriptor }
 
-    /** Validates one repository configuration before its provider initializes it. */
+    /** Validates a repository name before initialization. */
     fun validateRepositoryName(repositoryName: String) {
         require(
             repositoryName.isNotBlank() &&
@@ -83,32 +93,31 @@ class RepositoryFacade internal constructor(
     }
 
     internal fun validateAndSeal(): Map<String, ReposiliteRoutes> {
-        val providerRoutes = providers.mapValues { (_, registeredProvider) ->
-            val provider = registeredProvider.provider
-            provider.routes().also { routes ->
+        val registeredRoutes = registrations.mapValues { (type, registration) ->
+            registration.routes.also { routes ->
                 routes.routes.forEach { route ->
                     require(route.path == "/{repository}" || route.path.startsWith("/{repository}/")) {
-                        "Repository provider '${provider.id}' route '${route.path}' has to start with '/{repository}'"
+                        "Repository type '$type' route '${route.path}' has to start with '/{repository}'"
                     }
                     require(route.methods.isNotEmpty() && route.methods.all { it.isHttpMethod }) {
-                        "Repository provider '${provider.id}' route '${route.path}' has to declare HTTP methods only"
+                        "Repository type '$type' route '${route.path}' has to declare HTTP methods only"
                     }
                 }
             }
         }
         sealed = true
-        return providerRoutes
+        return registeredRoutes
     }
 
-    fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: Repository): Boolean =
-        accessResolver.canAccessRepository(accessToken, repository)
+    fun canAccessRepository(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor): Boolean =
+        accessResolver.canAccessRepository(accessToken, descriptor)
 
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
-        accessResolver.canAccessResource(accessToken, repository, resourcePath)
+    fun canAccessResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Result<Unit, ErrorResponse> =
+        accessResolver.canAccessResource(accessToken, descriptor, resourcePath)
 
-    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
-        accessResolver.canBrowseResource(accessToken, repository, resourcePath)
+    fun canBrowseResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Result<Unit, ErrorResponse> =
+        accessResolver.canBrowseResource(accessToken, descriptor, resourcePath)
 
-    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Boolean =
-        accessResolver.canModifyResource(accessToken, repository, resourcePath)
+    fun canModifyResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Boolean =
+        accessResolver.canModifyResource(accessToken, descriptor, resourcePath)
 }
