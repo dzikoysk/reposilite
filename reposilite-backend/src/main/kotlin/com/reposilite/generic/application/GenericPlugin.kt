@@ -19,9 +19,10 @@ package com.reposilite.generic.application
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.FrontendFacade
+import com.reposilite.generic.GENERIC_REPOSITORY_TYPE
 import com.reposilite.generic.GenericFacade
-import com.reposilite.generic.GenericRepositoryProvider
 import com.reposilite.generic.GenericRepositoryStore
+import com.reposilite.generic.infrastructure.GenericEndpoints
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
@@ -53,12 +54,14 @@ internal class GenericPlugin : ReposilitePlugin() {
         )
         val genericFacade = GenericFacade(this, repositoryStore, repositoryFacade)
 
-        repositoryFacade.registerProvider(
-            GenericRepositoryProvider(
+        repositoryFacade.register(
+            type = GENERIC_REPOSITORY_TYPE,
+            routes = GenericEndpoints(
                 genericFacade = genericFacade,
                 frontendFacade = facade<FrontendFacade>(),
                 compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get(),
-            )
+            ),
+            repositories = genericFacade.repositoryInfo(),
         )
 
         event { _: ReposiliteDisposeEvent -> repositoryStore.shutdown() }

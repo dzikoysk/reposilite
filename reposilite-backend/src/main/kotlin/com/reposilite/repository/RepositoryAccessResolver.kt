@@ -16,10 +16,10 @@
 
 package com.reposilite.repository
 
-import com.reposilite.repository.api.Repository
-import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
-import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
-import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
+import com.reposilite.repository.api.RepositoryAccessMode.HIDDEN
+import com.reposilite.repository.api.RepositoryAccessMode.PRIVATE
+import com.reposilite.repository.api.RepositoryAccessMode.PUBLIC
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
 import com.reposilite.shared.toErrorResponse
@@ -37,27 +37,27 @@ internal class RepositoryAccessResolver(
     private val accessTokenFacade: AccessTokenFacade,
 ) {
 
-    fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: Repository): Boolean =
-        when (repository.visibility) {
+    fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo): Boolean =
+        when (repository.accessMode) {
             PUBLIC -> true
             HIDDEN, PRIVATE -> accessToken?.let { accessTokenFacade.canSee(it, "/${repository.name}") } ?: false
         }
 
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
+    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Result<Unit, ErrorResponse> =
         when {
             !resourcePath.isCanonicalResourcePath() -> badRequestError("Resource path has to be canonical")
-            repository.visibility == PUBLIC || repository.visibility == HIDDEN -> Result.ok(Unit)
+            repository.accessMode == PUBLIC || repository.accessMode == HIDDEN -> Result.ok(Unit)
             else -> hasPermissionTo(accessToken, repository, resourcePath, READ)
         }
 
-    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Result<Unit, ErrorResponse> =
+    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Result<Unit, ErrorResponse> =
         when {
             !resourcePath.isCanonicalResourcePath() -> badRequestError("Resource path has to be canonical")
-            repository.visibility == PUBLIC -> Result.ok(Unit)
+            repository.accessMode == PUBLIC -> Result.ok(Unit)
             else -> hasPermissionTo(accessToken, repository, resourcePath, READ)
         }
 
-    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, resourcePath: Location): Boolean =
+    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Boolean =
         resourcePath.isCanonicalResourcePath() && hasPermissionTo(accessToken, repository, resourcePath, WRITE).isOk
 
     private fun Location.isCanonicalResourcePath(): Boolean =
@@ -65,7 +65,7 @@ internal class RepositoryAccessResolver(
 
     private fun hasPermissionTo(
         accessToken: AccessTokenIdentifier?,
-        repository: Repository,
+        repository: RepositoryInfo,
         resourcePath: Location,
         permission: RoutePermission,
     ): Result<Unit, ErrorResponse> =

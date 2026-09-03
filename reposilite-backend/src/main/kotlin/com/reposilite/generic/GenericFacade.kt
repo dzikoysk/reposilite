@@ -20,7 +20,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.Repository as RepositoryApi
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.unauthorizedError
@@ -44,19 +44,19 @@ class GenericFacade internal constructor(
     fun getRepository(name: String): GenericRepository? =
         repositoryStore.findRepository(name)
 
-    internal fun repositories(): Reference<Collection<RepositoryApi>> =
-        repositoryStore.repositories()
+    internal fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
+        repositoryStore.repositoryInfo()
 
     fun findDetails(
         accessToken: AccessTokenIdentifier?,
         repository: GenericRepository,
         location: Location,
     ): Result<out FileDetails, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository, location)
+        repositoryFacade.canAccessResource(accessToken, repository.info, location)
             .flatMap { repository.storageProvider.getFileDetails(location) }
             .flatMap { details ->
                 if (details.type == DIRECTORY) {
-                    repositoryFacade.canBrowseResource(accessToken, repository, location).map { details }
+                    repositoryFacade.canBrowseResource(accessToken, repository.info, location).map { details }
                 } else {
                     details.asSuccess()
                 }
@@ -67,7 +67,7 @@ class GenericFacade internal constructor(
         repository: GenericRepository,
         location: Location,
     ): Result<InputStream, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository, location)
+        repositoryFacade.canAccessResource(accessToken, repository.info, location)
             .flatMap { repository.storageProvider.getFile(location) }
 
     fun getAvailableFiles(
@@ -77,7 +77,7 @@ class GenericFacade internal constructor(
         directory: DirectoryInfo,
     ): List<FileDetails> =
         directory.files.filter { child ->
-            repositoryFacade.canBrowseResource(accessToken, repository, location.resolve(child.name)).isOk
+            repositoryFacade.canBrowseResource(accessToken, repository.info, location.resolve(child.name)).isOk
         }
 
     fun deployFile(
@@ -88,7 +88,7 @@ class GenericFacade internal constructor(
         by: String,
     ): Result<Unit, ErrorResponse> =
         when {
-            !repositoryFacade.canModifyResource(accessToken, repository, location) ->
+            !repositoryFacade.canModifyResource(accessToken, repository.info, location) ->
                 unauthorizedError("Unauthorized access request")
             !repository.redeployment && repository.storageProvider.exists(location) ->
                 errorResponse(CONFLICT, "Redeployment is not allowed")
@@ -103,7 +103,7 @@ class GenericFacade internal constructor(
         by: String,
     ): Result<Unit, ErrorResponse> =
         when {
-            repositoryFacade.canModifyResource(accessToken, repository, location) ->
+            repositoryFacade.canModifyResource(accessToken, repository.info, location) ->
                 repository.storageProvider.removeFile(location)
                     .peek { logger.info("DELETE | File $location has been deleted from ${repository.name} by $by") }
             else -> unauthorizedError("Unauthorized access request")

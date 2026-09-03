@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package com.reposilite.generic
+package com.reposilite.repository.api
 
-import com.reposilite.repository.api.RepositoryAccessMode
-import com.reposilite.repository.api.RepositoryInfo
-import com.reposilite.storage.StorageProvider
-
-internal const val GENERIC_REPOSITORY_TYPE = "generic"
-
-class GenericRepository internal constructor(
+/** Type-neutral repository information used by shared routing and access rules. */
+data class RepositoryInfo(
     val name: String,
-    val visibility: RepositoryAccessMode,
-    val redeployment: Boolean,
-    val storageProvider: StorageProvider,
-) {
+    val accessMode: RepositoryAccessMode,
+)
 
-    internal val info = RepositoryInfo(name, visibility)
+enum class RepositoryAccessMode {
+    /** Listed and readable without credentials. */
+    PUBLIC,
 
+    /** Hidden from unauthenticated listings, but readable when its name is known. */
+    HIDDEN,
+
+    /** Neither listed nor readable without permission. */
+    PRIVATE
 }

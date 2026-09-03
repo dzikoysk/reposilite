@@ -19,7 +19,7 @@ package com.reposilite.generic
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.Repository as RepositoryApi
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderOwner
@@ -39,15 +39,15 @@ internal class GenericRepositoryStore(
 
     @Volatile
     private var repositories = createRepositories(repositoriesSource.get())
-    private val repositoriesReference: MutableReference<Collection<RepositoryApi>> =
-        mutableReference(repositories.values)
+    private val repositoryInfoReference: MutableReference<Collection<RepositoryInfo>> =
+        mutableReference(repositories.values.map { it.info })
 
     init {
         repositoriesSource.subscribe { settings ->
             val updatedRepositories = createRepositories(settings)
             val previousRepositories = repositories
             repositories = updatedRepositories
-            repositoriesReference.update(updatedRepositories.values)
+            repositoryInfoReference.update(updatedRepositories.values.map { it.info })
             previousRepositories.values.forEach { it.storageProvider.shutdown() }
         }
     }
@@ -55,8 +55,8 @@ internal class GenericRepositoryStore(
     fun findRepository(name: String): GenericRepository? =
         repositories[name]
 
-    fun repositories(): Reference<Collection<RepositoryApi>> =
-        repositoriesReference
+    fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
+        repositoryInfoReference
 
     fun shutdown() =
         repositories.values.forEach { it.storageProvider.shutdown() }
@@ -80,7 +80,7 @@ internal class GenericRepositoryStore(
                         failureFacade = failureFacade,
                         workingDirectory = workingDirectory.resolve("repositories"),
                         owner = StorageProviderOwner(
-                            providerId = GENERIC_REPOSITORY_PROVIDER_ID,
+                            repositoryType = GENERIC_REPOSITORY_TYPE,
                             repositoryName = configuration.id,
                         ),
                         storageSettings = configuration.storageProvider,

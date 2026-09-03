@@ -23,7 +23,7 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.repository.RepositoryAccessResolver
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.infrastructure.RepositoryEndpointRouter
+import com.reposilite.repository.infrastructure.RepositoryDispatcher
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
@@ -39,11 +39,11 @@ class RepositoryPlugin : ReposilitePlugin() {
         )
 
         event { event: HttpServerInitializationEvent ->
-            val providerRoutes = repositoryFacade.validateAndSeal()
+            val registeredRoutes = repositoryFacade.validateAndSeal()
 
-            val repositoryEndpointRouter = RepositoryEndpointRouter(
+            val repositoryDispatcher = RepositoryDispatcher(
                 repositoryFacade = repositoryFacade,
-                providerRoutes = providerRoutes,
+                routesByType = registeredRoutes,
                 endpointFactory = createReposiliteEndpointFactory(
                     journalist = this,
                     failureFacade = facade<FailureFacade>(),
@@ -56,7 +56,7 @@ class RepositoryPlugin : ReposilitePlugin() {
             // Keep the repository gateway behind regular routes because its paths intentionally match broadly.
             event.config.registerPlugin(object : JavalinPlugin<Unit?>() {
                 override fun onStart(state: JavalinState) {
-                    repositoryEndpointRouter.gatewayEndpoints.forEach { endpoint ->
+                    repositoryDispatcher.endpoints.forEach { endpoint ->
                         state.routes.addEndpoint(endpoint)
                     }
                 }

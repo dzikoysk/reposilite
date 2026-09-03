@@ -21,9 +21,11 @@ import com.reposilite.status.FailureFacade
 import java.nio.file.Path
 
 data class StorageProviderOwner(
-    val providerId: String,
+    val repositoryType: String,
     val repositoryName: String,
 )
+
+internal const val LEGACY_REPOSITORY_TYPE = "legacy"
 
 interface StorageProviderFactory<PROVIDER : StorageProvider, SETTINGS : StorageProviderSettings> {
 
@@ -34,8 +36,17 @@ interface StorageProviderFactory<PROVIDER : StorageProvider, SETTINGS : StorageP
         journalist: Journalist,
         failureFacade: FailureFacade,
         workingDirectory: Path,
-        owner: StorageProviderOwner,
+        repositoryName: String,
         settings: SETTINGS
     ): PROVIDER
+
+    fun create(
+        journalist: Journalist,
+        failureFacade: FailureFacade,
+        workingDirectory: Path,
+        owner: StorageProviderOwner,
+        settings: SETTINGS
+    ): PROVIDER =
+        create(journalist, failureFacade, workingDirectory, owner.repositoryName, settings)
 
 }

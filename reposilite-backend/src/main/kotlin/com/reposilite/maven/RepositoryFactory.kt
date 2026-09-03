@@ -55,7 +55,7 @@ internal class RepositoryFactory(
                         journalist = journalist,
                         failureFacade = failureFacade,
                         workingDirectory = workingDirectory.resolve(repositoriesDirectory),
-                        owner = StorageProviderOwner(providerId = MAVEN_REPOSITORY_PROVIDER_ID, repositoryName = repositoryName),
+                        owner = StorageProviderOwner(repositoryType = MAVEN_REPOSITORY_TYPE, repositoryName = repositoryName),
                         storageSettings = configuration.storageProvider,
                     )
                     ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),

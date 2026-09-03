@@ -19,10 +19,9 @@ package com.reposilite.maven
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.plugin.Extensions
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.Repository as RepositoryApi
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.notFoundError
@@ -36,7 +35,7 @@ import panda.std.reactive.MutableReference
 import panda.std.reactive.Reference
 import panda.std.reactive.mutableReference
 
-internal class MavenRepositoryStore(
+internal class RepositoryProvider(
     private val journalist: Journalist,
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
@@ -53,7 +52,7 @@ internal class MavenRepositoryStore(
 
     val repositoryService = RepositoryService(
         journalist = journalist,
-        repositoryStore = this,
+        repositoryProvider = this,
         repositoryFacade = repositoryFacade,
         mirrorService = mirrorService,
         resolutionProvider = resolutionProvider,
@@ -63,15 +62,15 @@ internal class MavenRepositoryStore(
 
     @Volatile
     private var repositories: Map<String, Repository> = createRepositories(repositoriesSource.get())
-    private val repositoriesReference: MutableReference<Collection<RepositoryApi>> =
-        mutableReference(repositories.values)
+    private val repositoryInfoReference: MutableReference<Collection<RepositoryInfo>> =
+        mutableReference(repositories.values.map { it.info })
 
     init {
         repositoriesSource.subscribe { settings ->
             val updatedRepositories = createRepositories(settings)
             val previousRepositories = repositories
             repositories = updatedRepositories
-            repositoriesReference.update(updatedRepositories.values)
+            repositoryInfoReference.update(updatedRepositories.values.map { it.info })
             previousRepositories.values.forEach { it.shutdown() }
         }
     }
@@ -95,9 +94,6 @@ internal class MavenRepositoryStore(
                     require(configuration.id !in duplicatedNames) {
                         "Repository name '${configuration.id}' is duplicated in Maven repository settings"
                     }
-                    require(configuration.id.length < REPOSITORY_NAME_MAX_LENGTH) {
-                        "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters"
-                    }
                     repositoryFacade.validateRepositoryName(configuration.id)
 
                     factory.createRepository(configuration.id, configuration)
@@ -119,7 +115,7 @@ internal class MavenRepositoryStore(
     fun getRepositories(): Collection<Repository> =
         repositories.values
 
-    fun repositories(): Reference<Collection<RepositoryApi>> =
-        repositoriesReference
+    fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
+        repositoryInfoReference
 
 }

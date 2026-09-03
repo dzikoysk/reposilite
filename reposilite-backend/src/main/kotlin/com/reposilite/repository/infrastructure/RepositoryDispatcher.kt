@@ -27,28 +27,28 @@ import io.javalin.router.Endpoint
 import io.javalin.router.ParsedEndpoint
 import io.javalin.router.matcher.PathMatcher
 
-internal class RepositoryEndpointRouter(
+internal class RepositoryDispatcher(
     private val repositoryFacade: RepositoryFacade,
-    providerRoutes: Map<String, ReposiliteRoutes>,
+    routesByType: Map<String, ReposiliteRoutes>,
     endpointFactory: ReposiliteEndpointFactory,
     routerConfig: RouterConfig,
 ) {
 
-    private val providerEndpoints = providerRoutes.mapValues { (_, routes) ->
+    private val endpointsByType = routesByType.mapValues { (_, routes) ->
         endpointFactory.createEndpoints(routes)
     }
 
-    private val providerRouters = providerEndpoints.mapValues { (_, endpoints) ->
+    private val routersByType = endpointsByType.mapValues { (_, endpoints) ->
         PathMatcher().apply {
             endpoints.forEach { endpoint -> add(ParsedEndpoint(endpoint, routerConfig)) }
         }
     }
 
-    private val fallbackProvider = providerRoutes.keys.find { it == "maven" }
+    private val fallbackType = routesByType.keys.find { it == "maven" }
 
     private val gatewayHandler = createGatewayHandler()
 
-    val gatewayEndpoints: Collection<Endpoint> = providerEndpoints.values
+    val endpoints: Collection<Endpoint> = endpointsByType.values
         .flatten()
         .map { it.method }
         .distinct()
@@ -61,19 +61,19 @@ internal class RepositoryEndpointRouter(
 
     private fun createGatewayHandler(): Handler =
         Handler { context ->
-            val repositories = repositoryFacade.findRepositories(context.pathParam("repository"))
-            val provider = when (repositories.size) {
-                0 -> fallbackProvider
-                1 -> repositories.single().provider.id
+            val types = repositoryFacade.findRepositoryTypes(context.pathParam("repository"))
+            val type = when (types.size) {
+                0 -> fallbackType
+                1 -> types.single()
                 else -> null
             }
 
-            if (provider == null) {
+            if (type == null) {
                 context.status(NOT_FOUND)
                 return@Handler
             }
 
-            val endpoint = providerRouters[provider]?.findFirstEntry(context.method(), context.path())
+            val endpoint = routersByType[type]?.findFirstEntry(context.method(), context.path())
             if (endpoint == null) {
                 context.status(NOT_FOUND)
                 return@Handler
