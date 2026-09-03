@@ -18,7 +18,7 @@ package com.reposilite.repository
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.repository.api.RepositoryAccessMode.PUBLIC
-import com.reposilite.repository.api.RepositoryDescriptor
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.storage.api.Location
 import com.reposilite.token.application.AccessTokenComponents
 import com.reposilite.web.api.ReposiliteRoute
@@ -51,17 +51,17 @@ internal class RepositoryFacadeTest {
         register("custom", "downloads")
 
         // when: repository is resolved by name
-        val descriptor = facade.findRepository("downloads")
+        val repository = facade.findRepository("downloads")
 
         // then: repository and its type are resolved
         assertThat(facade.findRepositoryTypes("downloads")).containsExactly("custom")
-        assertThat(descriptor?.name).isEqualTo("downloads")
+        assertThat(repository?.name).isEqualTo("downloads")
     }
 
     @Test
     fun `should reflect repositories changed by registration`() {
         // given: registration backed by a repository reference
-        val repositories = mutableReference<Collection<RepositoryDescriptor>>(listOf(repository("first")))
+        val repositories = mutableReference<Collection<RepositoryInfo>>(listOf(repository("first")))
         facade.register("custom", emptyRoutes, repositories)
 
         // when: configuration replaces its repositories
@@ -83,7 +83,7 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should hide repository name shared by types`() {
-        val customRepositories = mutableReference<Collection<RepositoryDescriptor>>(listOf(repository("shared")))
+        val customRepositories = mutableReference<Collection<RepositoryInfo>>(listOf(repository("shared")))
         register("maven", "shared")
         facade.register("custom", emptyRoutes, customRepositories)
 
@@ -150,6 +150,6 @@ internal class RepositoryFacadeTest {
         facade.register(type, emptyRoutes, names.map { repository(it) }.toReference())
     }
 
-    private fun repository(id: String): RepositoryDescriptor =
-        RepositoryDescriptor(id, PUBLIC)
+    private fun repository(id: String): RepositoryInfo =
+        RepositoryInfo(id, PUBLIC)
 }

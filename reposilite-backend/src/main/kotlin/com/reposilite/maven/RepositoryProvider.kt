@@ -21,7 +21,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.RepositoryDescriptor
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.notFoundError
@@ -62,15 +62,15 @@ internal class RepositoryProvider(
 
     @Volatile
     private var repositories: Map<String, Repository> = createRepositories(repositoriesSource.get())
-    private val descriptorsReference: MutableReference<Collection<RepositoryDescriptor>> =
-        mutableReference(repositories.values.map { it.descriptor })
+    private val repositoryInfoReference: MutableReference<Collection<RepositoryInfo>> =
+        mutableReference(repositories.values.map { it.info })
 
     init {
         repositoriesSource.subscribe { settings ->
             val updatedRepositories = createRepositories(settings)
             val previousRepositories = repositories
             repositories = updatedRepositories
-            descriptorsReference.update(updatedRepositories.values.map { it.descriptor })
+            repositoryInfoReference.update(updatedRepositories.values.map { it.info })
             previousRepositories.values.forEach { it.shutdown() }
         }
     }
@@ -115,7 +115,7 @@ internal class RepositoryProvider(
     fun getRepositories(): Collection<Repository> =
         repositories.values
 
-    fun descriptors(): Reference<Collection<RepositoryDescriptor>> =
-        descriptorsReference
+    fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
+        repositoryInfoReference
 
 }

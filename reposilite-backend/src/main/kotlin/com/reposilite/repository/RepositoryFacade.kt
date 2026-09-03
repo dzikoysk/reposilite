@@ -17,7 +17,7 @@
 package com.reposilite.repository
 
 import com.reposilite.plugin.api.Facade
-import com.reposilite.repository.api.RepositoryDescriptor
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
@@ -31,12 +31,12 @@ class RepositoryFacade internal constructor(
 
     private class Registration(
         val routes: ReposiliteRoutes,
-        val repositories: Reference<out Collection<RepositoryDescriptor>>,
+        val repositories: Reference<out Collection<RepositoryInfo>>,
     )
 
     private data class RegisteredRepository(
         val type: String,
-        val descriptor: RepositoryDescriptor,
+        val info: RepositoryInfo,
     )
 
     private val registrations = linkedMapOf<String, Registration>()
@@ -46,7 +46,7 @@ class RepositoryFacade internal constructor(
     fun register(
         type: String,
         routes: ReposiliteRoutes,
-        repositories: Reference<out Collection<RepositoryDescriptor>>,
+        repositories: Reference<out Collection<RepositoryInfo>>,
     ) {
         check(!sealed) { "Repository types have to be registered before the HTTP server starts" }
         require(type.isNotBlank()) { "Repository type cannot be blank" }
@@ -67,17 +67,17 @@ class RepositoryFacade internal constructor(
     internal fun findRepositoryTypes(name: String): List<String> =
         findRepositories(name).map { it.type }
 
-    fun findRepository(name: String): RepositoryDescriptor? =
-        findRepositories(name).singleOrNull()?.descriptor
+    fun findRepository(name: String): RepositoryInfo? =
+        findRepositories(name).singleOrNull()?.info
 
-    fun getRepositories(): Collection<RepositoryDescriptor> =
+    fun getRepositories(): Collection<RepositoryInfo> =
         registrations.flatMap { (type, registration) ->
             registration.repositories.get().map { repository -> RegisteredRepository(type, repository) }
         }
-            .groupBy { it.descriptor.name }
+            .groupBy { it.info.name }
             .values
             .filter { it.size == 1 }
-            .map { it.single().descriptor }
+            .map { it.single().info }
 
     /** Validates a repository name before initialization. */
     fun validateRepositoryName(repositoryName: String) {
@@ -109,15 +109,15 @@ class RepositoryFacade internal constructor(
         return registeredRoutes
     }
 
-    fun canAccessRepository(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor): Boolean =
-        accessResolver.canAccessRepository(accessToken, descriptor)
+    fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo): Boolean =
+        accessResolver.canAccessRepository(accessToken, repository)
 
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Result<Unit, ErrorResponse> =
-        accessResolver.canAccessResource(accessToken, descriptor, resourcePath)
+    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Result<Unit, ErrorResponse> =
+        accessResolver.canAccessResource(accessToken, repository, resourcePath)
 
-    fun canBrowseResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Result<Unit, ErrorResponse> =
-        accessResolver.canBrowseResource(accessToken, descriptor, resourcePath)
+    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Result<Unit, ErrorResponse> =
+        accessResolver.canBrowseResource(accessToken, repository, resourcePath)
 
-    fun canModifyResource(accessToken: AccessTokenIdentifier?, descriptor: RepositoryDescriptor, resourcePath: Location): Boolean =
-        accessResolver.canModifyResource(accessToken, descriptor, resourcePath)
+    fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Boolean =
+        accessResolver.canModifyResource(accessToken, repository, resourcePath)
 }

@@ -104,7 +104,7 @@ internal class RepositoryService(
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> =
         with(deleteRequest) {
             when {
-                repositoryFacade.canModifyResource(accessToken, repository.descriptor, gav) ->
+                repositoryFacade.canModifyResource(accessToken, repository.info, gav) ->
                     repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
@@ -140,7 +140,7 @@ internal class RepositoryService(
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
         repositoryProvider.findRepository(repository)
-            .flatMap { repositoryFacade.canAccessResource(accessToken, it.descriptor, gav) }
+            .flatMap { repositoryFacade.canAccessResource(accessToken, it.info, gav) }
 
     private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
         findDetails(accessToken, repository, gav)
@@ -179,7 +179,7 @@ internal class RepositoryService(
         repository.storageProvider.getFileDetails(gav)
             .flatMap {
                 it.takeIf { it.type == DIRECTORY }
-                    ?.let { repositoryFacade.canBrowseResource(accessToken, repository.descriptor, gav).map { _ -> it } }
+                    ?.let { repositoryFacade.canBrowseResource(accessToken, repository.info, gav).map { _ -> it } }
                     ?: it.asSuccess()
             }
 
@@ -191,7 +191,7 @@ internal class RepositoryService(
 
     fun getRootDirectory(accessToken: AccessTokenIdentifier?): DirectoryInfo =
         repositoryProvider.getRepositories()
-            .filter { repositoryFacade.canAccessRepository(accessToken, it.descriptor) }
+            .filter { repositoryFacade.canAccessRepository(accessToken, it.info) }
             .map { SimpleDirectoryInfo(it.name) }
             .let { DirectoryInfo("/", it) }
 

@@ -32,7 +32,7 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.RepositoryDescriptor
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.FileDetails
@@ -77,11 +77,11 @@ class MavenFacade internal constructor(
         metadataService.findMetadata(repository, gav)
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
-        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository.descriptor, lookupRequest.gav)
+        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository.info, lookupRequest.gav)
             .flatMap { metadataService.findVersions(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
 
     fun findLatestVersion(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
-        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository.descriptor, lookupRequest.gav)
+        repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository.info, lookupRequest.gav)
             .flatMap { metadataService.findLatestVersion(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
 
     fun <T> findLatestVersionFile(latestArtifactQueryRequest: LatestArtifactQueryRequest, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
@@ -96,7 +96,7 @@ class MavenFacade internal constructor(
             directoryInfo.files.filter {
                 repositoryFacade.canBrowseResource(
                     accessToken = request.accessToken,
-                    descriptor = repository.descriptor,
+                    repository = repository.info,
                     resourcePath = request.gav.resolve(it.name)
                 ).isOk
             }
@@ -110,7 +110,7 @@ class MavenFacade internal constructor(
         getRepository(request.repository)?.acceptsCachingOf(request.gav) ?: false
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Unit, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository.descriptor, gav)
+        repositoryFacade.canAccessResource(accessToken, repository.info, gav)
 
     fun findRepositories(accessToken: AccessTokenIdentifier?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)
@@ -121,8 +121,8 @@ class MavenFacade internal constructor(
     fun getRepositories(): Collection<Repository> =
         repositoryService.repositoryProvider.getRepositories()
 
-    internal fun repositoryDescriptors(): Reference<Collection<RepositoryDescriptor>> =
-        repositoryProvider.descriptors()
+    internal fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
+        repositoryProvider.repositoryInfo()
 
     override fun getLogger(): Logger =
         journalist.logger

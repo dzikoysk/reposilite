@@ -16,8 +16,8 @@
 
 package com.reposilite.repository.api
 
-/** Repository identity used by shared routing and access rules. */
-data class RepositoryDescriptor(
+/** Type-neutral repository information used by shared routing and access rules. */
+data class RepositoryInfo(
     val name: String,
     val accessMode: RepositoryAccessMode,
 )

@@ -83,7 +83,7 @@ internal class MetadataService(private val repositoryFacade: RepositoryFacade) {
                 val currentDirectory = gav.getParent()
                 val parentDirectory = currentDirectory.getParent()
 
-                if (!repositoryFacade.canModifyResource(accessToken, repository.descriptor, parentDirectory)) {
+                if (!repositoryFacade.canModifyResource(accessToken, repository.info, parentDirectory)) {
                     return unauthorizedError("Unauthorized access request")
                 }
 

@@ -19,7 +19,7 @@ import com.reposilite.maven.api.Checksum
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.repository.api.RepositoryAccessMode
-import com.reposilite.repository.api.RepositoryDescriptor
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.FileDetails
@@ -50,7 +50,7 @@ class Repository internal constructor(
         check(name.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters" }
     }
 
-    internal val descriptor = RepositoryDescriptor(
+    internal val info = RepositoryInfo(
         name = name,
         accessMode = when (visibility) {
             RepositoryVisibility.PUBLIC -> RepositoryAccessMode.PUBLIC
