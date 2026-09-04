@@ -37,6 +37,7 @@ import io.javalin.community.routing.Route.POST
 import io.javalin.community.routing.Route.PUT
 import io.javalin.http.Context
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
+import io.javalin.openapi.ContentType.HTML
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -53,6 +54,19 @@ internal class MavenEndpoints(
     private val compressionStrategy: String
 ) : MavenRoutes(mavenFacade) {
 
+    @OpenApi(
+        path = "/{repository}",
+        methods = [HttpMethod.GET, HttpMethod.HEAD],
+        tags = ["Maven"],
+        summary = "Browse the repository root",
+        pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true)
+        ],
+        responses = [
+            OpenApiResponse(status = "200", description = "Returns the repository directory index", content = [OpenApiContent(type = HTML)]),
+            OpenApiResponse(status = "404", description = "Returns 404 if the repository does not exist")
+        ]
+    )
     private val browseRepositoryRoot = ReposiliteRoute<Unit>("/{repository}", HEAD, GET) {
         accessed {
             findFile(ctx, this?.identifier, requireParameter("repository"), Location.empty())

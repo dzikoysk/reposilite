@@ -74,8 +74,10 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should reject duplicate repository type`() {
+        // given: an already registered repository type
         register("custom", "first")
 
+        // when & then: another registration of the same type is rejected
         assertThatIllegalArgumentException()
             .isThrownBy { register("custom", "second") }
             .withMessageContaining("already registered")
@@ -83,24 +85,32 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should hide repository name shared by types`() {
+        // given: two types sharing a repository name
         val customRepositories = mutableReference<Collection<RepositoryInfo>>(listOf(repository("shared")))
         register("maven", "shared")
         facade.register("custom", emptyRoutes, customRepositories)
 
+        // when: repositories are queried while the name is ambiguous
+
+        // then: the conflicting repository is hidden
         assertThat(facade.findRepository("shared")).isNull()
         assertThat(facade.getRepositories()).isEmpty()
 
+        // when: one type removes its conflicting repository
         customRepositories.update(emptyList())
 
+        // then: the remaining repository becomes visible
         assertThat(facade.findRepositoryTypes("shared")).containsExactly("maven")
         assertThat(facade.getRepositories()).hasSize(1)
     }
 
     @Test
     fun `should reject types registered after routing is sealed`() {
+        // given: sealed repository routing
         register("maven", "releases")
         facade.validateAndSeal()
 
+        // when & then: a late repository type registration is rejected
         assertThatIllegalStateException()
             .isThrownBy { register("cargo", "cargo-releases") }
             .withMessageContaining("before the HTTP server starts")
@@ -108,18 +118,24 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should reject repository names that cannot be routed safely`() {
+        // given: a repository name containing a path operator
+        val repositoryName = "../downloads"
+
+        // when & then: the invalid repository name is rejected
         assertThatIllegalArgumentException()
-            .isThrownBy { facade.validateRepositoryName("../downloads") }
+            .isThrownBy { facade.validateRepositoryName(repositoryName) }
             .withMessageContaining("URL path segment")
     }
 
     @Test
     fun `should reject routes outside repository gateway`() {
+        // given: a repository route without the repository path parameter
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/cargo/<crate>", GET) {})
         }
         facade.register("cargo", invalidRoutes, listOf(repository("cargo")).toReference())
 
+        // when & then: repository routing validation rejects the route
         assertThatIllegalArgumentException()
             .isThrownBy { facade.validateAndSeal() }
             .withMessageContaining("/{repository}")
@@ -127,11 +143,13 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should reject filter routes`() {
+        // given: a repository registration containing a filter route
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/{repository}/<path>", BEFORE) {})
         }
         facade.register("cargo", invalidRoutes, listOf(repository("cargo")).toReference())
 
+        // when & then: repository routing validation rejects the filter
         assertThatIllegalArgumentException()
             .isThrownBy { facade.validateAndSeal() }
             .withMessageContaining("HTTP methods only")
@@ -139,11 +157,17 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should reject current directory path before checking access`() {
+        // given: a repository and the current directory path
         val repository = repository("cargo")
         val currentDirectory = Location.of(".")
 
-        assertThat(facade.canAccessResource(null, repository, currentDirectory).error.status).isEqualTo(400)
-        assertThat(facade.canModifyResource(null, repository, currentDirectory)).isFalse
+        // when: resource access is resolved
+        val access = facade.canAccessResource(null, repository, currentDirectory)
+        val modification = facade.canModifyResource(null, repository, currentDirectory)
+
+        // then: access is rejected before repository permissions are evaluated
+        assertThat(access.error.status).isEqualTo(400)
+        assertThat(modification).isFalse
     }
 
     private fun register(type: String, vararg names: String) {

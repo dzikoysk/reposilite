@@ -23,9 +23,7 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.storage.api.toLocation
-import io.javalin.Javalin
 import java.util.concurrent.Callable
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -77,14 +75,10 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     fun `should not respond with 200 and empty body when upstream HEAD succeeds but GET fails`() {
         // given: an upstream where HEAD reports the artifact exists but GET fails (network blip / 5xx mid-fetch)
         val gav = "com/reposilite/broken.jar"
-        val started = CountDownLatch(1)
-        val upstream = Javalin.start { config ->
-            config.jetty.port = reposilite.parameters.port + 1
-            config.events.serverStarted { started.countDown() }
+        val upstream = startProxiedHost { config ->
             config.routes.head("/releases/$gav") { ctx -> ctx.contentType("application/java-archive").header("Content-Length", "100").status(200) }
             config.routes.get("/releases/$gav") { ctx -> ctx.status(500).result("upstream temporarily unavailable") }
         }
-        assertThat(started.await(10, TimeUnit.SECONDS)).isTrue
 
         try {
             // when: client requests the artifact through the proxy
@@ -103,10 +97,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
         val gav = "com/reposilite/concurrent.jar"
         val content = "concurrent-content"
         val upstreamHits = AtomicInteger(0)
-        val started = CountDownLatch(1)
-        val upstream = Javalin.start { config ->
-            config.jetty.port = reposilite.parameters.port + 1
-            config.events.serverStarted { started.countDown() }
+        val upstream = startProxiedHost { config ->
             config.routes.head("/releases/$gav") { ctx ->
                 ctx.contentType("application/java-archive").header("Content-Length", content.length.toString()).status(200)
             }
@@ -116,7 +107,6 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
                 ctx.result(content)
             }
         }
-        assertThat(started.await(10, TimeUnit.SECONDS)).isTrue
 
         try {
             // when: five clients request the same artifact in parallel through a storing mirror

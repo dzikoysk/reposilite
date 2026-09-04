@@ -17,28 +17,57 @@
 package com.reposilite.maven.specification
 
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.maven.application.MavenSettings
 import io.javalin.Javalin
-import kotlinx.coroutines.Job
+import io.javalin.config.JavalinConfig
 
 internal abstract class MavenIntegrationSpecification : ReposiliteSpecification() {
 
-    protected suspend fun useProxiedHost(
+    protected fun useProxiedHost(
         repository: String,
         gav: String,
         content: String,
         block: (String, String) -> Unit
     ) {
-        val serverStartedJob = Job()
-
-        val application = Javalin.create { config ->
-            config.events.serverStarted { serverStartedJob.complete() }
+        val application = startProxiedHost { config ->
             config.routes.head("/$repository/$gav") { ctx -> ctx.result(content) }
             config.routes.get("/$repository/$gav") { ctx -> ctx.result(content) }
-        }.start(reposilite.parameters.port + 1)
+        }
 
-        serverStartedJob.join()
-        block(gav, content)
-        application.stop()
+        try {
+            block(gav, content)
+        } finally {
+            application.stop()
+        }
+    }
+
+    protected fun startProxiedHost(configure: (JavalinConfig) -> Unit): Javalin {
+        val application = Javalin.create { config -> configure(config) }.start(0)
+
+        try {
+            val reference = "http://localhost:${application.port()}/releases"
+            useFacade<SharedConfigurationFacade>()
+                .getDomainSettings<MavenSettings>()
+                .update { settings ->
+                    settings.copy(
+                        repositories = settings.repositories.map { repository ->
+                            if (repository.id == "proxied" || repository.id == "proxied-stored") {
+                                repository.copy(
+                                    proxied = repository.proxied.map { mirror -> mirror.copy(reference = reference) }
+                                )
+                            } else {
+                                repository
+                            }
+                        }
+                    )
+                }
+        } catch (exception: Exception) {
+            application.stop()
+            throw exception
+        }
+
+        return application
     }
 
 }

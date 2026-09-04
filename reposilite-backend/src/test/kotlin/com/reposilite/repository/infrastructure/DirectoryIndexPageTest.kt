@@ -23,8 +23,14 @@ internal class DirectoryIndexPageTest {
 
     @Test
     fun `should link repository root to application root`() {
-        val page = createDirectoryIndexPage(basePath = "/", uri = "/downloads", visibleFiles = emptyList())
+        // given: a repository index rendered at the application root
+        val basePath = "/"
+        val repositoryPath = "/downloads"
 
+        // when: the directory index page is created
+        val page = createDirectoryIndexPage(basePath, repositoryPath, emptyList())
+
+        // then: the parent link targets the application root
         assertThat(page).contains("<a href='/'>Parent Directory</a>")
     }
 }
