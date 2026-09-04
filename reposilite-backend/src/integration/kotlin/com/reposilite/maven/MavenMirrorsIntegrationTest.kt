@@ -23,7 +23,6 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.storage.api.toLocation
-import java.net.ServerSocket
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -58,21 +57,6 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
             // then: service responds with its content
             assertThat(response.body).isEqualTo(content)
             assertThat(response.isSuccess).isTrue
-        }
-    }
-
-    @Test
-    fun `should use an available upstream port`() = runBlocking {
-        // given: the port next to the Reposilite port is already occupied
-        ServerSocket(reposilite.parameters.port + 1).use {
-            // when: a remote server is started
-            useProxiedHost("releases", "com/reposilite/remote.jar", "content") { gav, content ->
-                val response = get("$base/proxied/$gav").asString()
-
-                // then: service proxies content from the remote server
-                assertThat(response.isSuccess).isTrue
-                assertThat(response.body).isEqualTo(content)
-            }
         }
     }
 

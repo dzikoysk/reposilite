@@ -29,10 +29,12 @@ internal class S3StorageProviderFactoryTest {
 
     @Test
     fun `should allow distinct buckets endpoints and prefixes`() {
+        // given: repositories with distinct S3 namespaces
         register(owner("maven", "releases"), "https://s3.example", "releases", "packages/")
         register(owner("maven", "snapshots"), "https://s3.example", "snapshots", "")
         register(owner("generic", "downloads"), "https://other.example", "releases", "")
 
+        // when & then: another distinct namespace is accepted
         assertThatCode {
             register(owner("generic", "assets"), "https://s3.example", "releases", "assets/")
         }.doesNotThrowAnyException()
@@ -40,14 +42,17 @@ internal class S3StorageProviderFactoryTest {
 
     @Test
     fun `should reject equal and nested namespaces owned by another repository`() {
+        // given: a registered S3 namespace
         register(owner("maven", "releases"), "https://s3.example", "shared", "artifacts/")
 
+        // when & then: an equal normalized namespace is rejected
         assertThatIllegalArgumentException()
             .isThrownBy {
                 register(owner("generic", "downloads"), "https://s3.example/", " shared ", "artifacts/")
             }
             .withMessageContaining("maven:releases")
 
+        // when & then: a nested namespace is rejected
         assertThatIllegalArgumentException()
             .isThrownBy {
                 register(owner("generic", "downloads"), "https://s3.example", "shared", "artifacts/releases/")
@@ -57,15 +62,22 @@ internal class S3StorageProviderFactoryTest {
 
     @Test
     fun `should allow repository replacement and discard inactive registrations`() {
+        // given: two generations of the same repository registration
         val owner = owner("maven", "releases")
         val previous = register(owner, "", "shared", "old/")
         val replacement = register(owner, "", "shared", "new/")
 
+        // when: the previous generation becomes inactive
         previous.active = false
+
+        // then: the active replacement still owns its namespace
         assertThatIllegalArgumentException()
             .isThrownBy { register(owner("generic", "downloads"), "", "shared", "new/") }
 
+        // when: the replacement also becomes inactive
         replacement.active = false
+
+        // then: another repository can claim the released namespace
         assertThatCode {
             register(owner("generic", "downloads"), "", "shared", "new/")
         }.doesNotThrowAnyException()

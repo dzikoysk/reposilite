@@ -27,7 +27,6 @@ import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderOwner
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.UUID
 
 internal class RepositoryFactory(
     private val journalist: Journalist,
@@ -56,7 +55,7 @@ internal class RepositoryFactory(
 
         return try {
             Repository(
-                name = repositoryName.ifEmpty { UUID.randomUUID().toString() },
+                name = repositoryName,
                 visibility = configuration.visibility,
                 redeployment = configuration.redeployment,
                 preserveSnapshots = configuration.preserveSnapshots,

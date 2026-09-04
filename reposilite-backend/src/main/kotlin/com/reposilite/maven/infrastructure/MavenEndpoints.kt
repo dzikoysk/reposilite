@@ -21,7 +21,6 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.repository.infrastructure.createDirectoryIndexPage
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.extensions.uri
