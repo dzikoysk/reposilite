@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.maven.infrastructure
+package com.reposilite.repository.infrastructure
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

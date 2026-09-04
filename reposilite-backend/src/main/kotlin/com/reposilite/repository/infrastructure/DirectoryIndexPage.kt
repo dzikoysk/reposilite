@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.maven.infrastructure
+package com.reposilite.repository.infrastructure
 
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType
