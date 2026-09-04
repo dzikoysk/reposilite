@@ -35,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 import java.net.URI
 import java.nio.file.Path
 import java.time.Duration
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val useLegacyS3V4Signer = System.getProperty("reposilite.s3.use-s3-v4-signer", "false") == "true"
 
@@ -45,7 +46,24 @@ enum class S3Signer {
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
-    private val namespaceClaims = S3NamespaceClaims()
+    private data class Namespace(
+        val endpoint: String,
+        val bucket: String,
+        val keyPrefix: String,
+    ) {
+        fun overlaps(other: Namespace): Boolean =
+            endpoint == other.endpoint &&
+                bucket == other.bucket &&
+                (keyPrefix.startsWith(other.keyPrefix) || other.keyPrefix.startsWith(keyPrefix))
+    }
+
+    private data class RegisteredNamespace(
+        val owner: StorageProviderOwner,
+        val namespace: Namespace,
+        val isActive: () -> Boolean,
+    )
+
+    private val registeredNamespaces = CopyOnWriteArrayList<RegisteredNamespace>()
 
     override fun create(
         journalist: Journalist,
@@ -136,28 +154,14 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             }
 
         val keyPrefix = settings.resolveKeyPrefix(owner.repositoryName)
-        val releaseNamespace = try {
-            namespaceClaims.claim(
-                owner = owner,
-                endpoint = settings.endpoint,
-                bucket = settings.bucketName,
-                keyPrefix = keyPrefix,
-            )
-        } catch (exception: Exception) {
-            s3Client.close()
-            throw exception
-        }
-
-        return try {
+        val storageProvider = try {
             S3StorageProvider(
                 failureFacade = failureFacade,
                 s3 = s3Client,
                 bucket = settings.bucketName,
                 keyPrefix = keyPrefix,
-                releaseNamespace = releaseNamespace,
             )
         } catch (exception: Exception) {
-            releaseNamespace()
             s3Client.close()
             failureFacade.logger.error("Cannot connect to S3 storage provider: ${exception.message}")
             failureFacade.logger.error("S3 storage provider configuration:")
@@ -171,6 +175,46 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             failureFacade.logger.error("  - Secret key: ${maskSecret(settings.secretKey)}")
             throw IllegalStateException("Failed to initialize S3 storage provider", exception)
         }
+
+        return try {
+            registerNamespace(
+                owner = owner,
+                endpoint = settings.endpoint,
+                bucket = settings.bucketName,
+                keyPrefix = keyPrefix,
+                isActive = { storageProvider.active },
+            )
+            storageProvider
+        } catch (exception: Exception) {
+            storageProvider.shutdown()
+            throw exception
+        }
+    }
+
+    internal fun registerNamespace(
+        owner: StorageProviderOwner,
+        endpoint: String,
+        bucket: String,
+        keyPrefix: String,
+        isActive: () -> Boolean,
+    ) {
+        registeredNamespaces.removeIf { !it.isActive() }
+
+        val namespace = Namespace(
+            endpoint = endpoint.trim().trimEnd('/'),
+            bucket = bucket.trim(),
+            keyPrefix = keyPrefix,
+        )
+        val conflict = registeredNamespaces.firstOrNull { registered ->
+            registered.owner != owner && registered.namespace.overlaps(namespace)
+        }
+
+        require(conflict == null) {
+            "S3 namespace for ${owner.repositoryType}:${owner.repositoryName} overlaps " +
+                "${conflict?.owner?.repositoryType}:${conflict?.owner?.repositoryName}"
+        }
+
+        registeredNamespaces += RegisteredNamespace(owner, namespace, isActive)
     }
 
     override val settingsType: Class<S3StorageProviderSettings> =
@@ -179,56 +223,4 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
     override val type: String =
         "s3"
 
-}
-
-internal class S3NamespaceClaims {
-
-    private data class Namespace(
-        val endpoint: String,
-        val bucket: String,
-        val keyPrefix: String,
-    ) {
-        fun overlaps(other: Namespace): Boolean =
-            endpoint == other.endpoint &&
-                bucket == other.bucket &&
-                (keyPrefix.startsWith(other.keyPrefix) || other.keyPrefix.startsWith(keyPrefix))
-    }
-
-    private data class Claim(
-        val owner: StorageProviderOwner,
-        val namespace: Namespace,
-    )
-
-    private val claims = mutableMapOf<Any, Claim>()
-
-    fun claim(
-        owner: StorageProviderOwner,
-        endpoint: String,
-        bucket: String,
-        keyPrefix: String,
-    ): () -> Unit =
-        synchronized(claims) {
-            val namespace = Namespace(
-                endpoint = endpoint.trim().trimEnd('/'),
-                bucket = bucket.trim(),
-                keyPrefix = keyPrefix,
-            )
-            val conflict = claims.values.firstOrNull { claim ->
-                claim.owner != owner && claim.namespace.overlaps(namespace)
-            }
-
-            require(conflict == null) {
-                "S3 namespace for ${owner.repositoryType}:${owner.repositoryName} overlaps " +
-                    "${conflict?.owner?.repositoryType}:${conflict?.owner?.repositoryName}"
-            }
-
-            val token = Any()
-            claims[token] = Claim(owner, namespace)
-            val release: () -> Unit = {
-                synchronized(claims) {
-                    claims.remove(token)
-                }
-            }
-            release
-        }
 }

@@ -65,8 +65,11 @@ class S3StorageProvider(
     private val s3: S3Client,
     private val bucket: String,
     private val keyPrefix: String = "",
-    private val releaseNamespace: () -> Unit = {},
 ) : StorageProvider, Journalist {
+
+    @Volatile
+    internal var active = true
+        private set
 
     init {
         if (!skipBucketCreation) {
@@ -96,7 +99,7 @@ class S3StorageProvider(
         try {
             s3.close()
         } finally {
-            releaseNamespace()
+            active = false
         }
     }
 

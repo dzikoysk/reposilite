@@ -42,29 +42,37 @@ internal class RepositoryFactory(
 
     private val repositoriesDirectory = Paths.get("repositories")
 
-    fun createRepository(repositoryName: String, configuration: RepositorySettings): Repository =
-        Repository(
-            name = repositoryName.ifEmpty { UUID.randomUUID().toString() },
-            visibility = configuration.visibility,
-            redeployment = configuration.redeployment,
-            preserveSnapshots = configuration.preserveSnapshots,
-            mirrorHosts = configuration.proxied.mapNotNull { createMirroredHostConfiguration(it) },
-            storageProvider =
-                storageFacade
-                    .createStorageProvider(
-                        journalist = journalist,
-                        failureFacade = failureFacade,
-                        workingDirectory = workingDirectory.resolve(repositoriesDirectory),
-                        owner = StorageProviderOwner(repositoryType = MAVEN_REPOSITORY_TYPE, repositoryName = repositoryName),
-                        storageSettings = configuration.storageProvider,
-                    )
-                    ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
-            storagePolicy = configuration.storagePolicy,
-            metadataMaxAgeInSeconds = configuration.metadataMaxAge,
-            parallelMetadataLookup = configuration.parallelMetadataLookup,
-            resolutionCacheMaxEntries = configuration.resolutionCacheMaxEntries,
-            resolutionCacheLevel = configuration.resolutionCacheLevel,
-        )
+    fun createRepository(repositoryName: String, configuration: RepositorySettings): Repository {
+        val mirrorHosts = configuration.proxied.mapNotNull { createMirroredHostConfiguration(it) }
+        val storageProvider = storageFacade
+            .createStorageProvider(
+                journalist = journalist,
+                failureFacade = failureFacade,
+                workingDirectory = workingDirectory.resolve(repositoriesDirectory),
+                owner = StorageProviderOwner(repositoryType = MAVEN_REPOSITORY_TYPE, repositoryName = repositoryName),
+                storageSettings = configuration.storageProvider,
+            )
+            ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")
+
+        return try {
+            Repository(
+                name = repositoryName.ifEmpty { UUID.randomUUID().toString() },
+                visibility = configuration.visibility,
+                redeployment = configuration.redeployment,
+                preserveSnapshots = configuration.preserveSnapshots,
+                mirrorHosts = mirrorHosts,
+                storageProvider = storageProvider,
+                storagePolicy = configuration.storagePolicy,
+                metadataMaxAgeInSeconds = configuration.metadataMaxAge,
+                parallelMetadataLookup = configuration.parallelMetadataLookup,
+                resolutionCacheMaxEntries = configuration.resolutionCacheMaxEntries,
+                resolutionCacheLevel = configuration.resolutionCacheLevel,
+            )
+        } catch (exception: Exception) {
+            runCatching { storageProvider.shutdown() }
+            throw exception
+        }
+    }
 
     private fun createMirroredHostConfiguration(configurationSource: MirroredRepositorySettings): MirrorHost? {
         val name = configurationSource.reference.trim()
