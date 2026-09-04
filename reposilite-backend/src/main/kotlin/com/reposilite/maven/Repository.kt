@@ -18,6 +18,8 @@ package com.reposilite.maven
 import com.reposilite.maven.api.Checksum
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
+import com.reposilite.repository.api.RepositoryAccessMode
+import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.FileDetails
@@ -26,6 +28,8 @@ import java.io.File
 import java.io.InputStream
 import java.nio.file.attribute.FileTime
 import panda.std.Result
+
+internal const val MAVEN_REPOSITORY_TYPE = "maven"
 
 @Suppress("DeprecatedCallableAddReplaceWith")
 class Repository internal constructor(
@@ -45,6 +49,15 @@ class Repository internal constructor(
     init {
         check(name.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters" }
     }
+
+    internal val info = RepositoryInfo(
+        name = name,
+        accessMode = when (visibility) {
+            RepositoryVisibility.PUBLIC -> RepositoryAccessMode.PUBLIC
+            RepositoryVisibility.HIDDEN -> RepositoryAccessMode.HIDDEN
+            RepositoryVisibility.PRIVATE -> RepositoryAccessMode.PRIVATE
+        }
+    )
 
     internal val resolutionCache: ResolutionCache? =
         when {

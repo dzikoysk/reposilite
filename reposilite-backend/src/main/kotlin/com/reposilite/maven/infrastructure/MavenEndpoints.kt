@@ -36,6 +36,7 @@ import io.javalin.community.routing.Route.POST
 import io.javalin.community.routing.Route.PUT
 import io.javalin.http.Context
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
+import io.javalin.openapi.ContentType.HTML
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -53,6 +54,25 @@ internal class MavenEndpoints(
 ) : MavenRoutes(mavenFacade) {
 
     @OpenApi(
+        path = "/{repository}",
+        methods = [HttpMethod.GET, HttpMethod.HEAD],
+        tags = ["Maven"],
+        summary = "Browse the repository root",
+        pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true)
+        ],
+        responses = [
+            OpenApiResponse(status = "200", description = "Returns the repository directory index", content = [OpenApiContent(type = HTML)]),
+            OpenApiResponse(status = "404", description = "Returns 404 if the repository does not exist")
+        ]
+    )
+    private val browseRepositoryRoot = ReposiliteRoute<Unit>("/{repository}", HEAD, GET) {
+        accessed {
+            findFile(ctx, this?.identifier, requireParameter("repository"), Location.empty())
+        }
+    }
+
+    @OpenApi(
         path = "/{repository}/{gav}",
         methods = [HttpMethod.GET],
         tags = ["Maven"],
@@ -60,14 +80,14 @@ internal class MavenEndpoints(
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true)
         ],
         responses = [
             OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    private val findFile = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
+    private val findFileRoute = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
         accessed {
             requireGav { gav ->
                 findFile(ctx, this?.identifier, requireParameter("repository"), gav)
@@ -98,7 +118,7 @@ internal class MavenEndpoints(
                         createDirectoryIndexPage(
                             basePath = frontendFacade.resolveBasePath(ctx.header(frontendFacade.forwardedPrefixHeader.get())),
                             uri = ctx.uri(),
-                            authenticatedFiles = mavenFacade.getAvailableFiles(request, details),
+                            visibleFiles = mavenFacade.getAvailableFiles(request, details),
                         )
                     )
                     Unit.asSuccess()
@@ -171,6 +191,6 @@ internal class MavenEndpoints(
         }
     }
 
-    override val routes = routes(findFile, deployFile, deleteFile)
+    override val routes = routes(browseRepositoryRoot, findFileRoute, deployFile, deleteFile)
 
 }
