@@ -49,10 +49,13 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
     fun `should browse repository root`() {
+        // given: an artifact in a repository directory
         useDocument("releases", "gav", "artifact.jar", "content", true)
 
+        // when: the repository root is requested
         val response = get("$base/releases").asString()
 
+        // then: the index contains the artifact directory
         assertThat(response.isSuccess).isTrue
         assertThat(response.body).contains("gav")
     }

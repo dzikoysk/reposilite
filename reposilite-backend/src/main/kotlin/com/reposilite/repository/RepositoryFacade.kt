@@ -71,13 +71,12 @@ class RepositoryFacade internal constructor(
         findRepositories(name).singleOrNull()?.info
 
     fun getRepositories(): Collection<RepositoryInfo> =
-        registrations.flatMap { (type, registration) ->
-            registration.repositories.get().map { repository -> RegisteredRepository(type, repository) }
-        }
-            .groupBy { it.info.name }
+        registrations.values
+            .flatMap { it.repositories.get() }
+            .groupBy { it.name }
             .values
             .filter { it.size == 1 }
-            .map { it.single().info }
+            .map { it.single() }
 
     /** Validates a repository name before initialization. */
     fun validateRepositoryName(repositoryName: String) {

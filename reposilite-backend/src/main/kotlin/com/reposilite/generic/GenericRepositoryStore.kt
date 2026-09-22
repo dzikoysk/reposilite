@@ -44,11 +44,9 @@ internal class GenericRepositoryStore(
 
     init {
         repositoriesSource.subscribe { settings ->
-            val updatedRepositories = createRepositories(settings)
-            val previousRepositories = repositories
-            repositories = updatedRepositories
-            repositoryInfoReference.update(updatedRepositories.values.map { it.info })
-            previousRepositories.values.forEach { it.storageProvider.shutdown() }
+            repositories.values.forEach { it.storageProvider.shutdown() }
+            repositories = createRepositories(settings)
+            repositoryInfoReference.update(repositories.values.map { it.info })
         }
     }
 

@@ -91,10 +91,12 @@ internal class RepositoryFacadeTest {
         facade.register("custom", emptyRoutes, customRepositories)
 
         // when: repositories are queried while the name is ambiguous
+        val repository = facade.findRepository("shared")
+        val repositories = facade.getRepositories()
 
         // then: the conflicting repository is hidden
-        assertThat(facade.findRepository("shared")).isNull()
-        assertThat(facade.getRepositories()).isEmpty()
+        assertThat(repository).isNull()
+        assertThat(repositories).isEmpty()
 
         // when: one type removes its conflicting repository
         customRepositories.update(emptyList())

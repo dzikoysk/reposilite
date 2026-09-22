@@ -29,6 +29,7 @@ import com.reposilite.repository.api.RepositoryAccessMode.HIDDEN
 import com.reposilite.repository.api.RepositoryAccessMode.PRIVATE
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
+import com.reposilite.storage.s3.S3StorageProviderSettings
 import io.javalin.http.HttpStatus.CONFLICT
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import io.javalin.http.HttpStatus.NOT_FOUND
@@ -47,7 +48,43 @@ import org.junit.jupiter.api.extension.ExtendWith
 internal class LocalGenericIntegrationTest : GenericIntegrationTest()
 
 @ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
-internal class RemoteGenericIntegrationTest : GenericIntegrationTest()
+internal class RemoteGenericIntegrationTest : GenericIntegrationTest() {
+
+    @Test
+    fun `should retain files when renaming a repository with a fixed S3 prefix`() {
+        // given: a repository whose storage path does not depend on its name
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<GenericSettings>()
+        settings.update {
+            GenericSettings(
+                repositories = listOf(
+                    GenericRepositorySettings(
+                        id = "downloads",
+                        storageProvider = (_storageProvider as S3StorageProviderSettings).copy(
+                            prefix = "downloads",
+                            sharedBucket = false,
+                        ),
+                    )
+                )
+            )
+        }
+        val (name, secret) = useDefaultManagementToken()
+        assertThat(
+            put("$base/downloads/file.txt").basicAuth(name, secret).body("content").asEmpty().isSuccess
+        ).isTrue
+
+        // when: the repository is renamed without changing its storage
+        settings.update { configuration ->
+            configuration.copy(repositories = configuration.repositories.map { it.copy(id = "renamed") })
+        }
+        val response = get("$base/renamed/file.txt").asString()
+        val previousResponse = get("$base/downloads/file.txt").asEmpty()
+
+        // then: the existing file is immediately available under the new name
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo("content")
+        assertThat(previousResponse.status).isEqualTo(NOT_FOUND.code)
+    }
+}
 
 internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
 
