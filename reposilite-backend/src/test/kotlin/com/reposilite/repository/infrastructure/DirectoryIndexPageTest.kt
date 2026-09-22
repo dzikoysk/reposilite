@@ -16,6 +16,9 @@
 
 package com.reposilite.repository.infrastructure
 
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.SimpleDirectoryInfo
+import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -32,5 +35,23 @@ internal class DirectoryIndexPageTest {
 
         // then: the parent link targets the application root
         assertThat(page).contains("<a href='/'>Parent Directory</a>")
+    }
+
+    @Test
+    fun `should encode entry links without changing their labels`() {
+        // given: file and directory names containing URL-sensitive characters
+        val entries = listOf(
+            DocumentInfo("release #1+100%.zip", APPLICATION_OCTET_STREAM),
+            SimpleDirectoryInfo("builds #1"),
+        )
+
+        // when: the directory index page is created
+        val page = createDirectoryIndexPage("/", "/downloads", entries)
+
+        // then: links encode names while preserving labels and directory separators
+        assertThat(page).contains(
+            """<a href="./release%20%231%2B100%25.zip">release #1+100%.zip</a>""",
+            """<a href="./builds%20%231/">builds #1/</a>""",
+        )
     }
 }

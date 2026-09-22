@@ -22,7 +22,6 @@ import com.reposilite.repository.RepositoryFacade
 import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
-import com.reposilite.storage.StorageProviderOwner
 import panda.std.reactive.MutableReference
 import panda.std.reactive.Reference
 import panda.std.reactive.mutableReference
@@ -77,10 +76,7 @@ internal class GenericRepositoryStore(
                         journalist = journalist,
                         failureFacade = failureFacade,
                         workingDirectory = workingDirectory.resolve("repositories"),
-                        owner = StorageProviderOwner(
-                            repositoryType = GENERIC_REPOSITORY_TYPE,
-                            repositoryName = configuration.id,
-                        ),
+                        repository = configuration.id,
                         storageSettings = configuration.storageProvider,
                     ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
                 )

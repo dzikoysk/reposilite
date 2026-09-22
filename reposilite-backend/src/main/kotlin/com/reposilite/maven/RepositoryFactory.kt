@@ -24,7 +24,6 @@ import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.http.createHttpProxy
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
-import com.reposilite.storage.StorageProviderOwner
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -48,7 +47,7 @@ internal class RepositoryFactory(
                 journalist = journalist,
                 failureFacade = failureFacade,
                 workingDirectory = workingDirectory.resolve(repositoriesDirectory),
-                owner = StorageProviderOwner(repositoryType = MAVEN_REPOSITORY_TYPE, repositoryName = repositoryName),
+                repository = repositoryName,
                 storageSettings = configuration.storageProvider,
             )
             ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")

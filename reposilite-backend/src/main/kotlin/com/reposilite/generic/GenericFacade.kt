@@ -20,7 +20,6 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.unauthorizedError
@@ -32,7 +31,6 @@ import com.reposilite.token.AccessTokenIdentifier
 import io.javalin.http.HttpStatus.CONFLICT
 import panda.std.Result
 import panda.std.asSuccess
-import panda.std.reactive.Reference
 import java.io.InputStream
 
 class GenericFacade internal constructor(
@@ -43,9 +41,6 @@ class GenericFacade internal constructor(
 
     fun getRepository(name: String): GenericRepository? =
         repositoryStore.findRepository(name)
-
-    internal fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
-        repositoryStore.repositoryInfo()
 
     fun findDetails(
         accessToken: AccessTokenIdentifier?,

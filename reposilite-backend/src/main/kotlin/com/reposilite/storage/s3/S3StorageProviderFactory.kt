@@ -21,9 +21,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.reposilite.journalist.Journalist
 import com.reposilite.shared.maskSecret
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.LEGACY_REPOSITORY_TYPE
 import com.reposilite.storage.StorageProviderFactory
-import com.reposilite.storage.StorageProviderOwner
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer
@@ -46,22 +44,18 @@ enum class S3Signer {
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
-    private data class Namespace(
+    private data class RegisteredNamespace(
+        val repositoryName: String,
         val endpoint: String,
         val bucket: String,
         val keyPrefix: String,
+        val isActive: () -> Boolean,
     ) {
-        fun overlaps(other: Namespace): Boolean =
+        fun overlaps(other: RegisteredNamespace): Boolean =
             endpoint == other.endpoint &&
                 bucket == other.bucket &&
                 (keyPrefix.startsWith(other.keyPrefix) || other.keyPrefix.startsWith(keyPrefix))
     }
-
-    private data class RegisteredNamespace(
-        val owner: StorageProviderOwner,
-        val namespace: Namespace,
-        val isActive: () -> Boolean,
-    )
 
     private val registeredNamespaces = CopyOnWriteArrayList<RegisteredNamespace>()
 
@@ -70,21 +64,6 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
         failureFacade: FailureFacade,
         workingDirectory: Path,
         repositoryName: String,
-        settings: S3StorageProviderSettings,
-    ): S3StorageProvider =
-        create(
-            journalist = journalist,
-            failureFacade = failureFacade,
-            workingDirectory = workingDirectory,
-            owner = StorageProviderOwner(LEGACY_REPOSITORY_TYPE, repositoryName),
-            settings = settings,
-        )
-
-    override fun create(
-        journalist: Journalist,
-        failureFacade: FailureFacade,
-        workingDirectory: Path,
-        owner: StorageProviderOwner,
         settings: S3StorageProviderSettings
     ): S3StorageProvider {
         val client = S3Client.builder()
@@ -153,7 +132,7 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
                 else -> client.build()
             }
 
-        val keyPrefix = settings.resolveKeyPrefix(owner.repositoryName)
+        val keyPrefix = settings.resolveKeyPrefix(repositoryName)
         val storageProvider = try {
             S3StorageProvider(
                 failureFacade = failureFacade,
@@ -178,7 +157,7 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
 
         return try {
             registerNamespace(
-                owner = owner,
+                repositoryName = repositoryName,
                 endpoint = settings.endpoint,
                 bucket = settings.bucketName,
                 keyPrefix = keyPrefix,
@@ -192,7 +171,7 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
     }
 
     internal fun registerNamespace(
-        owner: StorageProviderOwner,
+        repositoryName: String,
         endpoint: String,
         bucket: String,
         keyPrefix: String,
@@ -200,21 +179,20 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
     ) {
         registeredNamespaces.removeIf { !it.isActive() }
 
-        val namespace = Namespace(
+        val namespace = RegisteredNamespace(
+            repositoryName = repositoryName,
             endpoint = endpoint.trim().trimEnd('/'),
             bucket = bucket.trim(),
             keyPrefix = keyPrefix,
+            isActive = isActive,
         )
-        val conflict = registeredNamespaces.firstOrNull { registered ->
-            registered.owner != owner && registered.namespace.overlaps(namespace)
-        }
+        val conflict = registeredNamespaces.firstOrNull { it.overlaps(namespace) }
 
         require(conflict == null) {
-            "S3 namespace for ${owner.repositoryType}:${owner.repositoryName} overlaps " +
-                "${conflict?.owner?.repositoryType}:${conflict?.owner?.repositoryName}"
+            "S3 namespace for repository '$repositoryName' overlaps repository '${conflict?.repositoryName}'"
         }
 
-        registeredNamespaces += RegisteredNamespace(owner, namespace, isActive)
+        registeredNamespaces += namespace
     }
 
     override val settingsType: Class<S3StorageProviderSettings> =

@@ -24,7 +24,6 @@ import com.reposilite.ReposiliteSpecification
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.generic.application.GenericSettings
-import com.reposilite.repository.RepositoryFacade
 import com.reposilite.repository.api.RepositoryAccessMode.HIDDEN
 import com.reposilite.repository.api.RepositoryAccessMode.PRIVATE
 import com.reposilite.shared.ErrorResponse
@@ -255,7 +254,6 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
         assertThat(genericFacade.getRepository("duplicated")).isNull()
         assertThat(genericFacade.getRepository("files")).isNotNull()
         assertThat(mavenFacade.getRepository("releases")).isNotNull()
-        assertThat(useFacade<RepositoryFacade>().findRepository("releases")).isNull()
         assertThat(get("$base/releases").asEmpty().status).isEqualTo(NOT_FOUND.code)
     }
 
