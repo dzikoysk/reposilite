@@ -19,13 +19,11 @@ package com.reposilite.generic
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
-import panda.std.reactive.MutableReference
 import panda.std.reactive.Reference
-import panda.std.reactive.mutableReference
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicReference
 
 internal class GenericRepositoryStore(
     private val journalist: Journalist,
@@ -36,27 +34,23 @@ internal class GenericRepositoryStore(
     repositoriesSource: Reference<List<GenericRepositorySettings>>,
 ) {
 
-    @Volatile
-    private var repositories = createRepositories(repositoriesSource.get())
-    private val repositoryInfoReference: MutableReference<Collection<RepositoryInfo>> =
-        mutableReference(repositories.values.map { it.info })
+    private val repositories = AtomicReference(createRepositories(repositoriesSource.get()))
 
     init {
         repositoriesSource.subscribe { settings ->
-            repositories.values.forEach { it.storageProvider.shutdown() }
-            repositories = createRepositories(settings)
-            repositoryInfoReference.update(repositories.values.map { it.info })
+            shutdown()
+            repositories.set(createRepositories(settings))
         }
     }
 
     fun findRepository(name: String): GenericRepository? =
-        repositories[name]
+        repositories.get()[name]
 
-    fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
-        repositoryInfoReference
+    fun getRepositories(): Collection<GenericRepository> =
+        repositories.get().values
 
     fun shutdown() =
-        repositories.values.forEach { it.storageProvider.shutdown() }
+        repositories.get().values.forEach { it.storageProvider.shutdown() }
 
     private fun createRepositories(settings: List<GenericRepositorySettings>): Map<String, GenericRepository> {
         val duplicatedNames = settings.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys

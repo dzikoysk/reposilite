@@ -61,7 +61,7 @@ internal class GenericPlugin : ReposilitePlugin() {
                 frontendFacade = facade<FrontendFacade>(),
                 compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get(),
             ),
-            repositories = repositoryStore.repositoryInfo(),
+            repositories = { repositoryStore.getRepositories().map { it.info } },
         )
 
         event { _: ReposiliteDisposeEvent -> repositoryStore.shutdown() }
