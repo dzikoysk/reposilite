@@ -51,7 +51,7 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
             journalist = logger,
             failureFacade = failureFacade,
             workingDirectory = rootDirectory.toPath(),
-            owner = StorageProviderOwner(repositoryType = "test", repositoryName = "test-storage"),
+            repository = "test-storage",
             storageSettings = FileSystemStorageProviderSettings(quota = "1MB")
         )!!
     }

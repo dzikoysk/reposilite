@@ -27,7 +27,7 @@ import com.reposilite.repository.infrastructure.RepositoryDispatcher
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
-import com.reposilite.web.infrastructure.createReposiliteEndpointFactory
+import com.reposilite.web.infrastructure.createReposiliteDslFactory
 import io.javalin.config.JavalinState
 import io.javalin.plugin.Plugin as JavalinPlugin
 
@@ -44,7 +44,7 @@ class RepositoryPlugin : ReposilitePlugin() {
             val repositoryDispatcher = RepositoryDispatcher(
                 repositoryFacade = repositoryFacade,
                 routesByType = registeredRoutes,
-                endpointFactory = createReposiliteEndpointFactory(
+                dsl = createReposiliteDslFactory(
                     journalist = this,
                     failureFacade = facade<FailureFacade>(),
                     accessTokenFacade = facade<AccessTokenFacade>(),

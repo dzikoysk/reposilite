@@ -62,22 +62,15 @@ class ReposiliteDsl(
     override fun createExceptionHandler(handler: ReposiliteExceptionHandler): ExceptionHandler<Exception> =
         exceptionRouteFactory.invoke(handler)
 
-}
-
-internal class ReposiliteEndpointFactory(
-    private val dsl: ReposiliteDsl,
-) {
-
-    fun createEndpoints(routes: ReposiliteRoutes): Collection<Endpoint> =
-        routes.routes.flatMap { route ->
-            route.toDslRoutes().map { dslRoute ->
-                Endpoint(
-                    method = HandlerType.values().first { it.name == dslRoute.method.toString() },
-                    path = dslRoute.path,
-                    handler = dsl.createHandler(dslRoute),
-                )
-            }
+    internal fun createEndpoints(routes: ReposiliteRoutes): Collection<Endpoint> =
+        routes.routes().map { route ->
+            Endpoint(
+                method = HandlerType.values().first { it.name == route.method.toString() },
+                path = route.path,
+                handler = createHandler(route),
+            )
         }
+
 }
 
 fun createReposiliteDsl(
@@ -88,15 +81,7 @@ fun createReposiliteDsl(
 ): ReposiliteRouting =
     ReposiliteRouting(createReposiliteDslFactory(journalist, accessTokenFacade, authenticationFacade, failureFacade))
 
-internal fun createReposiliteEndpointFactory(
-    journalist: Journalist,
-    accessTokenFacade: AccessTokenFacade,
-    authenticationFacade: AuthenticationFacade,
-    failureFacade: FailureFacade,
-): ReposiliteEndpointFactory =
-    ReposiliteEndpointFactory(createReposiliteDslFactory(journalist, accessTokenFacade, authenticationFacade, failureFacade))
-
-private fun createReposiliteDslFactory(
+internal fun createReposiliteDslFactory(
     journalist: Journalist,
     accessTokenFacade: AccessTokenFacade,
     authenticationFacade: AuthenticationFacade,

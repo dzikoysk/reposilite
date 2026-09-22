@@ -34,11 +34,6 @@ class RepositoryFacade internal constructor(
         val repositories: Reference<out Collection<RepositoryInfo>>,
     )
 
-    private data class RegisteredRepository(
-        val type: String,
-        val info: RepositoryInfo,
-    )
-
     private val registrations = linkedMapOf<String, Registration>()
     private var sealed = false
 
@@ -57,27 +52,12 @@ class RepositoryFacade internal constructor(
         registrations[type] = Registration(routes, repositories)
     }
 
-    private fun findRepositories(name: String): List<RegisteredRepository> =
+    internal fun findRepositoryTypes(name: String): List<String> =
         registrations.flatMap { (type, registration) ->
             registration.repositories.get()
                 .filter { it.name == name }
-                .map { repository -> RegisteredRepository(type, repository) }
+                .map { type }
         }
-
-    internal fun findRepositoryTypes(name: String): List<String> =
-        findRepositories(name).map { it.type }
-
-    fun findRepository(name: String): RepositoryInfo? =
-        findRepositories(name).singleOrNull()?.info
-
-    fun getRepositories(): Collection<RepositoryInfo> =
-        registrations.flatMap { (type, registration) ->
-            registration.repositories.get().map { repository -> RegisteredRepository(type, repository) }
-        }
-            .groupBy { it.info.name }
-            .values
-            .filter { it.size == 1 }
-            .map { it.single().info }
 
     /** Validates a repository name before initialization. */
     fun validateRepositoryName(repositoryName: String) {

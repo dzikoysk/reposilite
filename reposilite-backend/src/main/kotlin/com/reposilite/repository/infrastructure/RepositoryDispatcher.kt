@@ -18,7 +18,7 @@ package com.reposilite.repository.infrastructure
 
 import com.reposilite.repository.RepositoryFacade
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.infrastructure.ReposiliteEndpointFactory
+import com.reposilite.web.infrastructure.ReposiliteDsl
 import io.javalin.config.RouterConfig
 import io.javalin.http.Handler
 import io.javalin.http.HttpStatus.NOT_FOUND
@@ -30,12 +30,12 @@ import io.javalin.router.matcher.PathMatcher
 internal class RepositoryDispatcher(
     private val repositoryFacade: RepositoryFacade,
     routesByType: Map<String, ReposiliteRoutes>,
-    endpointFactory: ReposiliteEndpointFactory,
+    dsl: ReposiliteDsl,
     routerConfig: RouterConfig,
 ) {
 
     private val endpointsByType = routesByType.mapValues { (_, routes) ->
-        endpointFactory.createEndpoints(routes)
+        dsl.createEndpoints(routes)
     }
 
     private val routersByType = endpointsByType.mapValues { (_, endpoints) ->

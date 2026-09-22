@@ -45,17 +45,16 @@ internal class RepositoryFacadeTest {
     )
 
     @Test
-    fun `should resolve repository from registered type`() {
+    fun `should resolve repository type by name`() {
         // given: two types with distinct repositories
         register("maven", "releases")
         register("custom", "downloads")
 
-        // when: repository is resolved by name
-        val repository = facade.findRepository("downloads")
+        // when: the repository type is resolved by name
+        val types = facade.findRepositoryTypes("downloads")
 
-        // then: repository and its type are resolved
-        assertThat(facade.findRepositoryTypes("downloads")).containsExactly("custom")
-        assertThat(repository?.name).isEqualTo("downloads")
+        // then: the matching type is returned
+        assertThat(types).containsExactly("custom")
     }
 
     @Test
@@ -68,8 +67,8 @@ internal class RepositoryFacadeTest {
         repositories.update(listOf(repository("second")))
 
         // then: facade queries the reference instead of serving a stale index
-        assertThat(facade.findRepository("first")).isNull()
-        assertThat(facade.findRepository("second")?.name).isEqualTo("second")
+        assertThat(facade.findRepositoryTypes("first")).isEmpty()
+        assertThat(facade.findRepositoryTypes("second")).containsExactly("custom")
     }
 
     @Test
@@ -84,24 +83,35 @@ internal class RepositoryFacadeTest {
     }
 
     @Test
-    fun `should hide repository name shared by types`() {
+    fun `should report all types sharing a repository name`() {
         // given: two types sharing a repository name
         val customRepositories = mutableReference<Collection<RepositoryInfo>>(listOf(repository("shared")))
         register("maven", "shared")
         facade.register("custom", emptyRoutes, customRepositories)
 
         // when: repositories are queried while the name is ambiguous
+        val types = facade.findRepositoryTypes("shared")
 
-        // then: the conflicting repository is hidden
-        assertThat(facade.findRepository("shared")).isNull()
-        assertThat(facade.getRepositories()).isEmpty()
+        // then: both types are returned so the gateway can reject the ambiguous name
+        assertThat(types).containsExactly("maven", "custom")
 
         // when: one type removes its conflicting repository
         customRepositories.update(emptyList())
 
-        // then: the remaining repository becomes visible
+        // then: the remaining repository can be routed unambiguously
         assertThat(facade.findRepositoryTypes("shared")).containsExactly("maven")
-        assertThat(facade.getRepositories()).hasSize(1)
+    }
+
+    @Test
+    fun `should preserve duplicate repository names within a type`() {
+        // given: a type exposing two repositories with the same name
+        register("custom", "shared", "shared")
+
+        // when: the repository type is resolved
+        val types = facade.findRepositoryTypes("shared")
+
+        // then: the duplicate remains ambiguous to the gateway
+        assertThat(types).containsExactly("custom", "custom")
     }
 
     @Test

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.reposilite.maven.infrastructure
+package com.reposilite.repository.infrastructure
 
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 internal fun createDirectoryIndexPage(basePath: String, uri: String, visibleFiles: List<FileDetails>): String {
     val formattedUri = basePath + uri.removePrefix("/")
@@ -54,10 +56,11 @@ internal fun createDirectoryIndexPage(basePath: String, uri: String, visibleFile
                     </li>
                     ${visibleFiles.flatMap {
                         val fileSeparator = if (it.type == FileType.DIRECTORY) "/" else ""
+                        val encodedName = URLEncoder.encode(it.name, StandardCharsets.UTF_8).replace("+", "%20")
 
                         listOf(
                             """<li class="${it.type.name.lowercase()}">""",
-                            """<a href="./${it.name}$fileSeparator">${it.name}$fileSeparator</a>""",
+                            """<a href="./$encodedName$fileSeparator">${it.name}$fileSeparator</a>""",
                             """</li>"""
                         )
                     }.joinToString(separator = "")}

@@ -16,7 +16,6 @@
 
 package com.reposilite.storage.s3
 
-import com.reposilite.storage.StorageProviderOwner
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Test
@@ -30,69 +29,71 @@ internal class S3StorageProviderFactoryTest {
     @Test
     fun `should allow distinct buckets endpoints and prefixes`() {
         // given: repositories with distinct S3 namespaces
-        register(owner("maven", "releases"), "https://s3.example", "releases", "packages/")
-        register(owner("maven", "snapshots"), "https://s3.example", "snapshots", "")
-        register(owner("generic", "downloads"), "https://other.example", "releases", "")
+        register("releases", "https://s3.example", "releases", "packages/")
+        register("snapshots", "https://s3.example", "snapshots", "")
+        register("downloads", "https://other.example", "releases", "")
 
         // when & then: another distinct namespace is accepted
         assertThatCode {
-            register(owner("generic", "assets"), "https://s3.example", "releases", "assets/")
+            register("assets", "https://s3.example", "releases", "assets/")
         }.doesNotThrowAnyException()
     }
 
     @Test
-    fun `should reject equal and nested namespaces owned by another repository`() {
+    fun `should reject equal and nested active namespaces`() {
         // given: a registered S3 namespace
-        register(owner("maven", "releases"), "https://s3.example", "shared", "artifacts/")
+        register("releases", "https://s3.example", "shared", "artifacts/")
 
         // when & then: an equal normalized namespace is rejected
         assertThatIllegalArgumentException()
             .isThrownBy {
-                register(owner("generic", "downloads"), "https://s3.example/", " shared ", "artifacts/")
+                register("downloads", "https://s3.example/", " shared ", "artifacts/")
             }
-            .withMessageContaining("maven:releases")
+            .withMessageContaining("releases")
 
         // when & then: a nested namespace is rejected
         assertThatIllegalArgumentException()
             .isThrownBy {
-                register(owner("generic", "downloads"), "https://s3.example", "shared", "artifacts/releases/")
+                register("downloads", "https://s3.example", "shared", "artifacts/releases/")
             }
-            .withMessageContaining("maven:releases")
+            .withMessageContaining("releases")
+
+        // when & then: the same repository name does not bypass the conflict check
+        assertThatIllegalArgumentException()
+            .isThrownBy { register("releases", "https://s3.example", "shared", "artifacts/") }
     }
 
     @Test
     fun `should allow repository replacement and discard inactive registrations`() {
-        // given: two generations of the same repository registration
-        val owner = owner("maven", "releases")
-        val previous = register(owner, "", "shared", "old/")
-        val replacement = register(owner, "", "shared", "new/")
+        // given: a registered S3 namespace
+        val previous = register("releases", "", "shared", "artifacts/")
 
         // when: the previous generation becomes inactive
         previous.active = false
 
-        // then: the active replacement still owns its namespace
+        // then: a replacement can reuse the namespace
+        val replacement = register("releases", "", "shared", "artifacts/")
+
+        // when & then: another repository cannot claim the active replacement's namespace
         assertThatIllegalArgumentException()
-            .isThrownBy { register(owner("generic", "downloads"), "", "shared", "new/") }
+            .isThrownBy { register("downloads", "", "shared", "artifacts/") }
 
         // when: the replacement also becomes inactive
         replacement.active = false
 
         // then: another repository can claim the released namespace
         assertThatCode {
-            register(owner("generic", "downloads"), "", "shared", "new/")
+            register("downloads", "", "shared", "artifacts/")
         }.doesNotThrowAnyException()
     }
 
     private fun register(
-        owner: StorageProviderOwner,
+        repositoryName: String,
         endpoint: String,
         bucket: String,
         keyPrefix: String,
     ): Registration =
         Registration().also { registration ->
-            factory.registerNamespace(owner, endpoint, bucket, keyPrefix) { registration.active }
+            factory.registerNamespace(repositoryName, endpoint, bucket, keyPrefix) { registration.active }
         }
-
-    private fun owner(type: String, repository: String): StorageProviderOwner =
-        StorageProviderOwner(repositoryType = type, repositoryName = repository)
 }
