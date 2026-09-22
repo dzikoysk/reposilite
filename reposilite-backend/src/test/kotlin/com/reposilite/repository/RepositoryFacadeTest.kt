@@ -29,8 +29,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.assertj.core.api.Assertions.assertThatIllegalStateException
 import org.junit.jupiter.api.Test
-import panda.std.reactive.mutableReference
-import panda.std.reactive.toReference
 
 internal class RepositoryFacadeTest {
 
@@ -59,14 +57,14 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should reflect repositories changed by registration`() {
-        // given: registration backed by a repository reference
-        val repositories = mutableReference<Collection<RepositoryInfo>>(listOf(repository("first")))
-        facade.register("custom", emptyRoutes, repositories)
+        // given: registration backed by a repository supplier
+        var repositories = listOf(repository("first"))
+        facade.register("custom", emptyRoutes) { repositories }
 
         // when: configuration replaces its repositories
-        repositories.update(listOf(repository("second")))
+        repositories = listOf(repository("second"))
 
-        // then: facade queries the reference instead of serving a stale index
+        // then: facade resolves only the current repositories
         assertThat(facade.findRepositoryTypes("first")).isEmpty()
         assertThat(facade.findRepositoryTypes("second")).containsExactly("custom")
     }
@@ -85,9 +83,9 @@ internal class RepositoryFacadeTest {
     @Test
     fun `should report all types sharing a repository name`() {
         // given: two types sharing a repository name
-        val customRepositories = mutableReference<Collection<RepositoryInfo>>(listOf(repository("shared")))
+        var customRepositories = listOf(repository("shared"))
         register("maven", "shared")
-        facade.register("custom", emptyRoutes, customRepositories)
+        facade.register("custom", emptyRoutes) { customRepositories }
 
         // when: repositories are queried while the name is ambiguous
         val types = facade.findRepositoryTypes("shared")
@@ -96,7 +94,7 @@ internal class RepositoryFacadeTest {
         assertThat(types).containsExactly("maven", "custom")
 
         // when: one type removes its conflicting repository
-        customRepositories.update(emptyList())
+        customRepositories = emptyList()
 
         // then: the remaining repository can be routed unambiguously
         assertThat(facade.findRepositoryTypes("shared")).containsExactly("maven")
@@ -143,7 +141,7 @@ internal class RepositoryFacadeTest {
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/cargo/<crate>", GET) {})
         }
-        facade.register("cargo", invalidRoutes, listOf(repository("cargo")).toReference())
+        facade.register("cargo", invalidRoutes) { listOf(repository("cargo")) }
 
         // when & then: repository routing validation rejects the route
         assertThatIllegalArgumentException()
@@ -157,7 +155,7 @@ internal class RepositoryFacadeTest {
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/{repository}/<path>", BEFORE) {})
         }
-        facade.register("cargo", invalidRoutes, listOf(repository("cargo")).toReference())
+        facade.register("cargo", invalidRoutes) { listOf(repository("cargo")) }
 
         // when & then: repository routing validation rejects the filter
         assertThatIllegalArgumentException()
@@ -181,7 +179,7 @@ internal class RepositoryFacadeTest {
     }
 
     private fun register(type: String, vararg names: String) {
-        facade.register(type, emptyRoutes, names.map { repository(it) }.toReference())
+        facade.register(type, emptyRoutes) { names.map { repository(it) } }
     }
 
     private fun repository(id: String): RepositoryInfo =

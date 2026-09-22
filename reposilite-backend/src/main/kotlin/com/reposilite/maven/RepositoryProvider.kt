@@ -21,7 +21,6 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.notFoundError
@@ -29,11 +28,10 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicReference
 import panda.std.Result
 import panda.std.asSuccess
-import panda.std.reactive.MutableReference
 import panda.std.reactive.Reference
-import panda.std.reactive.mutableReference
 
 internal class RepositoryProvider(
     private val journalist: Journalist,
@@ -60,16 +58,12 @@ internal class RepositoryProvider(
         extensions = extensions
     )
 
-    @Volatile
-    private var repositories: Map<String, Repository> = createRepositories(repositoriesSource.get())
-    private val repositoryInfoReference: MutableReference<Collection<RepositoryInfo>> =
-        mutableReference(repositories.values.map { it.info })
+    private val repositories = AtomicReference(createRepositories(repositoriesSource.get()))
 
     init {
         repositoriesSource.subscribe { settings ->
-            repositories.values.forEach { it.shutdown() }
-            repositories = createRepositories(settings)
-            repositoryInfoReference.update(repositories.values.map { it.info })
+            repositories.get().values.forEach { it.shutdown() }
+            repositories.set(createRepositories(settings))
         }
     }
 
@@ -108,12 +102,9 @@ internal class RepositoryProvider(
             ?: notFoundError("Repository $name not found")
 
     fun getRepository(name: String): Repository? =
-        repositories[name]
+        repositories.get()[name]
 
     fun getRepositories(): Collection<Repository> =
-        repositories.values
-
-    fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
-        repositoryInfoReference
+        repositories.get().values
 
 }

@@ -50,7 +50,7 @@ import java.io.InputStream
 
 internal class RepositoryService(
     private val journalist: Journalist,
-    val repositoryProvider: RepositoryProvider,
+    private val repositoryProvider: RepositoryProvider,
     private val repositoryFacade: RepositoryFacade,
     private val mirrorService: MirrorService,
     private val resolutionProvider: ResolutionProvider,
