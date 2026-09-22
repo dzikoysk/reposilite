@@ -23,7 +23,6 @@ import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.api.ReposiliteRoutes
 import panda.std.Result
-import panda.std.reactive.Reference
 
 class RepositoryFacade internal constructor(
     private val accessResolver: RepositoryAccessResolver,
@@ -31,7 +30,7 @@ class RepositoryFacade internal constructor(
 
     private class Registration(
         val routes: ReposiliteRoutes,
-        val repositories: Reference<out Collection<RepositoryInfo>>,
+        val repositories: () -> Collection<RepositoryInfo>,
     )
 
     private val registrations = linkedMapOf<String, Registration>()
@@ -41,7 +40,7 @@ class RepositoryFacade internal constructor(
     fun register(
         type: String,
         routes: ReposiliteRoutes,
-        repositories: Reference<out Collection<RepositoryInfo>>,
+        repositories: () -> Collection<RepositoryInfo>,
     ) {
         check(!sealed) { "Repository types have to be registered before the HTTP server starts" }
         require(type.isNotBlank()) { "Repository type cannot be blank" }
@@ -54,7 +53,7 @@ class RepositoryFacade internal constructor(
 
     internal fun findRepositoryTypes(name: String): List<String> =
         registrations.flatMap { (type, registration) ->
-            registration.repositories.get()
+            registration.repositories()
                 .filter { it.name == name }
                 .map { type }
         }

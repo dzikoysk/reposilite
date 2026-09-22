@@ -32,14 +32,12 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
-import panda.std.reactive.Reference
 import java.io.InputStream
 
 class MavenFacade internal constructor(
@@ -116,13 +114,10 @@ class MavenFacade internal constructor(
         repositoryService.getRootDirectory(accessToken)
 
     fun getRepository(name: String) =
-        repositoryService.repositoryProvider.getRepository(name)
+        repositoryProvider.getRepository(name)
 
     fun getRepositories(): Collection<Repository> =
-        repositoryService.repositoryProvider.getRepositories()
-
-    internal fun repositoryInfo(): Reference<Collection<RepositoryInfo>> =
-        repositoryProvider.repositoryInfo()
+        repositoryProvider.getRepositories()
 
     override fun getLogger(): Logger =
         journalist.logger
