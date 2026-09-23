@@ -96,7 +96,7 @@ internal class GenericEndpoints(
                             createDirectoryIndexPage(
                                 basePath = frontendFacade.resolveBasePath(ctx.header(frontendFacade.forwardedPrefixHeader.get())),
                                 uri = ctx.uri(),
-                                visibleFiles = genericFacade.getAvailableFiles(identifier, repository, location, details),
+                                visibleFiles = details.files,
                             )
                         )
                         Unit.asSuccess()

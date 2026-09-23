@@ -16,20 +16,15 @@
 
 package com.reposilite.generic
 
-import com.reposilite.repository.api.RepositoryAccessMode
 import com.reposilite.repository.api.RepositoryInfo
+import com.reposilite.repository.api.RepositoryVisibility
 import com.reposilite.storage.StorageProvider
 
 internal const val GENERIC_REPOSITORY_TYPE = "generic"
 
 class GenericRepository internal constructor(
     override val name: String,
-    val visibility: RepositoryAccessMode,
+    override val visibility: RepositoryVisibility,
     val redeployment: Boolean,
     val storageProvider: StorageProvider,
-) : RepositoryInfo {
-
-    override val accessMode: RepositoryAccessMode
-        get() = visibility
-
-}
+) : RepositoryInfo

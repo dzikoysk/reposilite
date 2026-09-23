@@ -25,7 +25,7 @@ import panda.std.reactive.Reference
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
 
-internal class GenericRepositoryStore(
+internal class GenericRepositories(
     private val journalist: Journalist,
     private val workingDirectory: Path,
     private val failureFacade: FailureFacade,

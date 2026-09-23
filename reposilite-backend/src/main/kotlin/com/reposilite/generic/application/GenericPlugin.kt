@@ -21,7 +21,7 @@ import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.generic.GENERIC_REPOSITORY_TYPE
 import com.reposilite.generic.GenericFacade
-import com.reposilite.generic.GenericRepositoryStore
+import com.reposilite.generic.GenericRepositories
 import com.reposilite.generic.infrastructure.GenericEndpoints
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
@@ -42,7 +42,7 @@ internal class GenericPlugin : ReposilitePlugin() {
 
     override fun initialize(): GenericFacade {
         val repositoryFacade = facade<RepositoryFacade>()
-        val repositoryStore = GenericRepositoryStore(
+        val repositories = GenericRepositories(
             journalist = this,
             workingDirectory = parameters().workingDirectory,
             failureFacade = facade<FailureFacade>(),
@@ -52,7 +52,7 @@ internal class GenericPlugin : ReposilitePlugin() {
                 .getDomainSettings<GenericSettings>()
                 .computed { it.repositories },
         )
-        val genericFacade = GenericFacade(this, repositoryStore, repositoryFacade)
+        val genericFacade = GenericFacade(this, repositories, repositoryFacade)
 
         repositoryFacade.register(
             type = GENERIC_REPOSITORY_TYPE,
@@ -61,10 +61,10 @@ internal class GenericPlugin : ReposilitePlugin() {
                 frontendFacade = facade<FrontendFacade>(),
                 compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get(),
             ),
-            repositories = repositoryStore::getRepositories,
+            provider = genericFacade,
         )
 
-        event { _: ReposiliteDisposeEvent -> repositoryStore.shutdown() }
+        event { _: ReposiliteDisposeEvent -> repositories.shutdown() }
 
         return genericFacade
     }

@@ -24,8 +24,8 @@ import com.reposilite.ReposiliteSpecification
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.generic.application.GenericSettings
-import com.reposilite.repository.api.RepositoryAccessMode.HIDDEN
-import com.reposilite.repository.api.RepositoryAccessMode.PRIVATE
+import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
+import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.s3.S3StorageProviderSettings

@@ -20,6 +20,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.unauthorizedError
@@ -35,12 +36,15 @@ import java.io.InputStream
 
 class GenericFacade internal constructor(
     private val journalist: Journalist,
-    private val repositoryStore: GenericRepositoryStore,
+    private val repositories: GenericRepositories,
     private val repositoryFacade: RepositoryFacade,
-) : Facade, Journalist {
+) : Facade, Journalist, RepositoryProvider {
 
     fun getRepository(name: String): GenericRepository? =
-        repositoryStore.findRepository(name)
+        repositories.findRepository(name)
+
+    override fun getRepositories(): Collection<GenericRepository> =
+        repositories.getRepositories()
 
     fun findDetails(
         accessToken: AccessTokenIdentifier?,
@@ -56,6 +60,14 @@ class GenericFacade internal constructor(
                     details.asSuccess()
                 }
             }
+            .map { details ->
+                when (details) {
+                    is DirectoryInfo -> details.filter { child ->
+                        repositoryFacade.canBrowseResource(accessToken, repository, location.resolve(child.name)).isOk
+                    }
+                    else -> details
+                }
+            }
 
     fun findData(
         accessToken: AccessTokenIdentifier?,
@@ -64,16 +76,6 @@ class GenericFacade internal constructor(
     ): Result<InputStream, ErrorResponse> =
         repositoryFacade.canAccessResource(accessToken, repository, location)
             .flatMap { repository.storageProvider.getFile(location) }
-
-    fun getAvailableFiles(
-        accessToken: AccessTokenIdentifier?,
-        repository: GenericRepository,
-        location: Location,
-        directory: DirectoryInfo,
-    ): List<FileDetails> =
-        directory.files.filter { child ->
-            repositoryFacade.canBrowseResource(accessToken, repository, location.resolve(child.name)).isOk
-        }
 
     fun deployFile(
         accessToken: AccessTokenIdentifier?,
