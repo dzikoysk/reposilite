@@ -200,7 +200,7 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
         val hiddenFileResponse = get("$base/hidden-files/directory/hidden.txt").asString()
         val hiddenDirectoryResponse = get("$base/hidden-files/directory").asEmpty()
 
-        // then: shared visibility rules are enforced
+        // then: private files and hidden directory listings require credentials
         assertThat(anonymousPrivateResponse.status).isEqualTo(UNAUTHORIZED.code)
         assertThat(authenticatedPrivateResponse.body).isEqualTo("private")
         assertThat(hiddenFileResponse.body).isEqualTo("hidden")
@@ -248,7 +248,7 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
         // when: repositories are resolved after the configuration reload
         val genericFacade = useFacade<GenericFacade>()
 
-        // then: invalid and ambiguous repositories are hidden without affecting valid repositories
+        // then: invalid repositories are skipped and conflicting names return 404
         assertThat(genericFacade.getRepository("../invalid")).isNull()
         assertThat(genericFacade.getRepository("releases")).isNotNull()
         assertThat(genericFacade.getRepository("duplicated")).isNull()
