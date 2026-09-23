@@ -23,12 +23,13 @@ import com.reposilite.storage.StorageProvider
 internal const val GENERIC_REPOSITORY_TYPE = "generic"
 
 class GenericRepository internal constructor(
-    val name: String,
+    override val name: String,
     val visibility: RepositoryAccessMode,
     val redeployment: Boolean,
     val storageProvider: StorageProvider,
-) {
+) : RepositoryInfo {
 
-    internal val info = RepositoryInfo(name, visibility)
+    override val accessMode: RepositoryAccessMode
+        get() = visibility
 
 }
