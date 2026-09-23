@@ -16,10 +16,10 @@
 
 package com.reposilite.repository
 
-import com.reposilite.repository.api.RepositoryAccessMode.HIDDEN
-import com.reposilite.repository.api.RepositoryAccessMode.PRIVATE
-import com.reposilite.repository.api.RepositoryAccessMode.PUBLIC
 import com.reposilite.repository.api.RepositoryInfo
+import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
+import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
+import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
 import com.reposilite.shared.toErrorResponse
@@ -38,7 +38,7 @@ internal class RepositoryAccessResolver(
 ) {
 
     fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo): Boolean =
-        when (repository.accessMode) {
+        when (repository.visibility) {
             PUBLIC -> true
             HIDDEN, PRIVATE -> accessToken?.let { accessTokenFacade.canSee(it, "/${repository.name}") } ?: false
         }
@@ -46,14 +46,14 @@ internal class RepositoryAccessResolver(
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Result<Unit, ErrorResponse> =
         when {
             !resourcePath.isCanonicalResourcePath() -> badRequestError("Resource path has to be canonical")
-            repository.accessMode == PUBLIC || repository.accessMode == HIDDEN -> Result.ok(Unit)
+            repository.visibility == PUBLIC || repository.visibility == HIDDEN -> Result.ok(Unit)
             else -> hasPermissionTo(accessToken, repository, resourcePath, READ)
         }
 
     fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Result<Unit, ErrorResponse> =
         when {
             !resourcePath.isCanonicalResourcePath() -> badRequestError("Resource path has to be canonical")
-            repository.accessMode == PUBLIC -> Result.ok(Unit)
+            repository.visibility == PUBLIC -> Result.ok(Unit)
             else -> hasPermissionTo(accessToken, repository, resourcePath, READ)
         }
 

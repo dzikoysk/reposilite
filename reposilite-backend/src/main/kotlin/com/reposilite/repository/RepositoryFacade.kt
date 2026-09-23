@@ -18,6 +18,7 @@ package com.reposilite.repository
 
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.api.RepositoryInfo
+import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
@@ -30,7 +31,7 @@ class RepositoryFacade internal constructor(
 
     private class Registration(
         val routes: ReposiliteRoutes,
-        val repositories: () -> Collection<RepositoryInfo>,
+        val provider: RepositoryProvider,
     )
 
     private val registrations = linkedMapOf<String, Registration>()
@@ -40,7 +41,7 @@ class RepositoryFacade internal constructor(
     fun register(
         type: String,
         routes: ReposiliteRoutes,
-        repositories: () -> Collection<RepositoryInfo>,
+        provider: RepositoryProvider,
     ) {
         check(!sealed) { "Repository types have to be registered before the HTTP server starts" }
         require(type.isNotBlank()) { "Repository type cannot be blank" }
@@ -48,12 +49,12 @@ class RepositoryFacade internal constructor(
             "Repository type '$type' is already registered"
         }
 
-        registrations[type] = Registration(routes, repositories)
+        registrations[type] = Registration(routes, provider)
     }
 
     internal fun findRepositoryTypes(name: String): List<String> =
         registrations.flatMap { (type, registration) ->
-            registration.repositories()
+            registration.provider.getRepositories()
                 .filter { it.name == name }
                 .map { type }
         }

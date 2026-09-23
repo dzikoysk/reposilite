@@ -16,7 +16,6 @@
 
 package com.reposilite.repository.api
 
-interface RepositoryInfo {
-    val name: String
-    val visibility: RepositoryVisibility
+interface RepositoryProvider {
+    fun getRepositories(): Collection<RepositoryInfo>
 }

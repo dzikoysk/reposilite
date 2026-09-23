@@ -32,6 +32,7 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.FileDetails
@@ -43,12 +44,12 @@ import java.io.InputStream
 class MavenFacade internal constructor(
     private val journalist: Journalist,
     private val repositoryFacade: RepositoryFacade,
-    private val repositoryProvider: RepositoryProvider,
+    private val repositories: MavenRepositories,
     private val metadataService: MetadataService,
     private val latestService: LatestService,
-) : Journalist, Facade {
+) : Journalist, Facade, RepositoryProvider {
 
-    private val repositoryService = repositoryProvider.repositoryService
+    private val repositoryService = repositories.repositoryService
 
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
         repositoryService.findDetails(lookupRequest)
@@ -114,10 +115,10 @@ class MavenFacade internal constructor(
         repositoryService.getRootDirectory(accessToken)
 
     fun getRepository(name: String) =
-        repositoryProvider.getRepository(name)
+        repositories.getRepository(name)
 
-    fun getRepositories(): Collection<Repository> =
-        repositoryProvider.getRepositories()
+    override fun getRepositories(): Collection<Repository> =
+        repositories.getRepositories()
 
     override fun getLogger(): Logger =
         journalist.logger

@@ -21,19 +21,15 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClientProvider
-import com.reposilite.shared.notFoundError
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
-import panda.std.Result
-import panda.std.asSuccess
 import panda.std.reactive.Reference
 
-internal class RepositoryProvider(
+internal class MavenRepositories(
     private val journalist: Journalist,
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
@@ -50,7 +46,7 @@ internal class RepositoryProvider(
 
     val repositoryService = RepositoryService(
         journalist = journalist,
-        repositoryProvider = this,
+        repositories = this,
         repositoryFacade = repositoryFacade,
         mirrorService = mirrorService,
         resolutionProvider = resolutionProvider,
@@ -88,18 +84,13 @@ internal class RepositoryProvider(
                     }
                     repositoryFacade.validateRepositoryName(configuration.id)
 
-                    factory.createRepository(configuration.id, configuration)
+                    factory.createRepository(configuration)
                 }
                     .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
                     .getOrNull()
             }
             .associateBy { it.name }
     }
-
-    fun findRepository(name: String): Result<Repository, ErrorResponse> =
-        getRepository(name)
-            ?.asSuccess()
-            ?: notFoundError("Repository $name not found")
 
     fun getRepository(name: String): Repository? =
         repositories.get()[name]

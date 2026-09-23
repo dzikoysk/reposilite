@@ -40,7 +40,8 @@ internal class RepositoryFactory(
 
     private val repositoriesDirectory = Paths.get("repositories")
 
-    fun createRepository(repositoryName: String, configuration: RepositorySettings): Repository {
+    fun createRepository(configuration: RepositorySettings): Repository {
+        val repositoryName = configuration.id
         val mirrorHosts = configuration.proxied.mapNotNull { createMirroredHostConfiguration(it) }
         val storageProvider = storageFacade
             .createStorageProvider(

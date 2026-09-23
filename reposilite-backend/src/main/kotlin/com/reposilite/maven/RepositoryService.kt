@@ -50,7 +50,7 @@ import java.io.InputStream
 
 internal class RepositoryService(
     private val journalist: Journalist,
-    private val repositoryProvider: RepositoryProvider,
+    private val repositories: MavenRepositories,
     private val repositoryFacade: RepositoryFacade,
     private val mirrorService: MirrorService,
     private val resolutionProvider: ResolutionProvider,
@@ -129,18 +129,14 @@ internal class RepositoryService(
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
         val (accessToken, repositoryName, gav) = lookupRequest
-        val repository = repositoryProvider.getRepository(repositoryName)
+        val repository = repositories.getRepository(repositoryName)
             ?: return notFoundError("Repository $repositoryName not found")
 
-        return canAccessResource(lookupRequest.accessToken, repository.name, gav)
+        return repositoryFacade.canAccessResource(accessToken, repository, gav)
             .onError { logger.debug("ACCESS | Unauthorized attempt of access (token: $accessToken) to $gav from ${repository.name}") }
             .peek { extensions.emitEvent(PreResolveEvent(accessToken, repository, gav)) }
             .flatMap { block(repository, gav) }
     }
-
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
-        repositoryProvider.findRepository(repository)
-            .flatMap { repositoryFacade.canAccessResource(accessToken, it, gav) }
 
     private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
         findDetails(accessToken, repository, gav)
@@ -190,7 +186,7 @@ internal class RepositoryService(
     }
 
     fun getRootDirectory(accessToken: AccessTokenIdentifier?): DirectoryInfo =
-        repositoryProvider.getRepositories()
+        repositories.getRepositories()
             .filter { repositoryFacade.canAccessRepository(accessToken, it) }
             .map { SimpleDirectoryInfo(it.name) }
             .let { DirectoryInfo("/", it) }
