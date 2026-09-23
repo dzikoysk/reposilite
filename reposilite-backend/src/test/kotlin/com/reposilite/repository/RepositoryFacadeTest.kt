@@ -57,14 +57,14 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should reflect repositories changed by registration`() {
-        // given: registration backed by a repository supplier
+        // given: a registered type whose repositories can change
         var repositories = listOf(repository("first"))
         facade.register("custom", emptyRoutes) { repositories }
 
-        // when: configuration replaces its repositories
+        // when: the repository list is replaced
         repositories = listOf(repository("second"))
 
-        // then: facade resolves only the current repositories
+        // then: the old repository is gone and the new one is found
         assertThat(facade.findRepositoryTypes("first")).isEmpty()
         assertThat(facade.findRepositoryTypes("second")).containsExactly("custom")
     }
@@ -87,16 +87,16 @@ internal class RepositoryFacadeTest {
         register("maven", "shared")
         facade.register("custom", emptyRoutes) { customRepositories }
 
-        // when: repositories are queried while the name is ambiguous
+        // when: looking up the shared name
         val types = facade.findRepositoryTypes("shared")
 
-        // then: both types are returned so the gateway can reject the ambiguous name
+        // then: both types are returned so routing can reject the duplicate name
         assertThat(types).containsExactly("maven", "custom")
 
         // when: one type removes its conflicting repository
         customRepositories = emptyList()
 
-        // then: the remaining repository can be routed unambiguously
+        // then: only the Maven repository matches
         assertThat(facade.findRepositoryTypes("shared")).containsExactly("maven")
     }
 
@@ -108,7 +108,7 @@ internal class RepositoryFacadeTest {
         // when: the repository type is resolved
         val types = facade.findRepositoryTypes("shared")
 
-        // then: the duplicate remains ambiguous to the gateway
+        // then: both matches are kept so routing can reject the duplicate name
         assertThat(types).containsExactly("custom", "custom")
     }
 
@@ -126,7 +126,7 @@ internal class RepositoryFacadeTest {
 
     @Test
     fun `should reject repository names that cannot be routed safely`() {
-        // given: a repository name containing a path operator
+        // given: a repository name containing ../
         val repositoryName = "../downloads"
 
         // when & then: the invalid repository name is rejected

@@ -53,7 +53,7 @@ class RepositoryPlugin : ReposilitePlugin() {
                 routerConfig = event.config.router,
             )
 
-            // Keep the repository gateway behind regular routes because its paths intentionally match broadly.
+            // Register last so /{repository}/<path> doesn't intercept API and frontend requests.
             event.config.registerPlugin(object : JavalinPlugin<Unit?>() {
                 override fun onStart(state: JavalinState) {
                     repositoryDispatcher.endpoints.forEach { endpoint ->

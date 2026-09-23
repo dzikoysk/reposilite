@@ -36,7 +36,7 @@ class RepositoryFacade internal constructor(
     private val registrations = linkedMapOf<String, Registration>()
     private var sealed = false
 
-    /** Registers the routes and live repositories of one repository type before HTTP startup. */
+    /** Call before the HTTP server starts. */
     fun register(
         type: String,
         routes: ReposiliteRoutes,
@@ -58,7 +58,6 @@ class RepositoryFacade internal constructor(
                 .map { type }
         }
 
-    /** Validates a repository name before initialization. */
     fun validateRepositoryName(repositoryName: String) {
         require(
             repositoryName.isNotBlank() &&

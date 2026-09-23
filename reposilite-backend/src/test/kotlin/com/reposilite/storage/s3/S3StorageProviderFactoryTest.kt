@@ -44,7 +44,7 @@ internal class S3StorageProviderFactoryTest {
         // given: a registered S3 namespace
         register("releases", "https://s3.example", "shared", "artifacts/")
 
-        // when & then: an equal normalized namespace is rejected
+        // when & then: whitespace and a trailing slash do not hide the conflict
         assertThatIllegalArgumentException()
             .isThrownBy {
                 register("downloads", "https://s3.example/", " shared ", "artifacts/")
@@ -68,7 +68,7 @@ internal class S3StorageProviderFactoryTest {
         // given: a registered S3 namespace
         val previous = register("releases", "", "shared", "artifacts/")
 
-        // when: the previous generation becomes inactive
+        // when: the original registration is marked inactive
         previous.active = false
 
         // then: a replacement can reuse the namespace
