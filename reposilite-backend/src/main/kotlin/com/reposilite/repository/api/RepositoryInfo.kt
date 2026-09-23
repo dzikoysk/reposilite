@@ -16,19 +16,16 @@
 
 package com.reposilite.repository.api
 
-/** Type-neutral repository information used by shared routing and access rules. */
 interface RepositoryInfo {
     val name: String
     val accessMode: RepositoryAccessMode
 }
 
 enum class RepositoryAccessMode {
-    /** Listed and readable without credentials. */
     PUBLIC,
 
-    /** Hidden from unauthenticated listings, but readable when its name is known. */
+    /** Files can be downloaded without credentials, but browsing requires permission. */
     HIDDEN,
 
-    /** Neither listed nor readable without permission. */
     PRIVATE
 }
