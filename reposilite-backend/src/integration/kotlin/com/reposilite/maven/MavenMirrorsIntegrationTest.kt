@@ -44,7 +44,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     @Test
     fun `should proxy remote file`() = runBlocking {
         // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/remote.jar", "content") { gav, content ->
+        useProxiedHost("com/reposilite/remote.jar", "content") { gav, content ->
             // when: non-existing file is requested
             val notFoundResponse = get("$base/proxied/not/found.jar").asString()
 
@@ -63,7 +63,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     @Test
     fun `should not proxy file with forbidden extension`() = runBlocking {
         // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/remote.file", "content") { gav, _ ->
+        useProxiedHost("com/reposilite/remote.file", "content") { gav, _ ->
             // when: file that exists in remote repository is requested
             val response = get("$base/proxied/$gav").asString()
             // then: service responds with 404 status page as .file extension is not allowed
@@ -133,7 +133,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     @Test
     fun `should prioritize upstream metadata file over local copy`() = runBlocking {
         // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/maven-metadata.xml", "upstream") { gav, _ ->
+        useProxiedHost("com/reposilite/maven-metadata.xml", "upstream") { gav, _ ->
             // and: local repository with cached metadata file
             useDocument("proxied", "com/reposilite", "maven-metadata.xml", "local", true)
 

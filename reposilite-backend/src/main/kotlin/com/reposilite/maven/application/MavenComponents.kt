@@ -21,9 +21,9 @@ import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.MavenRepositories
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.MirrorService
-import com.reposilite.maven.RepositoryProvider
 import com.reposilite.maven.ResolutionProvider
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.PluginComponents
@@ -67,11 +67,11 @@ internal class MavenComponents(
     private fun resolutionProvider(): ResolutionProvider =
         ResolutionProvider(journalist)
 
-    private fun repositoryProvider(
+    private fun repositories(
         mirrorService: MirrorService = mirrorService(),
         resolutionProvider: ResolutionProvider = resolutionProvider(),
-    ): RepositoryProvider =
-        RepositoryProvider(
+    ): MavenRepositories =
+        MavenRepositories(
             journalist = journalist,
             workingDirectory = workingDirectory,
             remoteClientProvider = remoteClientProvider,
@@ -92,12 +92,12 @@ internal class MavenComponents(
     fun mavenFacade(
         metadataService: MetadataService = metadataService(),
         latestService: LatestService = latestService(),
-        repositoryProvider: RepositoryProvider = repositoryProvider(),
+        repositories: MavenRepositories = repositories(),
     ): MavenFacade =
         MavenFacade(
             journalist = journalist,
             repositoryFacade = repositoryFacade,
-            repositoryProvider = repositoryProvider,
+            repositories = repositories,
             metadataService = metadataService,
             latestService = latestService
         )

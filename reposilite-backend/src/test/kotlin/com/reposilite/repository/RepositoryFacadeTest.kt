@@ -17,8 +17,9 @@
 package com.reposilite.repository
 
 import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.repository.api.RepositoryAccessMode.PUBLIC
 import com.reposilite.repository.api.RepositoryInfo
+import com.reposilite.repository.api.RepositoryProvider
+import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
 import com.reposilite.storage.api.Location
 import com.reposilite.token.application.AccessTokenComponents
 import com.reposilite.web.api.ReposiliteRoute
@@ -58,11 +59,11 @@ internal class RepositoryFacadeTest {
     @Test
     fun `should reflect repositories changed by registration`() {
         // given: a registered type whose repositories can change
-        var repositories = listOf(repository("first"))
-        facade.register("custom", emptyRoutes) { repositories }
+        val provider = TestRepositoryProvider(listOf(repository("first")))
+        facade.register("custom", emptyRoutes, provider)
 
         // when: the repository list is replaced
-        repositories = listOf(repository("second"))
+        provider.currentRepositories = listOf(repository("second"))
 
         // then: the old repository is gone and the new one is found
         assertThat(facade.findRepositoryTypes("first")).isEmpty()
@@ -83,9 +84,9 @@ internal class RepositoryFacadeTest {
     @Test
     fun `should report all types sharing a repository name`() {
         // given: two types sharing a repository name
-        var customRepositories = listOf(repository("shared"))
+        val provider = TestRepositoryProvider(listOf(repository("shared")))
         register("maven", "shared")
-        facade.register("custom", emptyRoutes) { customRepositories }
+        facade.register("custom", emptyRoutes, provider)
 
         // when: looking up the shared name
         val types = facade.findRepositoryTypes("shared")
@@ -94,7 +95,7 @@ internal class RepositoryFacadeTest {
         assertThat(types).containsExactly("maven", "custom")
 
         // when: one type removes its conflicting repository
-        customRepositories = emptyList()
+        provider.currentRepositories = emptyList()
 
         // then: only the Maven repository matches
         assertThat(facade.findRepositoryTypes("shared")).containsExactly("maven")
@@ -141,7 +142,7 @@ internal class RepositoryFacadeTest {
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/cargo/<crate>", GET) {})
         }
-        facade.register("cargo", invalidRoutes) { listOf(repository("cargo")) }
+        facade.register("cargo", invalidRoutes, TestRepositoryProvider(listOf(repository("cargo"))))
 
         // when & then: repository routing validation rejects the route
         assertThatIllegalArgumentException()
@@ -155,7 +156,7 @@ internal class RepositoryFacadeTest {
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/{repository}/<path>", BEFORE) {})
         }
-        facade.register("cargo", invalidRoutes) { listOf(repository("cargo")) }
+        facade.register("cargo", invalidRoutes, TestRepositoryProvider(listOf(repository("cargo"))))
 
         // when & then: repository routing validation rejects the filter
         assertThatIllegalArgumentException()
@@ -179,12 +180,17 @@ internal class RepositoryFacadeTest {
     }
 
     private fun register(type: String, vararg names: String) {
-        facade.register(type, emptyRoutes) { names.map { repository(it) } }
+        facade.register(type, emptyRoutes, TestRepositoryProvider(names.map { repository(it) }))
     }
 
     private fun repository(id: String): RepositoryInfo =
         object : RepositoryInfo {
             override val name = id
-            override val accessMode = PUBLIC
+            override val visibility = PUBLIC
         }
+
+    private class TestRepositoryProvider(var currentRepositories: Collection<RepositoryInfo>) : RepositoryProvider {
+        override fun getRepositories(): Collection<RepositoryInfo> =
+            currentRepositories
+    }
 }

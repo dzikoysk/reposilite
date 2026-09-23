@@ -25,14 +25,13 @@ import io.javalin.config.JavalinConfig
 internal abstract class MavenIntegrationSpecification : ReposiliteSpecification() {
 
     protected fun useProxiedHost(
-        repository: String,
         gav: String,
         content: String,
         block: (String, String) -> Unit
     ) {
         val application = startProxiedHost { config ->
-            config.routes.head("/$repository/$gav") { ctx -> ctx.result(content) }
-            config.routes.get("/$repository/$gav") { ctx -> ctx.result(content) }
+            config.routes.head("/releases/$gav") { ctx -> ctx.result(content) }
+            config.routes.get("/releases/$gav") { ctx -> ctx.result(content) }
         }
 
         try {
