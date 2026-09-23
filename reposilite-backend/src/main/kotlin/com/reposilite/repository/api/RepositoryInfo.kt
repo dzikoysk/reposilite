@@ -17,10 +17,10 @@
 package com.reposilite.repository.api
 
 /** Type-neutral repository information used by shared routing and access rules. */
-data class RepositoryInfo(
-    val name: String,
-    val accessMode: RepositoryAccessMode,
-)
+interface RepositoryInfo {
+    val name: String
+    val accessMode: RepositoryAccessMode
+}
 
 enum class RepositoryAccessMode {
     /** Listed and readable without credentials. */

@@ -79,7 +79,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 frontendFacade = facade(),
                 compressionStrategy = localConfiguration.compressionStrategy.get(),
             ),
-            repositories = { mavenFacade.getRepositories().map { it.info } },
+            repositories = mavenFacade::getRepositories,
         )
 
         event { event: RoutingSetupEvent ->
