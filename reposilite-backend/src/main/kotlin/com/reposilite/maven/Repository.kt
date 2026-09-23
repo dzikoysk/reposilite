@@ -33,7 +33,7 @@ internal const val MAVEN_REPOSITORY_TYPE = "maven"
 
 @Suppress("DeprecatedCallableAddReplaceWith")
 class Repository internal constructor(
-    val name: String,
+    override val name: String,
     val visibility: RepositoryVisibility,
     val redeployment: Boolean,
     val preserveSnapshots: Boolean,
@@ -44,20 +44,18 @@ class Repository internal constructor(
     parallelMetadataLookup: Boolean,
     resolutionCacheMaxEntries: Int,
     resolutionCacheLevel: ResolutionCacheLevel,
-) {
+) : RepositoryInfo {
 
     init {
         check(name.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters" }
     }
 
-    internal val info = RepositoryInfo(
-        name = name,
-        accessMode = when (visibility) {
+    override val accessMode: RepositoryAccessMode =
+        when (visibility) {
             RepositoryVisibility.PUBLIC -> RepositoryAccessMode.PUBLIC
             RepositoryVisibility.HIDDEN -> RepositoryAccessMode.HIDDEN
             RepositoryVisibility.PRIVATE -> RepositoryAccessMode.PRIVATE
         }
-    )
 
     internal val resolutionCache: ResolutionCache? =
         when {

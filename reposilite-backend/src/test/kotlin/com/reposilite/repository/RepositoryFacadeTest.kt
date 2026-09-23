@@ -183,5 +183,8 @@ internal class RepositoryFacadeTest {
     }
 
     private fun repository(id: String): RepositoryInfo =
-        RepositoryInfo(id, PUBLIC)
+        object : RepositoryInfo {
+            override val name = id
+            override val accessMode = PUBLIC
+        }
 }
