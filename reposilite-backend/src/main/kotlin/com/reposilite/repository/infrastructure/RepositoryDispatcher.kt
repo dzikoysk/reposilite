@@ -16,8 +16,7 @@
 
 package com.reposilite.repository.infrastructure
 
-import com.reposilite.repository.RepositoryFacade
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.repository.RepositoryFacade.Registration
 import com.reposilite.web.infrastructure.ReposiliteDsl
 import io.javalin.config.RouterConfig
 import io.javalin.http.Handler
@@ -28,14 +27,13 @@ import io.javalin.router.ParsedEndpoint
 import io.javalin.router.matcher.PathMatcher
 
 internal class RepositoryDispatcher(
-    private val repositoryFacade: RepositoryFacade,
-    routesByType: Map<String, ReposiliteRoutes>,
+    private val registrations: Map<String, Registration>,
     dsl: ReposiliteDsl,
     routerConfig: RouterConfig,
 ) {
 
-    private val endpointsByType = routesByType.mapValues { (_, routes) ->
-        dsl.createEndpoints(routes)
+    private val endpointsByType = registrations.mapValues { (_, registration) ->
+        dsl.createEndpoints(registration.routes)
     }
 
     private val routersByType = endpointsByType.mapValues { (_, endpoints) ->
@@ -44,7 +42,7 @@ internal class RepositoryDispatcher(
         }
     }
 
-    private val fallbackType = routesByType.keys.find { it == "maven" }
+    private val fallbackType = registrations.keys.find { it == "maven" }
 
     private val gatewayHandler = createGatewayHandler()
 
@@ -61,7 +59,12 @@ internal class RepositoryDispatcher(
 
     private fun createGatewayHandler(): Handler =
         Handler { context ->
-            val types = repositoryFacade.findRepositoryTypes(context.pathParam("repository"))
+            val name = context.pathParam("repository")
+            val types = registrations.flatMap { (type, registration) ->
+                registration.provider.getRepositories()
+                    .filter { it.name == name }
+                    .map { type }
+            }
             val type = when (types.size) {
                 0 -> fallbackType
                 1 -> types.single()

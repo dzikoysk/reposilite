@@ -20,6 +20,7 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.repository.api.RepositoryIdentity
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.http.createHttpProxy
 import com.reposilite.status.FailureFacade
@@ -40,22 +41,21 @@ internal class RepositoryFactory(
 
     private val repositoriesDirectory = Paths.get("repositories")
 
-    fun createRepository(configuration: RepositorySettings): Repository {
-        val repositoryName = configuration.id
+    fun createRepository(identity: RepositoryIdentity, configuration: RepositorySettings): Repository {
         val mirrorHosts = configuration.proxied.mapNotNull { createMirroredHostConfiguration(it) }
         val storageProvider = storageFacade
             .createStorageProvider(
                 journalist = journalist,
                 failureFacade = failureFacade,
                 workingDirectory = workingDirectory.resolve(repositoriesDirectory),
-                repository = repositoryName,
+                repository = identity.name,
                 storageSettings = configuration.storageProvider,
             )
             ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")
 
         return try {
             Repository(
-                name = repositoryName,
+                identity = identity,
                 visibility = configuration.visibility,
                 redeployment = configuration.redeployment,
                 preserveSnapshots = configuration.preserveSnapshots,

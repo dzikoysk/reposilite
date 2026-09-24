@@ -21,6 +21,9 @@ package com.reposilite.maven
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.maven.application.MavenSettings
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.maxAge
@@ -46,6 +49,26 @@ internal class LocalMavenIntegrationTest : MavenIntegrationTest()
 internal class RemoteMavenIntegrationTest : MavenIntegrationTest()
 
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
+
+    @Test
+    fun `should skip invalid repository names when reloading settings`() {
+        // given: invalid and valid repository definitions in the same configuration
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+        val configuration = settings.get().copy(
+            repositories = settings.get().repositories + listOf(
+                RepositorySettings(id = " invalid", storageProvider = _storageProvider!!),
+                RepositorySettings(id = "valid-after-invalid", storageProvider = _storageProvider!!),
+            ),
+        )
+
+        // when: the configuration is reloaded
+        settings.update { configuration }
+
+        // then: only the invalid repository is skipped
+        assertThat(mavenFacade.getRepository(" invalid")).isNull()
+        assertThat(mavenFacade.getRepository("valid-after-invalid")).isNotNull()
+        assertThat(mavenFacade.getRepository("releases")).isNotNull()
+    }
 
     @Test
     fun `should browse repository root`() {

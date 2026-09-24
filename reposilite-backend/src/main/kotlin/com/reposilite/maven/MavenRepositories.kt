@@ -21,6 +21,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.RepositoryIdentity
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
@@ -40,7 +41,7 @@ internal class MavenRepositories(
     private val storageFacade: StorageFacade,
     mirrorService: MirrorService,
     resolutionProvider: ResolutionProvider,
-    private val repositoryFacade: RepositoryFacade,
+    repositoryFacade: RepositoryFacade,
     repositoriesSource: Reference<List<RepositorySettings>>,
 ) {
 
@@ -78,13 +79,15 @@ internal class MavenRepositories(
         val duplicatedNames = repositoriesConfiguration.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys
         return repositoriesConfiguration.asSequence()
             .mapNotNull { configuration ->
+                val identity = RepositoryIdentity.create(configuration.id)
+                    .onError { failureFacade.throwException("Cannot load ${configuration.id} repository", IllegalArgumentException(it)) }
+                    .orNull() ?: return@mapNotNull null
+
                 runCatching {
                     require(configuration.id !in duplicatedNames) {
                         "Repository name '${configuration.id}' is duplicated in Maven repository settings"
                     }
-                    repositoryFacade.validateRepositoryName(configuration.id)
-
-                    factory.createRepository(configuration)
+                    factory.createRepository(identity, configuration)
                 }
                     .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
                     .getOrNull()

@@ -39,11 +39,8 @@ class RepositoryPlugin : ReposilitePlugin() {
         )
 
         event { event: HttpServerInitializationEvent ->
-            val registeredRoutes = repositoryFacade.validateAndSeal()
-
             val repositoryDispatcher = RepositoryDispatcher(
-                repositoryFacade = repositoryFacade,
-                routesByType = registeredRoutes,
+                registrations = repositoryFacade.getRegistrations(),
                 dsl = createReposiliteDslFactory(
                     journalist = this,
                     failureFacade = facade<FailureFacade>(),

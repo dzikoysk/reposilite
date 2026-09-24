@@ -24,69 +24,46 @@ import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.api.ReposiliteRoutes
 import panda.std.Result
+import panda.std.asError
+import panda.std.ok
 
 class RepositoryFacade internal constructor(
     private val accessResolver: RepositoryAccessResolver,
 ) : Facade {
 
-    private class Registration(
+    internal class Registration(
         val routes: ReposiliteRoutes,
         val provider: RepositoryProvider,
     )
 
     private val registrations = linkedMapOf<String, Registration>()
-    private var sealed = false
 
-    /** Call before the HTTP server starts. */
     fun register(
         type: String,
         routes: ReposiliteRoutes,
         provider: RepositoryProvider,
-    ) {
-        check(!sealed) { "Repository types have to be registered before the HTTP server starts" }
-        require(type.isNotBlank()) { "Repository type cannot be blank" }
-        require(type !in registrations) {
-            "Repository type '$type' is already registered"
-        }
-
-        registrations[type] = Registration(routes, provider)
-    }
-
-    internal fun findRepositoryTypes(name: String): List<String> =
-        registrations.flatMap { (type, registration) ->
-            registration.provider.getRepositories()
-                .filter { it.name == name }
-                .map { type }
-        }
-
-    fun validateRepositoryName(repositoryName: String) {
-        require(
-            repositoryName.isNotBlank() &&
-                repositoryName == repositoryName.trim() &&
-                repositoryName != "." &&
-                repositoryName != ".." &&
-                repositoryName.none { it == '/' || it == '\\' || it.isISOControl() }
-        ) {
-            "Repository name '$repositoryName' has to be a non-blank URL path segment"
-        }
-    }
-
-    internal fun validateAndSeal(): Map<String, ReposiliteRoutes> {
-        val registeredRoutes = registrations.mapValues { (type, registration) ->
-            registration.routes.also { routes ->
-                routes.routes.forEach { route ->
-                    require(route.path == "/{repository}" || route.path.startsWith("/{repository}/")) {
-                        "Repository type '$type' route '${route.path}' has to start with '/{repository}'"
-                    }
-                    require(route.methods.isNotEmpty() && route.methods.all { it.isHttpMethod }) {
-                        "Repository type '$type' route '${route.path}' has to declare HTTP methods only"
-                    }
+    ): Result<Unit, String> {
+        val validationError = when {
+            type.isBlank() -> "Repository type cannot be blank"
+            type in registrations -> "Repository type '$type' is already registered"
+            else -> routes.routes.firstNotNullOfOrNull { route ->
+                when {
+                    route.path != "/{repository}" && !route.path.startsWith("/{repository}/") -> "Repository type '$type' route '${route.path}' has to start with '/{repository}'"
+                    route.methods.isEmpty() || route.methods.any { !it.isHttpMethod } -> "Repository type '$type' route '${route.path}' has to declare HTTP methods only"
+                    else -> null
                 }
             }
         }
-        sealed = true
-        return registeredRoutes
+        if (validationError != null) {
+            return validationError.asError()
+        }
+
+        registrations[type] = Registration(routes, provider)
+        return ok()
     }
+
+    internal fun getRegistrations(): Map<String, Registration> =
+        registrations.toMap()
 
     fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo): Boolean =
         accessResolver.canAccessRepository(accessToken, repository)
