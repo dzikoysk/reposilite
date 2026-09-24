@@ -80,7 +80,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 compressionStrategy = localConfiguration.compressionStrategy.get(),
             ),
             provider = mavenFacade,
-        )
+        ).onError { logger.error("Cannot register Maven repositories: $it") }
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(MavenApiEndpoints(mavenFacade))

@@ -27,8 +27,6 @@ import com.reposilite.web.api.ReposiliteRoutes
 import io.javalin.community.routing.Route.BEFORE
 import io.javalin.community.routing.Route.GET
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
-import org.assertj.core.api.Assertions.assertThatIllegalStateException
 import org.junit.jupiter.api.Test
 
 internal class RepositoryFacadeTest {
@@ -44,96 +42,30 @@ internal class RepositoryFacadeTest {
     )
 
     @Test
-    fun `should resolve repository type by name`() {
-        // given: two types with distinct repositories
-        register("maven", "releases")
-        register("custom", "downloads")
+    fun `should reject blank repository type`() {
+        // given: a provider with a valid repository
+        val provider = TestRepositoryProvider(listOf(repository("downloads")))
 
-        // when: the repository type is resolved by name
-        val types = facade.findRepositoryTypes("downloads")
+        // when: registration uses a blank type
+        val result = facade.register(" ", emptyRoutes, provider)
 
-        // then: the matching type is returned
-        assertThat(types).containsExactly("custom")
-    }
-
-    @Test
-    fun `should reflect repositories changed by registration`() {
-        // given: a registered type whose repositories can change
-        val provider = TestRepositoryProvider(listOf(repository("first")))
-        facade.register("custom", emptyRoutes, provider)
-
-        // when: the repository list is replaced
-        provider.currentRepositories = listOf(repository("second"))
-
-        // then: the old repository is gone and the new one is found
-        assertThat(facade.findRepositoryTypes("first")).isEmpty()
-        assertThat(facade.findRepositoryTypes("second")).containsExactly("custom")
+        // then: the error is returned without adding a registration
+        assertThat(result.error).contains("cannot be blank")
+        assertThat(facade.getRegistrations()).isEmpty()
     }
 
     @Test
     fun `should reject duplicate repository type`() {
         // given: an already registered repository type
-        register("custom", "first")
-
-        // when & then: another registration of the same type is rejected
-        assertThatIllegalArgumentException()
-            .isThrownBy { register("custom", "second") }
-            .withMessageContaining("already registered")
-    }
-
-    @Test
-    fun `should report all types sharing a repository name`() {
-        // given: two types sharing a repository name
-        val provider = TestRepositoryProvider(listOf(repository("shared")))
-        register("maven", "shared")
+        val provider = TestRepositoryProvider(listOf(repository("first")))
         facade.register("custom", emptyRoutes, provider)
 
-        // when: looking up the shared name
-        val types = facade.findRepositoryTypes("shared")
+        // when: another provider registers the same type
+        val result = facade.register("custom", emptyRoutes, TestRepositoryProvider(listOf(repository("second"))))
 
-        // then: both types are returned so routing can reject the duplicate name
-        assertThat(types).containsExactly("maven", "custom")
-
-        // when: one type removes its conflicting repository
-        provider.currentRepositories = emptyList()
-
-        // then: only the Maven repository matches
-        assertThat(facade.findRepositoryTypes("shared")).containsExactly("maven")
-    }
-
-    @Test
-    fun `should preserve duplicate repository names within a type`() {
-        // given: a type exposing two repositories with the same name
-        register("custom", "shared", "shared")
-
-        // when: the repository type is resolved
-        val types = facade.findRepositoryTypes("shared")
-
-        // then: both matches are kept so routing can reject the duplicate name
-        assertThat(types).containsExactly("custom", "custom")
-    }
-
-    @Test
-    fun `should reject types registered after routing is sealed`() {
-        // given: sealed repository routing
-        register("maven", "releases")
-        facade.validateAndSeal()
-
-        // when & then: a late repository type registration is rejected
-        assertThatIllegalStateException()
-            .isThrownBy { register("cargo", "cargo-releases") }
-            .withMessageContaining("before the HTTP server starts")
-    }
-
-    @Test
-    fun `should reject repository names that cannot be routed safely`() {
-        // given: a repository name containing ../
-        val repositoryName = "../downloads"
-
-        // when & then: the invalid repository name is rejected
-        assertThatIllegalArgumentException()
-            .isThrownBy { facade.validateRepositoryName(repositoryName) }
-            .withMessageContaining("URL path segment")
+        // then: the error is returned and the original provider is retained
+        assertThat(result.error).contains("already registered")
+        assertThat(facade.getRegistrations().getValue("custom").provider).isSameAs(provider)
     }
 
     @Test
@@ -142,12 +74,15 @@ internal class RepositoryFacadeTest {
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/cargo/<crate>", GET) {})
         }
-        facade.register("cargo", invalidRoutes, TestRepositoryProvider(listOf(repository("cargo"))))
+        val provider = TestRepositoryProvider(listOf(repository("cargo")))
 
-        // when & then: repository routing validation rejects the route
-        assertThatIllegalArgumentException()
-            .isThrownBy { facade.validateAndSeal() }
-            .withMessageContaining("/{repository}")
+        // when: the invalid routes are registered
+        val result = facade.register("cargo", invalidRoutes, provider)
+
+        // then: the error is returned and the type is available for a corrected registration
+        assertThat(result.error).contains("/{repository}")
+        assertThat(facade.getRegistrations()).isEmpty()
+        assertThat(facade.register("cargo", emptyRoutes, provider).isOk).isTrue
     }
 
     @Test
@@ -156,12 +91,13 @@ internal class RepositoryFacadeTest {
         val invalidRoutes = object : ReposiliteRoutes() {
             override val routes = routes(ReposiliteRoute<Unit>("/{repository}/<path>", BEFORE) {})
         }
-        facade.register("cargo", invalidRoutes, TestRepositoryProvider(listOf(repository("cargo"))))
 
-        // when & then: repository routing validation rejects the filter
-        assertThatIllegalArgumentException()
-            .isThrownBy { facade.validateAndSeal() }
-            .withMessageContaining("HTTP methods only")
+        // when: a filter is registered as a repository route
+        val result = facade.register("cargo", invalidRoutes, TestRepositoryProvider(listOf(repository("cargo"))))
+
+        // then: the error is returned without adding a registration
+        assertThat(result.error).contains("HTTP methods only")
+        assertThat(facade.getRegistrations()).isEmpty()
     }
 
     @Test
@@ -179,18 +115,14 @@ internal class RepositoryFacadeTest {
         assertThat(modification).isFalse
     }
 
-    private fun register(type: String, vararg names: String) {
-        facade.register(type, emptyRoutes, TestRepositoryProvider(names.map { repository(it) }))
-    }
-
     private fun repository(id: String): RepositoryInfo =
         object : RepositoryInfo {
             override val name = id
             override val visibility = PUBLIC
         }
 
-    private class TestRepositoryProvider(var currentRepositories: Collection<RepositoryInfo>) : RepositoryProvider {
+    private class TestRepositoryProvider(private val repositories: Collection<RepositoryInfo>) : RepositoryProvider {
         override fun getRepositories(): Collection<RepositoryInfo> =
-            currentRepositories
+            repositories
     }
 }
