@@ -16,6 +16,7 @@
 
 package com.reposilite.generic
 
+import com.reposilite.repository.api.RepositoryIdentity
 import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.repository.api.RepositoryVisibility
 import com.reposilite.storage.StorageProvider
@@ -23,8 +24,12 @@ import com.reposilite.storage.StorageProvider
 internal const val GENERIC_REPOSITORY_TYPE = "generic"
 
 class GenericRepository internal constructor(
-    override val name: String,
+    identity: RepositoryIdentity,
     override val visibility: RepositoryVisibility,
     val redeployment: Boolean,
     val storageProvider: StorageProvider,
-) : RepositoryInfo
+) : RepositoryInfo {
+
+    override val name: String = identity.name
+
+}

@@ -18,7 +18,7 @@ package com.reposilite.generic
 
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.journalist.Journalist
-import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.RepositoryIdentity
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import panda.std.reactive.Reference
@@ -29,7 +29,6 @@ internal class GenericRepositories(
     private val journalist: Journalist,
     private val workingDirectory: Path,
     private val failureFacade: FailureFacade,
-    private val repositoryFacade: RepositoryFacade,
     private val storageFacade: StorageFacade,
     repositoriesSource: Reference<List<GenericRepositorySettings>>,
 ) {
@@ -56,21 +55,23 @@ internal class GenericRepositories(
         val duplicatedNames = settings.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys
 
         return settings.mapNotNull { configuration ->
+            val identity = RepositoryIdentity.create(configuration.id)
+                .onError { failureFacade.throwException("Cannot load ${configuration.id} repository", IllegalArgumentException(it)) }
+                .orNull() ?: return@mapNotNull null
+
             runCatching {
                 require(configuration.id !in duplicatedNames) {
                     "Repository name '${configuration.id}' is duplicated in generic repository settings"
                 }
-                repositoryFacade.validateRepositoryName(configuration.id)
-
                 GenericRepository(
-                    name = configuration.id,
+                    identity = identity,
                     visibility = configuration.visibility,
                     redeployment = configuration.redeployment,
                     storageProvider = storageFacade.createStorageProvider(
                         journalist = journalist,
                         failureFacade = failureFacade,
                         workingDirectory = workingDirectory.resolve("repositories"),
-                        repository = configuration.id,
+                        repository = identity.name,
                         storageSettings = configuration.storageProvider,
                     ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
                 )

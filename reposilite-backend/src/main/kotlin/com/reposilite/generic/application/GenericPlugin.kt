@@ -46,7 +46,6 @@ internal class GenericPlugin : ReposilitePlugin() {
             journalist = this,
             workingDirectory = parameters().workingDirectory,
             failureFacade = facade<FailureFacade>(),
-            repositoryFacade = repositoryFacade,
             storageFacade = facade<StorageFacade>(),
             repositoriesSource = facade<SharedConfigurationFacade>()
                 .getDomainSettings<GenericSettings>()
@@ -62,7 +61,7 @@ internal class GenericPlugin : ReposilitePlugin() {
                 compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get(),
             ),
             provider = genericFacade,
-        )
+        ).onError { logger.error("Cannot register generic repositories: $it") }
 
         event { _: ReposiliteDisposeEvent -> repositories.shutdown() }
 

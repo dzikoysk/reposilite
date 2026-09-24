@@ -235,6 +235,7 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
             settings.copy(
                 repositories = settings.repositories + listOf(
                     GenericRepositorySettings(id = "../invalid", storageProvider = _storageProvider!!),
+                    GenericRepositorySettings(id = " invalid", storageProvider = _storageProvider!!),
                     GenericRepositorySettings(
                         id = "releases",
                         storageProvider = FileSystemStorageProviderSettings(mount = "generic-name-conflict"),
@@ -250,6 +251,7 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
 
         // then: invalid repositories are skipped and conflicting names return 404
         assertThat(genericFacade.getRepository("../invalid")).isNull()
+        assertThat(genericFacade.getRepository(" invalid")).isNull()
         assertThat(genericFacade.getRepository("releases")).isNotNull()
         assertThat(genericFacade.getRepository("duplicated")).isNull()
         assertThat(genericFacade.getRepository("files")).isNotNull()
