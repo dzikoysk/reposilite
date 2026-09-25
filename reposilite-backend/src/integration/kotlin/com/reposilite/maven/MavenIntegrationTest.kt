@@ -56,8 +56,8 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
         val configuration = settings.get().copy(
             repositories = settings.get().repositories + listOf(
-                RepositorySettings(id = " invalid", storageProvider = _storageProvider!!),
-                RepositorySettings(id = "valid-after-invalid", storageProvider = _storageProvider!!),
+                RepositorySettings(id = " invalid", storageProvider = useTargetStorageSettings()),
+                RepositorySettings(id = "valid-after-invalid", storageProvider = useTargetStorageSettings()),
             ),
         )
 

@@ -20,6 +20,8 @@ import com.reposilite.repository.api.RepositoryIdentity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import panda.std.ResultAssertions.assertError
+import panda.std.ResultAssertions.assertOk
 
 internal class RepositoryIdentityTest {
 
@@ -27,21 +29,23 @@ internal class RepositoryIdentityTest {
     @ValueSource(strings = ["", " ", " downloads", "downloads ", ".", "..", "../downloads", "down/loads", "down\\loads", "down\nloads"])
     fun `should reject repository names that cannot be routed safely`(name: String) {
         // given: a repository name that is not a valid path segment
+
         // when: an identity is created
         val result = RepositoryIdentity.create(name)
 
         // then: creation returns an error without throwing
-        assertThat(result.error).contains("URL path segment")
+        assertThat(assertError(result)).contains("URL path segment")
     }
 
     @ParameterizedTest
     @ValueSource(strings = ["releases", "Maven-123", "NEGATIVE_CACHE", "repo.name"])
     fun `should preserve supported repository names`(name: String) {
         // given: a supported repository name
+
         // when: an identity is created
         val result = RepositoryIdentity.create(name)
 
         // then: the identity retains the name unchanged
-        assertThat(result.get().name).isEqualTo(name)
+        assertThat(assertOk(result).name).isEqualTo(name)
     }
 }

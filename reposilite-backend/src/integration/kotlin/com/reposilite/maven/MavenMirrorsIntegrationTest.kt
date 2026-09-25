@@ -42,7 +42,7 @@ internal class RemoteMavenMirrorsIntegrationTest : MavenMirrorsIntegrationTest()
 internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
-    fun `should proxy remote file`() = runBlocking {
+    fun `should proxy remote file`() {
         // given: a remote server and artifact
         useProxiedHost("com/reposilite/remote.jar", "content") { gav, content ->
             // when: non-existing file is requested
@@ -61,7 +61,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     }
 
     @Test
-    fun `should not proxy file with forbidden extension`() = runBlocking {
+    fun `should not proxy file with forbidden extension`() {
         // given: a remote server and artifact
         useProxiedHost("com/reposilite/remote.file", "content") { gav, _ ->
             // when: file that exists in remote repository is requested

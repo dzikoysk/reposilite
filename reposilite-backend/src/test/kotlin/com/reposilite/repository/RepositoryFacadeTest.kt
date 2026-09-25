@@ -16,113 +16,96 @@
 
 package com.reposilite.repository
 
-import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.repository.api.RepositoryInfo
-import com.reposilite.repository.api.RepositoryProvider
-import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
+import com.reposilite.repository.specification.RepositorySpecification
 import com.reposilite.storage.api.Location
-import com.reposilite.token.application.AccessTokenComponents
+import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
 import io.javalin.community.routing.Route.BEFORE
 import io.javalin.community.routing.Route.GET
+import io.javalin.http.HttpStatus.BAD_REQUEST
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import panda.std.ResultAssertions.assertError
+import panda.std.ResultAssertions.assertOk
 
-internal class RepositoryFacadeTest {
-
-    private val emptyRoutes = object : ReposiliteRoutes() {
-        override val routes = emptySet<ReposiliteRoute<*>>()
-    }
-
-    private val facade = RepositoryFacade(
-        accessResolver = RepositoryAccessResolver(
-            AccessTokenComponents(InMemoryLogger(), null).accessTokenFacade()
-        ),
-    )
+internal class RepositoryFacadeTest : RepositorySpecification() {
 
     @Test
     fun `should reject blank repository type`() {
         // given: a provider with a valid repository
-        val provider = TestRepositoryProvider(listOf(repository("downloads")))
+        val provider = useRepositoryProvider("downloads")
 
         // when: registration uses a blank type
-        val result = facade.register(" ", emptyRoutes, provider)
+        val result = repositoryFacade.register(" ", useRoutes(), provider)
 
         // then: the error is returned without adding a registration
-        assertThat(result.error).contains("cannot be blank")
-        assertThat(facade.getRegistrations()).isEmpty()
+        assertThat(assertError(result)).contains("cannot be blank")
+        assertThat(repositoryFacade.getRegistrations()).isEmpty()
     }
 
     @Test
     fun `should reject duplicate repository type`() {
         // given: an already registered repository type
-        val provider = TestRepositoryProvider(listOf(repository("first")))
-        facade.register("custom", emptyRoutes, provider)
+        val provider = useRepositoryProvider("first")
+        assertOk(repositoryFacade.register("custom", useRoutes(), provider))
 
         // when: another provider registers the same type
-        val result = facade.register("custom", emptyRoutes, TestRepositoryProvider(listOf(repository("second"))))
+        val result = repositoryFacade.register("custom", useRoutes(), useRepositoryProvider("second"))
 
-        // then: the error is returned and the original provider is retained
-        assertThat(result.error).contains("already registered")
-        assertThat(facade.getRegistrations().getValue("custom").provider).isSameAs(provider)
+        // then: the original provider is retained
+        assertThat(assertError(result)).contains("already registered")
+        assertThat(repositoryFacade.getRegistrations().getValue("custom").provider).isSameAs(provider)
     }
 
     @Test
     fun `should reject routes outside repository gateway`() {
-        // given: a repository route without the repository path parameter
-        val invalidRoutes = object : ReposiliteRoutes() {
-            override val routes = routes(ReposiliteRoute<Unit>("/cargo/<crate>", GET) {})
-        }
-        val provider = TestRepositoryProvider(listOf(repository("cargo")))
+        // given: a route without the repository path parameter
+        val routes = useRoutes(ReposiliteRoute<Unit>("/cargo/<crate>", GET) {})
+        val provider = useRepositoryProvider("cargo")
 
         // when: the invalid routes are registered
-        val result = facade.register("cargo", invalidRoutes, provider)
+        val result = repositoryFacade.register("cargo", routes, provider)
 
-        // then: the error is returned and the type is available for a corrected registration
-        assertThat(result.error).contains("/{repository}")
-        assertThat(facade.getRegistrations()).isEmpty()
-        assertThat(facade.register("cargo", emptyRoutes, provider).isOk).isTrue
+        // then: the registration is rejected
+        assertThat(assertError(result)).contains("/{repository}")
+        assertThat(repositoryFacade.getRegistrations()).isEmpty()
+
+        // when: the type is registered with valid routes
+        val retry = repositoryFacade.register("cargo", useRoutes(), provider)
+
+        // then: the rejected registration does not reserve the type
+        assertOk(retry)
     }
 
     @Test
     fun `should reject filter routes`() {
-        // given: a repository registration containing a filter route
-        val invalidRoutes = object : ReposiliteRoutes() {
-            override val routes = routes(ReposiliteRoute<Unit>("/{repository}/<path>", BEFORE) {})
-        }
+        // given: a filter instead of an HTTP endpoint
+        val routes = useRoutes(ReposiliteRoute<Unit>("/{repository}/<path>", BEFORE) {})
 
-        // when: a filter is registered as a repository route
-        val result = facade.register("cargo", invalidRoutes, TestRepositoryProvider(listOf(repository("cargo"))))
+        // when: the filter is registered as a repository route
+        val result = repositoryFacade.register("cargo", routes, useRepositoryProvider("cargo"))
 
         // then: the error is returned without adding a registration
-        assertThat(result.error).contains("HTTP methods only")
-        assertThat(facade.getRegistrations()).isEmpty()
+        assertThat(assertError(result)).contains("HTTP methods only")
+        assertThat(repositoryFacade.getRegistrations()).isEmpty()
     }
 
     @Test
     fun `should reject current directory path before checking access`() {
-        // given: a repository and the current directory path
-        val repository = repository("cargo")
+        // given: a repository and a token with permission to modify its files
+        val repository = useRepository("cargo")
+        val token = createToken("manager").accessToken.identifier
+        accessTokenFacade.addPermission(token, MANAGER)
+        assertThat(repositoryFacade.canModifyResource(token, repository, Location.of("file"))).isTrue
+
+        // when: the current directory path is checked
         val currentDirectory = Location.of(".")
+        val access = repositoryFacade.canAccessResource(token, repository, currentDirectory)
+        val modification = repositoryFacade.canModifyResource(token, repository, currentDirectory)
 
-        // when: resource access is resolved
-        val access = facade.canAccessResource(null, repository, currentDirectory)
-        val modification = facade.canModifyResource(null, repository, currentDirectory)
-
-        // then: access is rejected before repository permissions are evaluated
-        assertThat(access.error.status).isEqualTo(400)
+        // then: the path is rejected despite the token's permissions
+        assertThat(assertError(access).status).isEqualTo(BAD_REQUEST.code)
         assertThat(modification).isFalse
     }
 
-    private fun repository(id: String): RepositoryInfo =
-        object : RepositoryInfo {
-            override val name = id
-            override val visibility = PUBLIC
-        }
-
-    private class TestRepositoryProvider(private val repositories: Collection<RepositoryInfo>) : RepositoryProvider {
-        override fun getRepositories(): Collection<RepositoryInfo> =
-            repositories
-    }
 }
