@@ -16,7 +16,7 @@
 
 package com.reposilite.repository.specification
 
-import com.reposilite.repository.infrastructure.RepositoryDispatcher
+import com.reposilite.repository.infrastructure.RepositoryRoutingPlugin
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.infrastructure.ReposiliteDsl
 import io.javalin.Javalin
@@ -35,17 +35,24 @@ internal abstract class RepositoryRoutingSpecification : RepositorySpecification
 
     protected fun useServer(block: (String) -> Unit) {
         val server = Javalin.create { config ->
-            val dispatcher = RepositoryDispatcher(
-                registrations = repositoryFacade.getRegistrations(),
-                dsl = ReposiliteDsl(
-                    routeFactory = { Handler { context ->
-                        context.result("${context.pathParam("repository")}/${context.pathParam("resource")}")
-                    } },
-                    exceptionRouteFactory = { error("No exception handlers are registered") },
-                ),
-                routerConfig = config.router,
+            config.router.handlerWrapper { endpoint ->
+                Handler { context ->
+                    context.header("X-Route", endpoint.path)
+                    endpoint.handler.handle(context)
+                }
+            }
+            config.registerPlugin(
+                RepositoryRoutingPlugin.create(
+                    registrations = repositoryFacade.getRegistrations(),
+                    dsl = ReposiliteDsl(
+                        routeFactory = { Handler { context ->
+                            context.result("${context.pathParam("repository")}/${context.pathParam("resource")}")
+                        } },
+                        exceptionRouteFactory = { error("No exception handlers are registered") },
+                    ),
+                    routerConfig = config.router,
+                )
             )
-            dispatcher.endpoints.forEach { config.routes.addEndpoint(it) }
         }
 
         try {
