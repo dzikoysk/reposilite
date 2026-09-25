@@ -23,13 +23,11 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.repository.RepositoryAccessResolver
 import com.reposilite.repository.RepositoryFacade
-import com.reposilite.repository.infrastructure.RepositoryDispatcher
+import com.reposilite.repository.infrastructure.RepositoryRoutingPlugin
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.infrastructure.createReposiliteDslFactory
-import io.javalin.config.JavalinState
-import io.javalin.plugin.Plugin as JavalinPlugin
 
 @Plugin(name = "repository", dependencies = ["web", "failure", "access-token", "authentication"])
 class RepositoryPlugin : ReposilitePlugin() {
@@ -39,25 +37,19 @@ class RepositoryPlugin : ReposilitePlugin() {
         )
 
         event { event: HttpServerInitializationEvent ->
-            val repositoryDispatcher = RepositoryDispatcher(
-                registrations = repositoryFacade.getRegistrations(),
-                dsl = createReposiliteDslFactory(
-                    journalist = this,
-                    failureFacade = facade<FailureFacade>(),
-                    accessTokenFacade = facade<AccessTokenFacade>(),
-                    authenticationFacade = facade<AuthenticationFacade>(),
-                ),
-                routerConfig = event.config.router,
-            )
-
             // Register last so /{repository}/<path> doesn't intercept API and frontend requests.
-            event.config.registerPlugin(object : JavalinPlugin<Unit?>() {
-                override fun onStart(state: JavalinState) {
-                    repositoryDispatcher.endpoints.forEach { endpoint ->
-                        state.routes.addEndpoint(endpoint)
-                    }
-                }
-            })
+            event.config.registerPlugin(
+                RepositoryRoutingPlugin.create(
+                    registrations = repositoryFacade.getRegistrations(),
+                    dsl = createReposiliteDslFactory(
+                        journalist = this,
+                        failureFacade = facade<FailureFacade>(),
+                        accessTokenFacade = facade<AccessTokenFacade>(),
+                        authenticationFacade = facade<AuthenticationFacade>(),
+                    ),
+                    routerConfig = event.config.router,
+                )
+            )
         }
 
         return repositoryFacade

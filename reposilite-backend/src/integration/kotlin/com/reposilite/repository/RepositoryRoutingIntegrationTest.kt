@@ -45,6 +45,7 @@ internal class RepositoryRoutingIntegrationTest : RepositoryRoutingSpecification
     @Test
     fun `should reject conflicting repositories until the conflict is removed`() {
         // given: two providers exposing the same repository name
+        useRepositoryType("maven", "releases")
         useRepositoryType("custom", "shared")
         val other = useRepositoryType("other", "shared")
         useServer { base ->
@@ -67,6 +68,7 @@ internal class RepositoryRoutingIntegrationTest : RepositoryRoutingSpecification
     @Test
     fun `should reject duplicate names from the same provider`() {
         // given: one provider exposing a repository name twice
+        useRepositoryType("maven", "releases")
         useRepositoryType("custom", "shared", "shared")
         useServer { base ->
 
@@ -90,6 +92,46 @@ internal class RepositoryRoutingIntegrationTest : RepositoryRoutingSpecification
 
             // then: the new provider does not affect the running server's routes
             assertThat(response.body).isEqualTo("downloads/file")
+        }
+    }
+
+    @Test
+    fun `should apply the handler wrapper to the selected repository endpoint`() {
+        // given: a repository and a server whose wrapper exposes the handled route
+        useRepositoryType("custom", "downloads")
+        useServer { base ->
+            // when: a repository file is requested
+            val response = get("$base/downloads/file").asString()
+
+            // then: the wrapper handles the repository endpoint with its path parameters
+            assertThat(response.headers.getFirst("X-Route")).isEqualTo("/{repository}/<resource>")
+            assertThat(response.body).isEqualTo("downloads/file")
+        }
+    }
+
+    @Test
+    fun `should delegate unknown repositories to Maven`() {
+        // given: a registered Maven provider
+        useRepositoryType("maven", "releases")
+        useServer { base ->
+            // when: an unknown repository is requested
+            val response = get("$base/missing/file").asString()
+
+            // then: Maven's handler receives the unknown repository name
+            assertThat(response.body).isEqualTo("missing/file")
+        }
+    }
+
+    @Test
+    fun `should reject requests without a matching repository endpoint`() {
+        // given: a repository with only a resource route
+        useRepositoryType("custom", "downloads")
+        useServer { base ->
+            // when: its root is requested
+            val response = get("$base/downloads").asEmpty()
+
+            // then: the gateway does not invoke the resource handler
+            assertThat(response.status).isEqualTo(NOT_FOUND.code)
         }
     }
 
