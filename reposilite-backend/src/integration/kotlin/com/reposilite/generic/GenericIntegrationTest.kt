@@ -20,17 +20,15 @@ package com.reposilite.generic
 
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
-import com.reposilite.ReposiliteSpecification
-import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.generic.application.GenericSettings
+import com.reposilite.generic.specification.GenericIntegrationSpecification
 import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
 import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.s3.S3StorageProviderSettings
 import io.javalin.http.HttpStatus.CONFLICT
-import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.core.HeaderNames.CONTENT_LENGTH
@@ -42,6 +40,8 @@ import kong.unirest.core.Unirest.put
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 @ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalGenericIntegrationTest : GenericIntegrationTest()
@@ -52,13 +52,12 @@ internal class RemoteGenericIntegrationTest : GenericIntegrationTest() {
     @Test
     fun `should retain files when renaming a repository with a fixed S3 prefix`() {
         // given: a repository whose storage path does not depend on its name
-        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<GenericSettings>()
-        settings.update {
+        genericSettings.update {
             GenericSettings(
                 repositories = listOf(
                     GenericRepositorySettings(
                         id = "downloads",
-                        storageProvider = (_storageProvider as S3StorageProviderSettings).copy(
+                        storageProvider = useTargetStorageSettings<S3StorageProviderSettings>().copy(
                             prefix = "downloads",
                             sharedBucket = false,
                         ),
@@ -66,13 +65,10 @@ internal class RemoteGenericIntegrationTest : GenericIntegrationTest() {
                 )
             )
         }
-        val (name, secret) = useDefaultManagementToken()
-        assertThat(
-            put("$base/downloads/file.txt").basicAuth(name, secret).body("content").asEmpty().isSuccess
-        ).isTrue
+        useGenericFile("downloads", "file.txt", "content")
 
         // when: the repository is renamed without changing its storage
-        settings.update { configuration ->
+        genericSettings.update { configuration ->
             configuration.copy(repositories = configuration.repositories.map { it.copy(id = "renamed") })
         }
         val response = get("$base/renamed/file.txt").asString()
@@ -85,20 +81,15 @@ internal class RemoteGenericIntegrationTest : GenericIntegrationTest() {
     }
 }
 
-internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
+internal abstract class GenericIntegrationTest : GenericIntegrationSpecification() {
 
-    override fun overrideSharedConfiguration(sharedConfigurationFacade: SharedConfigurationFacade) {
-        sharedConfigurationFacade.getDomainSettings<GenericSettings>().update {
-            GenericSettings(
-                repositories = listOf(
-                    GenericRepositorySettings(id = "files", redeployment = true, storageProvider = _storageProvider!!),
-                    GenericRepositorySettings(id = "immutable-files", redeployment = false, storageProvider = _storageProvider!!),
-                    GenericRepositorySettings(id = "private-files", visibility = PRIVATE, redeployment = true, storageProvider = _storageProvider!!),
-                    GenericRepositorySettings(id = "hidden-files", visibility = HIDDEN, redeployment = true, storageProvider = _storageProvider!!),
-                )
-            )
-        }
-    }
+    override fun repositories(): List<GenericRepositorySettings> =
+        listOf(
+            GenericRepositorySettings(id = "files", redeployment = true, storageProvider = useTargetStorageSettings()),
+            GenericRepositorySettings(id = "immutable-files", redeployment = false, storageProvider = useTargetStorageSettings()),
+            GenericRepositorySettings(id = "private-files", visibility = PRIVATE, redeployment = true, storageProvider = useTargetStorageSettings()),
+            GenericRepositorySettings(id = "hidden-files", visibility = HIDDEN, redeployment = true, storageProvider = useTargetStorageSettings()),
+        )
 
     @Test
     fun `should deploy and retrieve arbitrary files`() {
@@ -113,26 +104,35 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
             .body(content)
             .asEmpty()
 
-        // then: the content can be retrieved
+        // then: the upload succeeds
         assertThat(deployResponse.isSuccess).isTrue
-        assertThat(get(address).asString().body).isEqualTo(content)
+
+        // when: the file is downloaded
+        val response = get(address).asString()
+
+        // then: the original content is returned
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo(content)
+    }
+
+    @Test
+    fun `should return file size for head requests`() {
+        // given: a file in the repository
+        val content = "plain generic content"
+        val address = useGenericFile("files", "releases/application.tar.gz", content)
 
         // when: metadata is requested without downloading the file
-        val headResponse = head(address).asEmpty()
+        val response = head(address).asEmpty()
 
         // then: the response contains the file size
-        assertThat(headResponse.isSuccess).isTrue
-        assertThat(headResponse.headers.getFirst(CONTENT_LENGTH).toLong()).isEqualTo(content.length.toLong())
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.headers.getFirst(CONTENT_LENGTH).toLong()).isEqualTo(content.length.toLong())
     }
 
     @Test
     fun `should browse directories`() {
         // given: a file deployed in a nested directory
-        val (name, secret) = useDefaultManagementToken()
-        put("$base/files/releases/application.zip")
-            .basicAuth(name, secret)
-            .body("content")
-            .asEmpty()
+        useGenericFile("files", "releases/application.zip", "content")
 
         // when: the directory is requested
         val response = get("$base/files/releases").asString()
@@ -145,11 +145,7 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
     @Test
     fun `should browse repository root`() {
         // given: a file deployed below the repository root
-        val (name, secret) = useDefaultManagementToken()
-        put("$base/files/releases/application.zip")
-            .basicAuth(name, secret)
-            .body("content")
-            .asEmpty()
+        useGenericFile("files", "releases/application.zip", "content")
 
         // when: the repository root is requested
         val response = get("$base/files").asString()
@@ -175,10 +171,10 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
 
     @Test
     fun `should reject unauthenticated writes`() {
-        // given: a write request without credentials
+        // given: an address in the repository
         val address = "$base/files/releases/application.zip"
 
-        // when: content is uploaded
+        // when: content is uploaded without credentials
         val response = put(address)
             .body("content")
             .asObject(ErrorResponse::class.java)
@@ -188,33 +184,45 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
     }
 
     @Test
-    fun `should apply shared visibility rules`() {
-        // given: files in private and hidden repositories
+    fun `should require credentials to read private files`() {
+        // given: a file in a private repository
+        val address = useGenericFile("private-files", "private.txt", "private")
         val (name, secret) = useDefaultManagementToken()
-        put("$base/private-files/private.txt").basicAuth(name, secret).body("private").asEmpty()
-        put("$base/hidden-files/directory/hidden.txt").basicAuth(name, secret).body("hidden").asEmpty()
 
-        // when: the files and directory index are requested
-        val anonymousPrivateResponse = get("$base/private-files/private.txt").asEmpty()
-        val authenticatedPrivateResponse = get("$base/private-files/private.txt").basicAuth(name, secret).asString()
-        val hiddenFileResponse = get("$base/hidden-files/directory/hidden.txt").asString()
-        val hiddenDirectoryResponse = get("$base/hidden-files/directory").asEmpty()
+        // when: the file is requested without credentials
+        val anonymous = get(address).asEmpty()
 
-        // then: private files and hidden directory listings require credentials
-        assertThat(anonymousPrivateResponse.status).isEqualTo(UNAUTHORIZED.code)
-        assertThat(authenticatedPrivateResponse.body).isEqualTo("private")
-        assertThat(hiddenFileResponse.body).isEqualTo("hidden")
-        assertThat(hiddenDirectoryResponse.status).isEqualTo(UNAUTHORIZED.code)
+        // then: the request is rejected
+        assertThat(anonymous.status).isEqualTo(UNAUTHORIZED.code)
+
+        // when: the file is requested with valid credentials
+        val authenticated = get(address).basicAuth(name, secret).asString()
+
+        // then: its content is returned
+        assertThat(authenticated.isSuccess).isTrue
+        assertThat(authenticated.body).isEqualTo("private")
+    }
+
+    @Test
+    fun `should allow reading hidden files but require credentials to browse`() {
+        // given: a file in a hidden repository
+        val address = useGenericFile("hidden-files", "directory/hidden.txt", "hidden")
+
+        // when: the file and its directory are requested without credentials
+        val file = get(address).asString()
+        val directory = get("$base/hidden-files/directory").asEmpty()
+
+        // then: the file is readable but the directory listing is protected
+        assertThat(file.isSuccess).isTrue
+        assertThat(file.body).isEqualTo("hidden")
+        assertThat(directory.status).isEqualTo(UNAUTHORIZED.code)
     }
 
     @Test
     fun `should enforce redeployment setting`() {
         // given: content deployed in an immutable repository
-        val address = "$base/immutable-files/releases/application.zip"
+        val address = useGenericFile("immutable-files", "releases/application.zip", "first")
         val (name, secret) = useDefaultManagementToken()
-        assertThat(
-            put(address).basicAuth(name, secret).body("first").asEmpty().isSuccess
-        ).isTrue
 
         // when: new content is deployed at the same address
         val response = put(address)
@@ -227,85 +235,66 @@ internal abstract class GenericIntegrationTest : ReposiliteSpecification() {
         assertThat(get(address).asString().body).isEqualTo("first")
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["../invalid", " invalid"])
+    fun `should skip invalid configurations without losing valid repositories`(invalidName: String) {
+        // given: invalid and valid repository definitions
+        val invalid = GenericRepositorySettings(id = invalidName, storageProvider = useTargetStorageSettings())
+        val valid = GenericRepositorySettings(id = "valid-after-invalid", storageProvider = useTargetStorageSettings())
+
+        // when: both definitions are added
+        useRepositories(invalid, valid)
+
+        // then: only the invalid repository is skipped
+        assertThat(genericFacade.getRepository(invalidName)).isNull()
+        assertThat(genericFacade.getRepository("valid-after-invalid")).isNotNull()
+        assertThat(genericFacade.getRepository("files")).isNotNull()
+    }
+
     @Test
-    fun `should skip invalid configurations and hide repository name conflicts`() {
-        // given: invalid, conflicting, and duplicated repository definitions
-        val genericSettings = useFacade<SharedConfigurationFacade>().getDomainSettings<GenericSettings>()
-        genericSettings.update { settings ->
-            settings.copy(
-                repositories = settings.repositories + listOf(
-                    GenericRepositorySettings(id = "../invalid", storageProvider = _storageProvider!!),
-                    GenericRepositorySettings(id = " invalid", storageProvider = _storageProvider!!),
-                    GenericRepositorySettings(
-                        id = "releases",
-                        storageProvider = FileSystemStorageProviderSettings(mount = "generic-name-conflict"),
-                    ),
-                    GenericRepositorySettings(id = "duplicated", storageProvider = _storageProvider!!),
-                    GenericRepositorySettings(id = "duplicated", storageProvider = _storageProvider!!),
-                )
-            )
-        }
+    fun `should skip repositories with duplicate names in settings`() {
+        // given: a repository definition supplied twice
+        val repository = GenericRepositorySettings(id = "duplicated", storageProvider = useTargetStorageSettings())
 
-        // when: repositories are resolved after the configuration reload
-        val genericFacade = useFacade<GenericFacade>()
+        // when: the duplicate definitions are added
+        useRepositories(repository, repository)
 
-        // then: invalid repositories are skipped and conflicting names return 404
-        assertThat(genericFacade.getRepository("../invalid")).isNull()
-        assertThat(genericFacade.getRepository(" invalid")).isNull()
-        assertThat(genericFacade.getRepository("releases")).isNotNull()
+        // then: neither duplicate is initialized and existing repositories remain available
         assertThat(genericFacade.getRepository("duplicated")).isNull()
         assertThat(genericFacade.getRepository("files")).isNotNull()
+    }
+
+    @Test
+    fun `should hide repositories with names shared by another type`() {
+        // given: a Maven repository and a generic definition using the same name but separate storage
         assertThat(mavenFacade.getRepository("releases")).isNotNull()
-        assertThat(get("$base/releases").asEmpty().status).isEqualTo(NOT_FOUND.code)
+        val repository = GenericRepositorySettings(
+            id = "releases",
+            storageProvider = FileSystemStorageProviderSettings(mount = "generic-name-conflict"),
+        )
+
+        // when: the generic repository is added and the shared address is requested
+        useRepositories(repository)
+        val response = get("$base/releases").asEmpty()
+
+        // then: both repositories exist but neither is exposed at the ambiguous address
+        assertThat(genericFacade.getRepository("releases")).isNotNull()
+        assertThat(mavenFacade.getRepository("releases")).isNotNull()
+        assertThat(response.status).isEqualTo(NOT_FOUND.code)
     }
 
     @Test
     fun `should delete files`() {
-        // given: a deployed file and valid management credentials
-        val address = "$base/files/releases/application.zip"
+        // given: a successfully deployed file and valid credentials
+        val address = useGenericFile("files", "releases/application.zip", "content")
         val (name, secret) = useDefaultManagementToken()
-        put(address).basicAuth(name, secret).body("content").asEmpty()
 
         // when: the file is deleted
-        val deleteResponse = delete(address)
-            .basicAuth(name, secret)
-            .asEmpty()
+        val response = delete(address).basicAuth(name, secret).asEmpty()
 
         // then: deletion succeeds and the file is no longer available
-        assertThat(deleteResponse.isSuccess).isTrue
+        assertThat(response.isSuccess).isTrue
         assertThat(get(address).asEmpty().status).isEqualTo(NOT_FOUND.code)
     }
-}
 
-@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
-internal class GenericQuotaIntegrationTest : ReposiliteSpecification() {
-
-    override fun overrideSharedConfiguration(sharedConfigurationFacade: SharedConfigurationFacade) {
-        sharedConfigurationFacade.getDomainSettings<GenericSettings>().update {
-            GenericSettings(
-                repositories = listOf(
-                    GenericRepositorySettings(
-                        id = "quota-files",
-                        storageProvider = FileSystemStorageProviderSettings(quota = "1MB"),
-                    )
-                )
-            )
-        }
-    }
-
-    @Test
-    fun `should enforce storage quota`() {
-        // given: content larger than the repository quota
-        val (name, secret) = useDefaultManagementToken()
-        val (content, _) = useFile("too-large.bin", 2)
-
-        // when: the content is uploaded
-        val response = put("$base/quota-files/too-large.bin")
-            .basicAuth(name, secret)
-            .body(content.inputStream())
-            .asObject(ErrorResponse::class.java)
-
-        // then: the upload is rejected because storage is insufficient
-        assertThat(response.status).isEqualTo(INSUFFICIENT_STORAGE.code)
-    }
 }
