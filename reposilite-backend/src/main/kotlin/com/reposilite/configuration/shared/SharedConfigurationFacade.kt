@@ -28,6 +28,7 @@ import panda.std.Result.supplyThrowing
 import panda.std.asError
 import panda.std.ok
 import panda.std.reactive.MutableReference
+import java.util.function.Function
 import java.util.function.Supplier
 import kotlin.reflect.KClass
 
@@ -35,17 +36,20 @@ class SharedConfigurationFacade(
     private val journalist: Journalist,
     private val schemaGenerator: Lazy<SchemaGenerator>,
     private val failureFacade: FailureFacade,
-    private val sharedSettingsProvider: SharedSettingsProvider,
+    settings: Collection<SharedSettings>,
     private val sharedConfigurationProvider: SharedConfigurationProvider
 ) : Facade {
 
+    private val settingsLock = Any()
+    private val domains: Map<Class<out SharedSettings>, MutableReference<SharedSettings>> =
+        settings.associate { it.javaClass to SettingsReference(it) }
     private val configHandlers = mutableMapOf<String, SharedSettingsReference<*>>()
 
     init {
         val jsonSchemaLoader = JsonSchemaLoader()
         val knownSchemes = jsonSchemaLoader.loadGeneratedSchemes().associateBy { it.name }
 
-        sharedSettingsProvider.domains.forEach { (type, settings) ->
+        domains.forEach { (type, settings) ->
             registerSettingsWatcher(
                 DefaultSharedSettingsReference(
                     type = type,
@@ -57,7 +61,7 @@ class SharedConfigurationFacade(
                             Supplier { scheme.byteInputStream() }
                         },
                     getter = { settings.get() },
-                    setter = { settings.update(it) }
+                    setter = { synchronized(settingsLock) { settings.update(it).get() } }
                 )
             )
         }
@@ -74,9 +78,28 @@ class SharedConfigurationFacade(
     ) : IllegalStateException("Cannot load shared configuration from file (${errors.size} errors):\n${errors.joinToString(System.lineSeparator())}")
 
     fun fetchConfiguration(): String =
-        sharedConfigurationProvider.fetchConfiguration()
+        synchronized(settingsLock) {
+            sharedConfigurationProvider.fetchConfiguration()
+        }
 
-    internal fun loadSharedSettingsFromString(content: String): Result<Unit, SharedSettingsUpdateException> {
+    internal fun loadSharedSettings(): Result<Unit, SharedSettingsUpdateException> =
+        synchronized(settingsLock) {
+            loadSharedSettingsFromString(fetchConfiguration())
+        }
+
+    internal fun synchronize() {
+        synchronized(settingsLock) {
+            if (!isUpdateRequired()) {
+                return
+            }
+
+            journalist.logger.info("Propagation | Shared configuration has been changed in ${getProviderName()}, updating current instance...")
+            loadSharedSettings()
+                .peek { journalist.logger.info("Propagation | Sources have been updated successfully") }
+        }
+    }
+
+    private fun loadSharedSettingsFromString(content: String): Result<Unit, SharedSettingsUpdateException> {
         val updateResult = supplyThrowing { DEFAULT_OBJECT_MAPPER.readTree(content) }
             .map { node -> getDomainNames().asSequence().filter { node.has(it) }.associateWith { node.get(it) } }
             .orElseGet { emptyMap() }
@@ -110,9 +133,11 @@ class SharedConfigurationFacade(
     }
 
     fun <S : SharedSettings> updateSharedSettings(name: String, body: S): Result<S, out Exception>? =
-        getSettingsReference<S>(name)
-            ?.update(body)
-            ?.peek { sharedConfigurationProvider.updateConfiguration(renderConfiguration()) }
+        synchronized(settingsLock) {
+            getSettingsReference<S>(name)
+                ?.update(body)
+                ?.peek { sharedConfigurationProvider.updateConfiguration(renderConfiguration()) }
+        }
 
     private fun renderConfiguration(): String =
         getDomainNames()
@@ -127,7 +152,7 @@ class SharedConfigurationFacade(
 
     @Suppress("UNCHECKED_CAST")
     fun <S : SharedSettings> getDomainSettings(settingsClass: Class<S>): MutableReference<S> =
-        sharedSettingsProvider.domains[settingsClass] as MutableReference<S>
+        domains[settingsClass] as MutableReference<S>
 
     @Suppress("UNCHECKED_CAST")
     fun <S : SharedSettings> getSettingsReference(name: String): SharedSettingsReference<S>? =
@@ -137,12 +162,28 @@ class SharedConfigurationFacade(
         configHandlers.keys
 
     fun isUpdateRequired(): Boolean =
-        sharedConfigurationProvider.isUpdateRequired()
+        synchronized(settingsLock) {
+            sharedConfigurationProvider.isUpdateRequired()
+        }
 
     fun isMutable(): Boolean =
         sharedConfigurationProvider.isMutable()
 
     fun getProviderName(): String =
         sharedConfigurationProvider.name()
+
+    private inner class SettingsReference<T : SharedSettings>(value: T) : MutableReference<T>(value) {
+
+        override fun update(value: T): MutableReference<T> =
+            synchronized(settingsLock) {
+                super.update(value)
+            }
+
+        override fun update(function: Function<T, T>): MutableReference<T> =
+            synchronized(settingsLock) {
+                super.update(function)
+            }
+
+    }
 
 }
