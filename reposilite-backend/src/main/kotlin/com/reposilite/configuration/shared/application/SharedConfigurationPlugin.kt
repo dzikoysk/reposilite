@@ -48,8 +48,7 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
         logger.info("")
         logger.info("--- Shared settings")
         logger.info("Loading shared configuration from ${sharedConfigurationFacade.getProviderName()}")
-        val storedConfiguration = sharedConfigurationFacade.fetchConfiguration()
-        val loadResult = sharedConfigurationFacade.loadSharedSettingsFromString(storedConfiguration)
+        val loadResult = sharedConfigurationFacade.loadSharedSettings()
 
         if (loadResult.isErr && !parameters().ignoreSharedConfigurationErrors) {
             logger.error("Failed to load shared configuration from '${sharedConfigurationFacade.getProviderName()}' provider.")
@@ -61,13 +60,7 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
 
         if (sharedConfigurationFacade.isMutable()) {
             val watcher = reposilite().scheduler.scheduleWithFixedDelay({
-                if (!sharedConfigurationFacade.isUpdateRequired()) {
-                    return@scheduleWithFixedDelay
-                }
-
-                logger.info("Propagation | Shared configuration has been changed in ${sharedConfigurationFacade.getProviderName()}, updating current instance...")
-                sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationFacade.fetchConfiguration())
-                logger.info("Propagation | Sources have been updated successfully")
+                sharedConfigurationFacade.synchronize()
             }, 10, 10, TimeUnit.SECONDS)
 
             event { _: ReposiliteDisposeEvent ->
