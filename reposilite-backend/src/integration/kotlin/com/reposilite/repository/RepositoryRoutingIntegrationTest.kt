@@ -16,128 +16,81 @@
 
 package com.reposilite.repository
 
-import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.repository.api.RepositoryInfo
-import com.reposilite.repository.api.RepositoryProvider
-import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
-import com.reposilite.repository.infrastructure.RepositoryDispatcher
-import com.reposilite.token.application.AccessTokenComponents
-import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.infrastructure.ReposiliteDsl
-import io.javalin.Javalin
-import io.javalin.community.routing.Route.GET
-import io.javalin.http.Handler
+import com.reposilite.repository.specification.RepositoryRoutingSpecification
+import io.javalin.http.HttpStatus.NOT_FOUND
 import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-internal class RepositoryRoutingIntegrationTest {
-
-    private val facade = RepositoryFacade(
-        RepositoryAccessResolver(AccessTokenComponents(InMemoryLogger(), null).accessTokenFacade()),
-    )
-
-    private val routes = object : ReposiliteRoutes() {
-        override val routes = routes(ReposiliteRoute<Unit>("/{repository}/<resource>", GET) {})
-    }
+internal class RepositoryRoutingIntegrationTest : RepositoryRoutingSpecification() {
 
     @Test
     fun `should route repositories changed after startup`() {
-        // given: a running server with a registered provider
-        val provider = register("custom", "first")
+        // given: a running server with a registered repository
+        val provider = useRepositoryType("custom", "first")
         useServer { base ->
             assertThat(get("$base/first/pkg/file").asString().body).isEqualTo("first/pkg/file")
 
             // when: the provider replaces its repositories
-            provider.names = listOf("second")
+            provider.currentRepositories = listOf(useRepository("second"))
+            val oldRepository = get("$base/first/pkg/file").asEmpty()
+            val newRepository = get("$base/second/pkg/file").asString()
 
-            // then: routing uses the new repositories and extracts the protocol path parameters
-            assertThat(get("$base/first/pkg/file").asEmpty().status).isEqualTo(404)
-            assertThat(get("$base/second/pkg/file").asString().body).isEqualTo("second/pkg/file")
+            // then: routing uses the new repositories and preserves path parameters
+            assertThat(oldRepository.status).isEqualTo(NOT_FOUND.code)
+            assertThat(newRepository.body).isEqualTo("second/pkg/file")
         }
     }
 
     @Test
     fun `should reject conflicting repositories until the conflict is removed`() {
         // given: two providers exposing the same repository name
-        register("custom", "shared")
-        val other = register("other", "shared")
+        useRepositoryType("custom", "shared")
+        val other = useRepositoryType("other", "shared")
         useServer { base ->
+
             // when: the conflicting repository is requested
-            val response = get("$base/shared/file").asEmpty()
+            val conflict = get("$base/shared/file").asEmpty()
 
             // then: neither provider is selected
-            assertThat(response.status).isEqualTo(404)
+            assertThat(conflict.status).isEqualTo(NOT_FOUND.code)
 
             // when: one provider removes its conflicting repository
-            other.names = emptyList()
+            other.currentRepositories = emptyList()
+            val response = get("$base/shared/file").asString()
 
             // then: the remaining repository is accessible without restarting
-            assertThat(get("$base/shared/file").asString().body).isEqualTo("shared/file")
+            assertThat(response.body).isEqualTo("shared/file")
         }
     }
 
     @Test
     fun `should reject duplicate names from the same provider`() {
         // given: one provider exposing a repository name twice
-        register("custom", "shared", "shared")
+        useRepositoryType("custom", "shared", "shared")
         useServer { base ->
+
             // when: the ambiguous repository is requested
             val response = get("$base/shared/file").asEmpty()
 
             // then: routing does not select either repository
-            assertThat(response.status).isEqualTo(404)
+            assertThat(response.status).isEqualTo(NOT_FOUND.code)
         }
     }
 
     @Test
     fun `should keep running routes and providers on the same registration snapshot`() {
         // given: a server started with one provider
-        register("custom", "downloads")
+        useRepositoryType("custom", "downloads")
         useServer { base ->
+
             // when: another type registers a conflicting repository after startup
-            register("late", "downloads")
+            useRepositoryType("late", "downloads")
+            val response = get("$base/downloads/file").asString()
 
             // then: the new provider does not affect the running server's routes
-            assertThat(get("$base/downloads/file").asString().body).isEqualTo("downloads/file")
+            assertThat(response.body).isEqualTo("downloads/file")
         }
     }
 
-    private fun register(type: String, vararg names: String): TestRepositoryProvider =
-        TestRepositoryProvider(names.toList()).also {
-            assertThat(facade.register(type, routes, it).isOk).isTrue
-        }
-
-    private fun useServer(block: (String) -> Unit) {
-        val server = Javalin.create { config ->
-            val dispatcher = RepositoryDispatcher(
-                registrations = facade.getRegistrations(),
-                dsl = ReposiliteDsl(
-                    routeFactory = { Handler { context ->
-                        context.result("${context.pathParam("repository")}/${context.pathParam("resource")}")
-                    } },
-                    exceptionRouteFactory = { error("No exception handlers are registered") },
-                ),
-                routerConfig = config.router,
-            )
-            dispatcher.endpoints.forEach { config.routes.addEndpoint(it) }
-        }.start(0)
-
-        try {
-            block("http://localhost:${server.port()}")
-        } finally {
-            server.stop()
-        }
-    }
-
-    private class TestRepositoryProvider(var names: List<String>) : RepositoryProvider {
-        override fun getRepositories(): Collection<RepositoryInfo> =
-            names.map { name ->
-                object : RepositoryInfo {
-                    override val name = name
-                    override val visibility = PUBLIC
-                }
-            }
-    }
 }
