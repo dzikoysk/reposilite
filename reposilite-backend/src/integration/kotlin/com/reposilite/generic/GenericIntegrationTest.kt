@@ -20,14 +20,18 @@ package com.reposilite.generic
 
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.generic.application.GenericSettings
 import com.reposilite.generic.specification.GenericIntegrationSpecification
+import com.reposilite.maven.application.MavenSettings
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
 import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.s3.S3StorageProviderSettings
+import com.reposilite.storage.s3.resolveKeyPrefix
 import io.javalin.http.HttpStatus.CONFLICT
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
@@ -48,6 +52,56 @@ internal class LocalGenericIntegrationTest : GenericIntegrationTest()
 
 @ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteGenericIntegrationTest : GenericIntegrationTest() {
+
+    @Test
+    fun `should reject a generic repository overlapping running Maven storage`() {
+        // given: a file in Maven's releases repository
+        val (_, gav, file, content) = useDocument("releases", "gav", "artifact.jar", "content", true)
+        val storage = useTargetStorageSettings<S3StorageProviderSettings>()
+        val previous = mavenFacade.getRepository("releases")
+
+        // when: a generic repository tries to use Maven's storage path
+        useRepositories(GenericRepositorySettings(
+            id = "overlapping",
+            storageProvider = storage.copy(
+                prefix = storage.resolveKeyPrefix("releases"),
+                sharedBucket = false,
+            ),
+        ))
+
+        // then: Maven keeps serving its files and the conflicting repository is skipped
+        assertThat(mavenFacade.getRepository("releases")).isSameAs(previous)
+        assertThat(genericFacade.getRepository("overlapping")).isNull()
+        val response = get("$base/releases/$gav/$file").asString()
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo(content)
+        assertThat(genericFacade.getRepository("files")).isNotNull()
+    }
+
+    @Test
+    fun `should reject a Maven repository overlapping running generic storage`() {
+        // given: a file in a running generic repository
+        val address = useGenericFile("files", "file.txt", "content")
+        val previous = genericFacade.getRepository("files")
+        val storage = useTargetStorageSettings<S3StorageProviderSettings>()
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+
+        // when: Maven settings add a repository using the generic repository's storage
+        settings.update {
+            it.copy(repositories = it.repositories + RepositorySettings(
+                id = "overlapping",
+                storageProvider = storage.copy(prefix = storage.resolveKeyPrefix("files"), sharedBucket = false),
+            ))
+        }
+
+        // then: the generic repository stays online and valid Maven repositories load
+        assertThat(genericFacade.getRepository("files")).isSameAs(previous)
+        assertThat(mavenFacade.getRepository("overlapping")).isNull()
+        assertThat(mavenFacade.getRepository("releases")).isNotNull()
+        val response = get(address).asString()
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo("content")
+    }
 
     @Test
     fun `should retain files when renaming a repository with a fixed S3 prefix`() {
@@ -90,6 +144,40 @@ internal abstract class GenericIntegrationTest : GenericIntegrationSpecification
             GenericRepositorySettings(id = "private-files", visibility = PRIVATE, redeployment = true, storageProvider = useTargetStorageSettings()),
             GenericRepositorySettings(id = "hidden-files", visibility = HIDDEN, redeployment = true, storageProvider = useTargetStorageSettings()),
         )
+
+    @ParameterizedTest
+    @ValueSource(strings = ["maven", "generic"])
+    fun `should rebuild only the repository type whose settings changed`(domain: String) {
+        // given: stored files and both repository instances
+        val genericAddress = useGenericFile("files", "file.txt", "generic content")
+        val (_, gav, file, content) = useDocument("releases", "gav", "artifact.jar", "maven content", true)
+        val previousMaven = mavenFacade.getRepository("releases")
+        val previousGeneric = genericFacade.getRepository("files")
+
+        // when: one repository type's settings are reloaded
+        when (domain) {
+            "maven" -> useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>().update { it.copy() }
+            "generic" -> genericSettings.update { it.copy() }
+        }
+        val mavenResponse = get("$base/releases/$gav/$file").asString()
+        val genericResponse = get(genericAddress).asString()
+
+        // then: only the changed type is rebuilt and both types still serve their files
+        when (domain) {
+            "maven" -> {
+                assertThat(mavenFacade.getRepository("releases")).isNotNull.isNotSameAs(previousMaven)
+                assertThat(genericFacade.getRepository("files")).isSameAs(previousGeneric)
+            }
+            "generic" -> {
+                assertThat(mavenFacade.getRepository("releases")).isSameAs(previousMaven)
+                assertThat(genericFacade.getRepository("files")).isNotNull.isNotSameAs(previousGeneric)
+            }
+        }
+        assertThat(mavenResponse.isSuccess).isTrue
+        assertThat(mavenResponse.body).isEqualTo(content)
+        assertThat(genericResponse.isSuccess).isTrue
+        assertThat(genericResponse.body).isEqualTo("generic content")
+    }
 
     @Test
     fun `should deploy and retrieve arbitrary files`() {
