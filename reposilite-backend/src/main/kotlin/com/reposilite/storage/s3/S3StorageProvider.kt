@@ -67,10 +67,6 @@ class S3StorageProvider(
     private val keyPrefix: String = "",
 ) : StorageProvider, Journalist {
 
-    @Volatile
-    internal var active = true
-        private set
-
     init {
         if (!skipBucketCreation) {
             createBucketIfNotExists()
@@ -96,11 +92,7 @@ class S3StorageProvider(
     }
 
     override fun shutdown() {
-        try {
-            s3.close()
-        } finally {
-            active = false
-        }
+        s3.close()
     }
 
     override fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =

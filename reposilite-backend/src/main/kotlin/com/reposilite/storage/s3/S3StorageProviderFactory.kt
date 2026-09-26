@@ -27,6 +27,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption
 import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.DelegatingS3Client
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse
@@ -44,12 +45,11 @@ enum class S3Signer {
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
-    private data class RegisteredNamespace(
+    private class RegisteredNamespace(
         val repositoryName: String,
         val endpoint: String,
         val bucket: String,
         val keyPrefix: String,
-        val isActive: () -> Boolean,
     ) {
         fun overlaps(other: RegisteredNamespace): Boolean =
             endpoint == other.endpoint &&
@@ -133,15 +133,22 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             }
 
         val keyPrefix = settings.resolveKeyPrefix(repositoryName)
-        val storageProvider = try {
+        val registeredClient = try {
+            registerClient(repositoryName, settings.endpoint, settings.bucketName, keyPrefix, s3Client)
+        } catch (exception: Exception) {
+            s3Client.close()
+            throw exception
+        }
+
+        return try {
             S3StorageProvider(
                 failureFacade = failureFacade,
-                s3 = s3Client,
+                s3 = registeredClient,
                 bucket = settings.bucketName,
                 keyPrefix = keyPrefix,
             )
         } catch (exception: Exception) {
-            s3Client.close()
+            registeredClient.close()
             failureFacade.logger.error("Cannot connect to S3 storage provider: ${exception.message}")
             failureFacade.logger.error("S3 storage provider configuration:")
             failureFacade.logger.error("  - Bucket: ${settings.bucketName}")
@@ -154,37 +161,20 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             failureFacade.logger.error("  - Secret key: ${maskSecret(settings.secretKey)}")
             throw IllegalStateException("Failed to initialize S3 storage provider", exception)
         }
-
-        return try {
-            registerNamespace(
-                repositoryName = repositoryName,
-                endpoint = settings.endpoint,
-                bucket = settings.bucketName,
-                keyPrefix = keyPrefix,
-                isActive = { storageProvider.active },
-            )
-            storageProvider
-        } catch (exception: Exception) {
-            storageProvider.shutdown()
-            throw exception
-        }
     }
 
-    internal fun registerNamespace(
+    internal fun registerClient(
         repositoryName: String,
         endpoint: String,
         bucket: String,
         keyPrefix: String,
-        isActive: () -> Boolean,
-    ) {
-        registeredNamespaces.removeIf { !it.isActive() }
-
+        client: S3Client,
+    ): S3Client {
         val namespace = RegisteredNamespace(
             repositoryName = repositoryName,
             endpoint = endpoint.trim().trimEnd('/'),
             bucket = bucket.trim(),
             keyPrefix = keyPrefix,
-            isActive = isActive,
         )
         val conflict = registeredNamespaces.firstOrNull { it.overlaps(namespace) }
 
@@ -193,6 +183,16 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
         }
 
         registeredNamespaces += namespace
+
+        return object : DelegatingS3Client(client) {
+            override fun close() {
+                try {
+                    super.close()
+                } finally {
+                    registeredNamespaces.remove(namespace)
+                }
+            }
+        }
     }
 
     override val settingsType: Class<S3StorageProviderSettings> =
