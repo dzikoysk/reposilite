@@ -22,12 +22,14 @@ import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.maxAge
 import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.s3.S3StorageProviderSettings
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import java.util.concurrent.CompletableFuture
@@ -46,9 +48,48 @@ import org.junit.jupiter.api.extension.ExtendWith
 internal class LocalMavenIntegrationTest : MavenIntegrationTest()
 
 @ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
-internal class RemoteMavenIntegrationTest : MavenIntegrationTest()
+internal class RemoteMavenIntegrationTest : MavenIntegrationTest() {
+
+    @Test
+    fun `should release S3 storage when repository initialization fails`() {
+        // given: an invalid repository followed by a valid one using the same bucket
+        val storage = useTargetStorageSettings<S3StorageProviderSettings>().copy(sharedBucket = false)
+        val invalidName = "a".repeat(REPOSITORY_NAME_MAX_LENGTH)
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+
+        // when: both repositories are loaded
+        settings.update {
+            it.copy(repositories = listOf(
+                RepositorySettings(id = invalidName, storageProvider = storage),
+                RepositorySettings(id = "valid", storageProvider = storage),
+            ))
+        }
+
+        // then: the invalid repository does not prevent the valid one from loading
+        assertThat(mavenFacade.getRepository(invalidName)).isNull()
+        assertThat(mavenFacade.getRepository("valid")).isNotNull()
+    }
+
+}
 
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
+
+    @Test
+    fun `should preserve stored files across repository reloads`() {
+        // given: an artifact and the current storage provider
+        val (repository, gav, file, content) = useDocument("releases", "gav", "artifact.jar", "content", true)
+        val previous = mavenFacade.getRepository(repository)!!.storageProvider
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+
+        // when: repository settings are reloaded twice
+        repeat(2) { settings.update { it.copy() } }
+        val response = get("$base/$repository/$gav/$file").asString()
+
+        // then: replacement storage providers can reuse the same storage and read its files
+        assertThat(mavenFacade.getRepository(repository)!!.storageProvider).isNotSameAs(previous)
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo(content)
+    }
 
     @Test
     fun `should skip invalid repository names when reloading settings`() {
