@@ -27,6 +27,7 @@ import com.reposilite.maven.api.ResolvedDocument
 import com.reposilite.maven.api.ResolvedFileDataEvent
 import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.Extensions
+import com.reposilite.repository.RepositoryFacade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.notFound
@@ -49,8 +50,8 @@ import java.io.InputStream
 
 internal class RepositoryService(
     private val journalist: Journalist,
-    val repositoryProvider: RepositoryProvider,
-    private val securityProvider: RepositorySecurityProvider,
+    private val repositories: MavenRepositories,
+    private val repositoryFacade: RepositoryFacade,
     private val mirrorService: MirrorService,
     private val resolutionProvider: ResolutionProvider,
     private val statisticsFacade: StatisticsFacade,
@@ -103,7 +104,7 @@ internal class RepositoryService(
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> =
         with(deleteRequest) {
             when {
-                securityProvider.canModifyResource(accessToken, repository, gav) ->
+                repositoryFacade.canModifyResource(accessToken, repository, gav) ->
                     repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
@@ -128,17 +129,14 @@ internal class RepositoryService(
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
         val (accessToken, repositoryName, gav) = lookupRequest
-        val repository = repositoryProvider.getRepository(lookupRequest.repository) ?: return notFoundError("Repository $repositoryName not found")
+        val repository = repositories.getRepository(repositoryName)
+            ?: return notFoundError("Repository $repositoryName not found")
 
-        return canAccessResource(lookupRequest.accessToken, repository.name, gav)
+        return repositoryFacade.canAccessResource(accessToken, repository, gav)
             .onError { logger.debug("ACCESS | Unauthorized attempt of access (token: $accessToken) to $gav from ${repository.name}") }
             .peek { extensions.emitEvent(PreResolveEvent(accessToken, repository, gav)) }
             .flatMap { block(repository, gav) }
     }
-
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
-        repositoryProvider.findRepository(repository)
-            .flatMap { securityProvider.canAccessResource(accessToken, it, gav) }
 
     private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
         findDetails(accessToken, repository, gav)
@@ -177,7 +175,7 @@ internal class RepositoryService(
         repository.storageProvider.getFileDetails(gav)
             .flatMap {
                 it.takeIf { it.type == DIRECTORY }
-                    ?.let { securityProvider.canBrowseResource(accessToken, repository, gav).map { _ -> it } }
+                    ?.let { repositoryFacade.canBrowseResource(accessToken, repository, gav).map { _ -> it } }
                     ?: it.asSuccess()
             }
 
@@ -188,8 +186,8 @@ internal class RepositoryService(
     }
 
     fun getRootDirectory(accessToken: AccessTokenIdentifier?): DirectoryInfo =
-        repositoryProvider.getRepositories()
-            .filter { securityProvider.canAccessRepository(accessToken, it) }
+        repositories.getRepositories()
+            .filter { repositoryFacade.canAccessRepository(accessToken, it) }
             .map { SimpleDirectoryInfo(it.name) }
             .let { DirectoryInfo("/", it) }
 

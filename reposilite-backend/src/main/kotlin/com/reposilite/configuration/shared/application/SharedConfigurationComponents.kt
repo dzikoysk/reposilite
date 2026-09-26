@@ -25,7 +25,6 @@ import com.reposilite.configuration.shared.SCHEMA_OPTION_PRESET
 import com.reposilite.configuration.shared.SettingsModule
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.SharedConfigurationProvider
-import com.reposilite.configuration.shared.SharedSettingsProvider
 import com.reposilite.configuration.shared.SubtypeResolver
 import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.configuration.shared.infrastructure.LocalSharedConfigurationProvider
@@ -46,11 +45,11 @@ class SharedConfigurationComponents(
     private val configurationFacade: ConfigurationFacade,
 ) : PluginComponents {
 
-    private fun sharedSettingsProvider(): SharedSettingsProvider =
+    private fun sharedSettings(): Collection<SharedSettings> =
         extensions.getPlugins().values
             .map { it.metadata.settings.java }
             .filter { it != SharedSettings::class.java }
-            .let { SharedSettingsProvider.createStandardProvider(it) }
+            .map { it.getConstructor().newInstance() }
 
     private fun sharedConfigurationProvider(): SharedConfigurationProvider =
         when (val sharedConfigurationFile = sharedConfigurationPath) {
@@ -82,14 +81,14 @@ class SharedConfigurationComponents(
 
     fun sharedConfigurationFacade(
         schemaGenerator: Lazy<SchemaGenerator> = schemaGenerator(),
-        sharedSettingsProvider: SharedSettingsProvider = sharedSettingsProvider(),
+        settings: Collection<SharedSettings> = sharedSettings(),
         sharedConfigurationProvider: SharedConfigurationProvider = sharedConfigurationProvider()
     ): SharedConfigurationFacade =
         SharedConfigurationFacade(
             journalist = journalist,
             schemaGenerator = schemaGenerator,
             failureFacade = failureFacade,
-            sharedSettingsProvider = sharedSettingsProvider,
+            settings = settings,
             sharedConfigurationProvider = sharedConfigurationProvider
         )
 

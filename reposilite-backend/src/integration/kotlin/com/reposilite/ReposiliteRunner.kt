@@ -126,7 +126,7 @@ internal abstract class ReposiliteRunner {
                     .mapValues { (_, repositoryConfiguration) ->
                         repositoryConfiguration.copy(
                             redeployment = true,
-                            storageProvider = _storageProvider!!,
+                            storageProvider = useTargetStorageSettings(),
                         )
                     }
                     .toMutableMap()
@@ -139,6 +139,11 @@ internal abstract class ReposiliteRunner {
         overrideSharedConfiguration(sharedConfigurationFacade)
         return reposilite.launch()
     }
+
+    protected inline fun <reified T : StorageProviderSettings> useTargetStorageSettings(): T =
+        checkNotNull(_storageProvider) {
+            "Missing storage configuration for test target"
+        } as T
 
     protected open fun overrideParameters(parameters: ReposiliteParameters) { }
 

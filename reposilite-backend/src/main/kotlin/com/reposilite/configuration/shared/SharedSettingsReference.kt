@@ -39,7 +39,7 @@ internal class DefaultSharedSettingsReference<T : SharedSettings>(
     override val type: Class<out T>,
     override val schema: Supplier<InputStream>,
     private val getter: () -> T,
-    private val setter: (T) -> Unit
+    private val setter: (T) -> T
 ) : SharedSettingsReference<T> {
 
     override val name = type.kotlin.findAnnotation<Doc>()!!.title.sanitizeURLParam()
@@ -50,7 +50,6 @@ internal class DefaultSharedSettingsReference<T : SharedSettings>(
     override fun update(value: T): Result<T, out Exception> =
         supplyThrowing { setter(value) }
             .mapErr { IllegalStateException("Cannot update settings reference $name", it) }
-            .map { get() }
 
     private fun String.sanitizeURLParam(): String =
         lowercase().replace(' ', '_')

@@ -27,12 +27,14 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption
 import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.DelegatingS3Client
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 import java.net.URI
 import java.nio.file.Path
 import java.time.Duration
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val useLegacyS3V4Signer = System.getProperty("reposilite.s3.use-s3-v4-signer", "false") == "true"
 
@@ -42,6 +44,20 @@ enum class S3Signer {
 }
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
+
+    private class RegisteredNamespace(
+        val repositoryName: String,
+        val endpoint: String,
+        val bucket: String,
+        val keyPrefix: String,
+    ) {
+        fun overlaps(other: RegisteredNamespace): Boolean =
+            endpoint == other.endpoint &&
+                bucket == other.bucket &&
+                (keyPrefix.startsWith(other.keyPrefix) || other.keyPrefix.startsWith(keyPrefix))
+    }
+
+    private val registeredNamespaces = CopyOnWriteArrayList<RegisteredNamespace>()
 
     override fun create(
         journalist: Journalist,
@@ -117,15 +133,22 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             }
 
         val keyPrefix = settings.resolveKeyPrefix(repositoryName)
+        val registeredClient = try {
+            registerClient(repositoryName, settings.endpoint, settings.bucketName, keyPrefix, s3Client)
+        } catch (exception: Exception) {
+            s3Client.close()
+            throw exception
+        }
 
         return try {
             S3StorageProvider(
                 failureFacade = failureFacade,
-                s3 = s3Client,
+                s3 = registeredClient,
                 bucket = settings.bucketName,
-                keyPrefix = keyPrefix
+                keyPrefix = keyPrefix,
             )
         } catch (exception: Exception) {
+            registeredClient.close()
             failureFacade.logger.error("Cannot connect to S3 storage provider: ${exception.message}")
             failureFacade.logger.error("S3 storage provider configuration:")
             failureFacade.logger.error("  - Bucket: ${settings.bucketName}")
@@ -137,6 +160,38 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             failureFacade.logger.error("  - Access key: ${maskSecret(settings.accessKey)}")
             failureFacade.logger.error("  - Secret key: ${maskSecret(settings.secretKey)}")
             throw IllegalStateException("Failed to initialize S3 storage provider", exception)
+        }
+    }
+
+    internal fun registerClient(
+        repositoryName: String,
+        endpoint: String,
+        bucket: String,
+        keyPrefix: String,
+        client: S3Client,
+    ): S3Client {
+        val namespace = RegisteredNamespace(
+            repositoryName = repositoryName,
+            endpoint = endpoint.trim().trimEnd('/'),
+            bucket = bucket.trim(),
+            keyPrefix = keyPrefix,
+        )
+        val conflict = registeredNamespaces.firstOrNull { it.overlaps(namespace) }
+
+        require(conflict == null) {
+            "S3 namespace for repository '$repositoryName' overlaps repository '${conflict?.repositoryName}'"
+        }
+
+        registeredNamespaces += namespace
+
+        return object : DelegatingS3Client(client) {
+            override fun close() {
+                try {
+                    super.close()
+                } finally {
+                    registeredNamespaces.remove(namespace)
+                }
+            }
         }
     }
 
