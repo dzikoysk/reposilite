@@ -32,6 +32,10 @@ import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.DAYS
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
@@ -91,6 +95,23 @@ internal abstract class SharedReposiliteConfigurationSpecification {
             releaseFirst.countDown()
             executor.shutdownNow()
             check(executor.awaitTermination(5, SECONDS)) { "Settings updates did not finish" }
+        }
+    }
+
+    protected fun useWatcher(block: (AutoCloseable, Runnable) -> Unit) {
+        lateinit var synchronize: Runnable
+        val scheduler = object : ScheduledThreadPoolExecutor(1) {
+            override fun scheduleWithFixedDelay(command: Runnable, initialDelay: Long, delay: Long, unit: TimeUnit): ScheduledFuture<*> {
+                synchronize = command
+                return super.scheduleWithFixedDelay(command, 1, 1, DAYS)
+            }
+        }
+        try {
+            sharedConfigurationFacade.watch(scheduler).use { watcher ->
+                block(watcher, synchronize)
+            }
+        } finally {
+            scheduler.shutdownNow()
         }
     }
 

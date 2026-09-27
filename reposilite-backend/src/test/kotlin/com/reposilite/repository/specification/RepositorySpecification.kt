@@ -17,17 +17,19 @@
 package com.reposilite.repository.specification
 
 import com.reposilite.repository.RepositoryAccessResolver
+import com.reposilite.repository.RepositoryCollections
 import com.reposilite.repository.RepositoryFacade
 import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
+import com.reposilite.status.FailureFacade
 import com.reposilite.token.specification.AccessTokenSpecification
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 
 internal abstract class RepositorySpecification : AccessTokenSpecification() {
 
-    protected val repositoryFacade = RepositoryFacade(RepositoryAccessResolver(accessTokenFacade))
+    protected val repositoryFacade = RepositoryFacade(RepositoryAccessResolver(accessTokenFacade), RepositoryCollections(FailureFacade(logger)))
 
     protected fun useRoutes(vararg endpoints: ReposiliteRoute<*>): ReposiliteRoutes =
         object : ReposiliteRoutes() {

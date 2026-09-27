@@ -177,6 +177,35 @@ internal class SharedReposiliteConfigurationFacadeTest : SharedReposiliteConfigu
     }
 
     @Test
+    fun `should finish synchronization before closing its watcher`() {
+        // given: a watcher with a pending settings update
+        configurationProvider.content = """{"test":{"property":"remote"}}"""
+        configurationProvider.updateRequired = true
+
+        useWatcher { watcher, synchronize ->
+            // when: shutdown begins while the watcher is fetching configuration
+            useConcurrentUpdates(
+                first = { pause ->
+                    configurationProvider.onFetch = pause
+                    synchronize.run()
+                },
+                second = { watcher.close() },
+            )
+
+            // then: the update finishes before the watcher closes
+            assertThat(sharedConfigurationFacade.getDomainSettings<TestSettings>().get().property).isEqualTo("remote")
+
+            // when: a previously queued synchronization attempts to run
+            configurationProvider.updateRequired = true
+            configurationProvider.onFetch = { error("A closed watcher must not fetch settings") }
+            synchronize.run()
+
+            // then: no further settings are fetched or applied
+            assertThat(configurationProvider.updateRequired).isTrue()
+        }
+    }
+
+    @Test
     fun `should finish saving local settings before checking for remote changes`() {
         // given: remote configuration superseded by a pending local save
         configurationProvider.content = """{"test":{"property":"remote"}}"""

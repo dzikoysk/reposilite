@@ -32,6 +32,7 @@ import com.reposilite.maven.application.MirrorCredentials
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.repository.RepositoryAccessResolver
+import com.reposilite.repository.RepositoryCollections
 import com.reposilite.repository.RepositoryFacade
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.http.AuthenticationMethod.BASIC
@@ -151,7 +152,7 @@ internal abstract class MavenSpecification {
             }
         )
 
-        val repositoryFacade = RepositoryFacade(RepositoryAccessResolver(accessTokenFacade))
+        val repositoryFacade = RepositoryFacade(RepositoryAccessResolver(accessTokenFacade), RepositoryCollections(failureFacade))
         this.mavenFacade = MavenComponents(
             clock = clock,
             workingDirectory = workingDirectory.toPath(),

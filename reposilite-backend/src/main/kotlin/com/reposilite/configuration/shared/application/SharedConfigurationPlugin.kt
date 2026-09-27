@@ -22,13 +22,13 @@ import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.configuration.shared.infrastructure.SettingsEndpoints
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
+import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.web.api.RoutingSetupEvent
-import java.util.concurrent.TimeUnit
 
 @Plugin(name = "shared-configuration", dependencies = ["failure", "configuration", "local-configuration"])
 class SharedConfigurationPlugin : ReposilitePlugin() {
@@ -59,12 +59,13 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
         }
 
         if (sharedConfigurationFacade.isMutable()) {
-            val watcher = reposilite().scheduler.scheduleWithFixedDelay({
-                sharedConfigurationFacade.synchronize()
-            }, 10, 10, TimeUnit.SECONDS)
+            var watcher: AutoCloseable? = null
+            event { _: ReposiliteInitializeEvent ->
+                watcher = sharedConfigurationFacade.watch(reposilite().scheduler)
+            }
 
             event { _: ReposiliteDisposeEvent ->
-                watcher.cancel(false)
+                watcher?.close()
             }
         }
 
