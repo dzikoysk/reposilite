@@ -22,6 +22,7 @@ import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.maven.ResolutionCacheLevel
 import com.reposilite.maven.ResolutionCacheLevel.NEGATIVE_CACHING
 import com.reposilite.maven.StoragePolicy
+import com.reposilite.repository.api.RepositoryConfiguration
 import com.reposilite.repository.api.RepositoryVisibility
 import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
 import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
@@ -48,7 +49,7 @@ data class MavenSettings(
 data class RepositorySettings(
     @Min(1)
     @get:Doc(title = "Id", description = "The id of this repository.")
-    val id: String = "",
+    override val id: String = "",
     @get:Doc(title = "Visibility", description = "The visibility of this repository.")
     val visibility: RepositoryVisibility = PUBLIC,
     @get:Doc(title = "Redeployment", description = "Does this repository accept redeployment of the same artifact version.")
@@ -57,7 +58,7 @@ data class RepositorySettings(
     val preserveSnapshots: Boolean = false,
     @get:Doc(title = "Storage provider", description = "The storage type of this repository.")
     @get:OneOf(FileSystemStorageProviderSettings::class, S3StorageProviderSettings::class)
-    val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
+    override val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
     @get:Doc(title = "Storage policy", description = """
         Defines how Reposilite should handle requests to repository with configured mirrored repositories. <br/>
         PRIORITIZE_UPSTREAM_METADATA - try to fetch the latest version of the artifact from the remote repository <br/>
@@ -87,7 +88,7 @@ data class RepositorySettings(
     val parallelMetadataLookup: Boolean = false,
     @get:Doc(title = "Resolution cache level", description = "PINNING remembers the mirror serving metadata. NEGATIVE_CACHING also caches exact metadata misses from mirrors until eviction or invalidation.")
     val resolutionCacheLevel: ResolutionCacheLevel = NEGATIVE_CACHING,
-) : SharedSettings
+) : SharedSettings, RepositoryConfiguration
 
 @Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")
 data class MirroredRepositorySettings(

@@ -19,6 +19,7 @@ package com.reposilite.generic.application
 import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.Min
 import com.reposilite.configuration.shared.api.SharedSettings
+import com.reposilite.repository.api.RepositoryConfiguration
 import com.reposilite.repository.api.RepositoryVisibility
 import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
 import com.reposilite.storage.StorageProviderSettings
@@ -38,12 +39,12 @@ data class GenericSettings(
 data class GenericRepositorySettings(
     @Min(1)
     @get:Doc(title = "Id", description = "The id of this repository.")
-    val id: String = "",
+    override val id: String = "",
     @get:Doc(title = "Visibility", description = "The visibility of this repository.")
     val visibility: RepositoryVisibility = PUBLIC,
     @get:Doc(title = "Redeployment", description = "Whether an existing file can be overwritten.")
     val redeployment: Boolean = false,
     @get:Doc(title = "Storage provider", description = "The storage used by this repository.")
     @get:OneOf(FileSystemStorageProviderSettings::class, S3StorageProviderSettings::class)
-    val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
-) : SharedSettings
+    override val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
+) : SharedSettings, RepositoryConfiguration

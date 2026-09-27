@@ -17,6 +17,7 @@
 package com.reposilite.repository
 
 import com.reposilite.plugin.api.Facade
+import com.reposilite.repository.api.RepositoryConfiguration
 import com.reposilite.repository.api.RepositoryInfo
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.shared.ErrorResponse
@@ -26,9 +27,12 @@ import com.reposilite.web.api.ReposiliteRoutes
 import panda.std.Result
 import panda.std.asError
 import panda.std.ok
+import panda.std.reactive.Reference
+import java.util.function.Supplier
 
 class RepositoryFacade internal constructor(
     private val accessResolver: RepositoryAccessResolver,
+    private val collections: RepositoryCollections,
 ) : Facade {
 
     internal class Registration(
@@ -37,6 +41,13 @@ class RepositoryFacade internal constructor(
     )
 
     private val registrations = linkedMapOf<String, Registration>()
+
+    fun <S : RepositoryConfiguration, R> registerRepositories(
+        source: Reference<List<S>>,
+        create: (List<S>) -> Map<String, R>,
+        shutdown: (R) -> Unit,
+    ): Supplier<Map<String, R>> =
+        collections.register(source, create, shutdown)
 
     fun register(
         type: String,

@@ -28,6 +28,8 @@ import panda.std.Result.supplyThrowing
 import panda.std.asError
 import panda.std.ok
 import panda.std.reactive.MutableReference
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit.SECONDS
 import java.util.function.Function
 import java.util.function.Supplier
 import kotlin.reflect.KClass
@@ -96,6 +98,24 @@ class SharedConfigurationFacade(
             journalist.logger.info("Propagation | Shared configuration has been changed in ${getProviderName()}, updating current instance...")
             loadSharedSettings()
                 .peek { journalist.logger.info("Propagation | Sources have been updated successfully") }
+        }
+    }
+
+    internal fun watch(scheduler: ScheduledExecutorService): AutoCloseable {
+        var watching = true
+        val watcher = scheduler.scheduleWithFixedDelay({
+            synchronized(settingsLock) {
+                if (watching) {
+                    synchronize()
+                }
+            }
+        }, 10, 10, SECONDS)
+
+        return AutoCloseable {
+            synchronized(settingsLock) {
+                watching = false
+                watcher.cancel(false)
+            }
         }
     }
 

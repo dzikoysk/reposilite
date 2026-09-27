@@ -20,9 +20,9 @@ package com.reposilite.maven
 
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
@@ -51,23 +51,36 @@ internal class LocalMavenIntegrationTest : MavenIntegrationTest()
 internal class RemoteMavenIntegrationTest : MavenIntegrationTest() {
 
     @Test
-    fun `should release S3 storage when repository initialization fails`() {
-        // given: an invalid repository followed by a valid one using the same bucket
+    fun `should preserve conflicting S3 settings and recover after correction`() {
+        // given: a configuration containing two repositories using the same bucket
         val storage = useTargetStorageSettings<S3StorageProviderSettings>().copy(sharedBucket = false)
-        val invalidName = "a".repeat(REPOSITORY_NAME_MAX_LENGTH)
-        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+        val configuration = MavenSettings(repositories = listOf(
+            RepositorySettings(id = "first", storageProvider = storage),
+            RepositorySettings(id = "second", storageProvider = storage),
+        ))
+        val (name, secret) = useDefaultManagementToken()
+        val facade = useFacade<SharedConfigurationFacade>()
 
-        // when: both repositories are loaded
-        settings.update {
-            it.copy(repositories = listOf(
-                RepositorySettings(id = invalidName, storageProvider = storage),
-                RepositorySettings(id = "valid", storageProvider = storage),
-            ))
-        }
+        // when: the conflicting configuration is saved through the settings API
+        val update = put("$base/api/settings/domain/maven").basicAuth(name, secret).body(configuration).asEmpty()
+        val saved = get("$base/api/settings/domain/maven").basicAuth(name, secret).asObject(MavenSettings::class.java)
+        val persisted = DEFAULT_OBJECT_MAPPER.readTree(facade.fetchConfiguration()).get("maven")
 
-        // then: the invalid repository does not prevent the valid one from loading
-        assertThat(mavenFacade.getRepository(invalidName)).isNull()
-        assertThat(mavenFacade.getRepository("valid")).isNotNull()
+        // then: the full configuration is retained while repositories remain offline
+        assertThat(update.isSuccess).isTrue()
+        assertThat(saved.body).isEqualTo(configuration)
+        assertThat(DEFAULT_OBJECT_MAPPER.treeToValue(persisted, MavenSettings::class.java)).isEqualTo(configuration)
+        assertThat(mavenFacade.getRepositories()).isEmpty()
+
+        // when: the second repository is assigned a separate prefix
+        val corrected = configuration.copy(repositories = configuration.repositories.map {
+            it.copy(storageProvider = storage.copy(sharedBucket = true))
+        })
+        val correction = put("$base/api/settings/domain/maven").basicAuth(name, secret).body(corrected).asEmpty()
+
+        // then: repositories become available without restarting the instance
+        assertThat(correction.isSuccess).isTrue()
+        assertThat(mavenFacade.getRepositories().map { it.name }).containsExactlyInAnyOrder("first", "second")
     }
 
 }

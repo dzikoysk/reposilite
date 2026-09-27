@@ -27,7 +27,6 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicReference
 import panda.std.reactive.Reference
 
 internal class MavenRepositories(
@@ -55,14 +54,11 @@ internal class MavenRepositories(
         extensions = extensions
     )
 
-    private val repositories = AtomicReference(createRepositories(repositoriesSource.get()))
-
-    init {
-        repositoriesSource.subscribe { settings ->
-            repositories.get().values.forEach { it.shutdown() }
-            repositories.set(createRepositories(settings))
-        }
-    }
+    private val repositories = repositoryFacade.registerRepositories(
+        source = repositoriesSource,
+        create = ::createRepositories,
+        shutdown = Repository::shutdown,
+    )
 
     private fun createRepositories(repositoriesConfiguration: List<RepositorySettings>): Map<String, Repository> {
         val factory = RepositoryFactory(

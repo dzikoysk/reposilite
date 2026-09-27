@@ -17,7 +17,10 @@
 package com.reposilite.generic.specification
 
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
+import com.reposilite.configuration.ConfigurationFacade
 import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.generic.GenericFacade
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.generic.application.GenericSettings
@@ -43,6 +46,14 @@ internal abstract class GenericIntegrationSpecification : ReposiliteSpecificatio
         genericSettings.update { settings ->
             settings.copy(repositories = settings.repositories + repositories)
         }
+    }
+
+    protected fun useRemoteSettings(settings: Map<String, SharedSettings>) {
+        useFacade<ConfigurationFacade>().saveConfiguration(
+            "remote-shared-configuration",
+            DEFAULT_OBJECT_MAPPER.writeValueAsString(settings),
+        )
+        useFacade<SharedConfigurationFacade>().synchronize()
     }
 
     protected fun useGenericFile(repository: String, path: String, content: String): String {
