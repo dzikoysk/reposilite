@@ -68,23 +68,3 @@ fun S3StorageProviderSettings.resolveKeyPrefix(repositoryName: String): String {
         else -> base
     }
 }
-
-fun findS3SharedBucketConflicts(repositories: List<Pair<String, S3StorageProviderSettings>>): Set<String> {
-    val conflicts = mutableSetOf<String>()
-    repositories
-        .filterNot { (_, settings) -> settings.bucketName.isBlank() }
-        .groupBy { (_, settings) -> settings.endpoint.trim().trimEnd('/') to settings.bucketName.trim() }
-        .values
-        .forEach { group ->
-            val prefixes = group.map { (name, settings) -> name to settings.resolveKeyPrefix(name) }
-            prefixes.forEachIndexed { index, (name, prefix) ->
-                prefixes.take(index).forEach { (otherName, otherPrefix) ->
-                    if (prefix.startsWith(otherPrefix) || otherPrefix.startsWith(prefix)) {
-                        conflicts += name
-                        conflicts += otherName
-                    }
-                }
-            }
-        }
-    return conflicts
-}

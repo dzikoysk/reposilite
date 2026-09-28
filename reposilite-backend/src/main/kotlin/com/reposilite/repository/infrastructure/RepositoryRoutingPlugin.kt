@@ -22,7 +22,10 @@ import io.javalin.config.JavalinState
 import io.javalin.config.RouterConfig
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.http.HandlerType.GET
+import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.plugin.Plugin
 import io.javalin.router.Endpoint
@@ -32,7 +35,6 @@ import io.javalin.router.matcher.PathMatcher
 internal class RepositoryRoutingPlugin private constructor(
     private val registrations: Map<String, Registration>,
     private val routersByType: Map<String, PathMatcher>,
-    private val mavenFallbackType: String?,
 ) : Plugin<Unit?>() {
 
     companion object {
@@ -53,7 +55,6 @@ internal class RepositoryRoutingPlugin private constructor(
             return RepositoryRoutingPlugin(
                 registrations = registrations,
                 routersByType = routersByType,
-                mavenFallbackType = registrations.keys.find { it == "maven" },
             )
         }
 
@@ -64,7 +65,12 @@ internal class RepositoryRoutingPlugin private constructor(
         routersByType
             .values
             .flatMap { it.allEntries() }
-            .map { it.endpoint.method }
+            .flatMap {
+                when (val method = it.endpoint.method) {
+                    GET -> listOf(GET, HEAD)
+                    else -> listOf(method)
+                }
+            }
             .distinct()
             .forEach { method ->
                 state.routes.addEndpoint(Endpoint(method, "/{repository}", handler))
@@ -74,11 +80,13 @@ internal class RepositoryRoutingPlugin private constructor(
 
     private fun dispatch(context: Context) {
         val type = resolveRepositoryType(context.pathParam("repository"))
-        val endpoint = routersByType[type]?.findFirstEntry(context.method(), context.path())
+        val router = routersByType[type]
+        val endpoint = router?.findFirstEntry(context.method(), context.path())
 
-        when (endpoint) {
-            null -> context.status(NOT_FOUND)
-            else -> endpoint.handle(context as JavalinServletContext, context.path())
+        when {
+            endpoint != null -> endpoint.handle(context as JavalinServletContext, context.path())
+            context.method() == HEAD && router?.hasEntries(GET, context.path()) == true -> context.status(OK)
+            else -> context.status(NOT_FOUND)
         }
     }
 
@@ -90,7 +98,7 @@ internal class RepositoryRoutingPlugin private constructor(
         }
 
         return when (types.size) {
-            0 -> mavenFallbackType
+            0 -> "maven"
             1 -> types.single()
             else -> null
         }

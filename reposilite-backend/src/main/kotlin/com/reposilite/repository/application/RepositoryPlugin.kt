@@ -18,12 +18,10 @@ package com.reposilite.repository.application
 
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.plugin.api.Plugin
-import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.repository.RepositoryAccessResolver
-import com.reposilite.repository.RepositoryCollections
 import com.reposilite.repository.RepositoryFacade
 import com.reposilite.repository.infrastructure.RepositoryRoutingPlugin
 import com.reposilite.status.FailureFacade
@@ -34,13 +32,9 @@ import com.reposilite.web.infrastructure.createReposiliteDslFactory
 @Plugin(name = "repository", dependencies = ["web", "failure", "access-token", "authentication"])
 class RepositoryPlugin : ReposilitePlugin() {
     override fun initialize(): RepositoryFacade {
-        val collections = RepositoryCollections(facade<FailureFacade>())
         val repositoryFacade = RepositoryFacade(
             accessResolver = RepositoryAccessResolver(facade<AccessTokenFacade>()),
-            collections = collections,
         )
-
-        event { _: ReposiliteDisposeEvent -> collections.shutdown() }
 
         event { event: HttpServerInitializationEvent ->
             // Register last so /{repository}/<path> doesn't intercept API and frontend requests.

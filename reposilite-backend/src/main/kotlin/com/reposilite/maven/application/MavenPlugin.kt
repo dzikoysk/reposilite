@@ -28,6 +28,7 @@ import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
 import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
@@ -90,6 +91,12 @@ internal class MavenPlugin : ReposilitePlugin() {
 
         event { event: CommandsSetupEvent ->
             event.registerCommand(CacheCommand(mavenFacade))
+        }
+
+        event { _: ReposiliteDisposeEvent ->
+            mavenFacade.getRepositories().forEach {
+                it.shutdown()
+            }
         }
 
         return mavenFacade
