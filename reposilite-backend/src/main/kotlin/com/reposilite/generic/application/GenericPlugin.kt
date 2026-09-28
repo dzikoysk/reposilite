@@ -24,7 +24,9 @@ import com.reposilite.generic.GenericFacade
 import com.reposilite.generic.GenericRepositories
 import com.reposilite.generic.infrastructure.GenericEndpoints
 import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.repository.RepositoryFacade
@@ -45,7 +47,6 @@ internal class GenericPlugin : ReposilitePlugin() {
             workingDirectory = parameters().workingDirectory,
             failureFacade = facade<FailureFacade>(),
             storageFacade = facade<StorageFacade>(),
-            repositoryFacade = repositoryFacade,
             repositoriesSource = facade<SharedConfigurationFacade>()
                 .getDomainSettings<GenericSettings>()
                 .computed { it.repositories },
@@ -61,6 +62,8 @@ internal class GenericPlugin : ReposilitePlugin() {
             ),
             provider = genericFacade,
         ).onError { logger.error("Cannot register generic repositories: $it") }
+
+        event { _: ReposiliteDisposeEvent -> repositories.shutdown() }
 
         return genericFacade
     }

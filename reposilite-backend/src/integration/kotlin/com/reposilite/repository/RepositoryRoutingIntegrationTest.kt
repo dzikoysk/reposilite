@@ -17,10 +17,15 @@
 package com.reposilite.repository
 
 import com.reposilite.repository.specification.RepositoryRoutingSpecification
+import com.reposilite.web.api.ReposiliteRoute
+import io.javalin.community.routing.Route.HEAD
 import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.OK
 import kong.unirest.core.Unirest.get
+import kong.unirest.core.Unirest.head
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import panda.std.ResultAssertions.assertOk
 
 internal class RepositoryRoutingIntegrationTest : RepositoryRoutingSpecification() {
 
@@ -123,15 +128,36 @@ internal class RepositoryRoutingIntegrationTest : RepositoryRoutingSpecification
     }
 
     @Test
+    fun `should support head for get-only repository routes`() {
+        // given: a GET-only provider alongside a provider with an explicit HEAD route
+        useRepositoryType("custom", "downloads")
+        assertOk(repositoryFacade.register(
+            "maven",
+            useRoutes(ReposiliteRoute<Unit>("/{repository}/<resource>", HEAD) {}),
+            useRepositoryProvider("releases"),
+        ))
+        useServer { base ->
+            // when: HEAD is requested from the GET-only provider
+            val response = head("$base/downloads/file").asString()
+
+            // then: the response matches Javalin's implicit HEAD response
+            assertThat(response.status).isEqualTo(OK.code)
+            assertThat(response.body).isEmpty()
+        }
+    }
+
+    @Test
     fun `should reject requests without a matching repository endpoint`() {
         // given: a repository with only a resource route
         useRepositoryType("custom", "downloads")
         useServer { base ->
             // when: its root is requested
             val response = get("$base/downloads").asEmpty()
+            val headResponse = head("$base/downloads").asEmpty()
 
             // then: the gateway does not invoke the resource handler
             assertThat(response.status).isEqualTo(NOT_FOUND.code)
+            assertThat(headResponse.status).isEqualTo(NOT_FOUND.code)
         }
     }
 

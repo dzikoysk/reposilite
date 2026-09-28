@@ -51,30 +51,30 @@ internal class LocalMavenIntegrationTest : MavenIntegrationTest()
 internal class RemoteMavenIntegrationTest : MavenIntegrationTest() {
 
     @Test
-    fun `should preserve conflicting S3 settings and recover after correction`() {
-        // given: a configuration containing two repositories using the same bucket
-        val storage = useTargetStorageSettings<S3StorageProviderSettings>().copy(sharedBucket = false)
+    fun `should preserve invalid repository settings and recover after correction`() {
+        // given: a configuration containing an invalid repository name
+        val storage = useTargetStorageSettings<S3StorageProviderSettings>()
         val configuration = MavenSettings(repositories = listOf(
-            RepositorySettings(id = "first", storageProvider = storage),
+            RepositorySettings(id = " invalid", storageProvider = storage),
             RepositorySettings(id = "second", storageProvider = storage),
         ))
         val (name, secret) = useDefaultManagementToken()
         val facade = useFacade<SharedConfigurationFacade>()
 
-        // when: the conflicting configuration is saved through the settings API
+        // when: the invalid configuration is saved through the settings API
         val update = put("$base/api/settings/domain/maven").basicAuth(name, secret).body(configuration).asEmpty()
         val saved = get("$base/api/settings/domain/maven").basicAuth(name, secret).asObject(MavenSettings::class.java)
         val persisted = DEFAULT_OBJECT_MAPPER.readTree(facade.fetchConfiguration()).get("maven")
 
-        // then: the full configuration is retained while repositories remain offline
+        // then: the full configuration is retained and only the valid repository loads
         assertThat(update.isSuccess).isTrue()
         assertThat(saved.body).isEqualTo(configuration)
         assertThat(DEFAULT_OBJECT_MAPPER.treeToValue(persisted, MavenSettings::class.java)).isEqualTo(configuration)
-        assertThat(mavenFacade.getRepositories()).isEmpty()
+        assertThat(mavenFacade.getRepositories().map { it.name }).containsExactly("second")
 
-        // when: the second repository is assigned a separate prefix
+        // when: the invalid name is corrected
         val corrected = configuration.copy(repositories = configuration.repositories.map {
-            it.copy(storageProvider = storage.copy(sharedBucket = true))
+            if (it.id == " invalid") it.copy(id = "first") else it
         })
         val correction = put("$base/api/settings/domain/maven").basicAuth(name, secret).body(corrected).asEmpty()
 

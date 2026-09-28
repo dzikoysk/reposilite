@@ -18,33 +18,38 @@ package com.reposilite.generic
 
 import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.journalist.Journalist
-import com.reposilite.repository.RepositoryFacade
 import com.reposilite.repository.api.RepositoryIdentity
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import panda.std.reactive.Reference
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicReference
 
 internal class GenericRepositories(
     private val journalist: Journalist,
     private val workingDirectory: Path,
     private val failureFacade: FailureFacade,
     private val storageFacade: StorageFacade,
-    repositoryFacade: RepositoryFacade,
     repositoriesSource: Reference<List<GenericRepositorySettings>>,
 ) {
 
-    private val repositories = repositoryFacade.registerRepositories(
-        source = repositoriesSource,
-        create = ::createRepositories,
-        shutdown = { it.storageProvider.shutdown() },
-    )
+    private val repositories = AtomicReference(createRepositories(repositoriesSource.get()))
+
+    init {
+        repositoriesSource.subscribe { settings ->
+            shutdown()
+            repositories.set(createRepositories(settings))
+        }
+    }
 
     fun findRepository(name: String): GenericRepository? =
         repositories.get()[name]
 
     fun getRepositories(): Collection<GenericRepository> =
         repositories.get().values
+
+    fun shutdown() =
+        repositories.get().values.forEach { it.storageProvider.shutdown() }
 
     private fun createRepositories(settings: List<GenericRepositorySettings>): Map<String, GenericRepository> {
         val duplicatedNames = settings.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys

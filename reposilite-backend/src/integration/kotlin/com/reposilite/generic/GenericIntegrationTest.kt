@@ -25,13 +25,11 @@ import com.reposilite.generic.application.GenericRepositorySettings
 import com.reposilite.generic.application.GenericSettings
 import com.reposilite.generic.specification.GenericIntegrationSpecification
 import com.reposilite.maven.application.MavenSettings
-import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.repository.api.RepositoryVisibility.HIDDEN
 import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.s3.S3StorageProviderSettings
-import com.reposilite.storage.s3.resolveKeyPrefix
 import io.javalin.http.HttpStatus.CONFLICT
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
@@ -52,105 +50,6 @@ internal class LocalGenericIntegrationTest : GenericIntegrationTest()
 
 @ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteGenericIntegrationTest : GenericIntegrationTest() {
-
-    @ParameterizedTest
-    @ValueSource(strings = ["maven", "generic"])
-    fun `should transfer storage between repository types in one remote update`(source: String) {
-        // given: a stored file and a new configuration assigning its storage to another type
-        val sourceName = when (source) {
-            "maven" -> "releases"
-            else -> "files"
-        }
-        when (source) {
-            "maven" -> useDocument(sourceName, "gav", "artifact.jar", "content", true)
-            else -> useGenericFile(sourceName, "gav/artifact.jar", "content")
-        }
-        val storage = useTargetStorageSettings<S3StorageProviderSettings>()
-        val transferred = storage.copy(prefix = storage.resolveKeyPrefix(sourceName), sharedBucket = false)
-        val maven = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>().get()
-        val generic = genericSettings.get()
-        val configuration = mapOf(
-            "maven" to maven.copy(repositories = when (source) {
-                "maven" -> maven.repositories.filterNot { it.id == sourceName }
-                else -> maven.repositories + RepositorySettings(id = "moved", storageProvider = transferred)
-            }),
-            "generic" to generic.copy(repositories = when (source) {
-                "generic" -> generic.repositories.filterNot { it.id == sourceName }
-                else -> generic.repositories + GenericRepositorySettings(id = "moved", storageProvider = transferred)
-            }),
-        )
-
-        // when: an instance receives the final snapshot without intermediate updates
-        useRemoteSettings(configuration)
-        val response = get("$base/moved/gav/artifact.jar").asString()
-
-        // then: the new repository serves the existing file without another settings edit
-        assertThat(response.isSuccess).isTrue()
-        assertThat(response.body).isEqualTo("content")
-        assertThat(get("$base/$sourceName/gav/artifact.jar").asEmpty().status).isEqualTo(NOT_FOUND.code)
-    }
-
-    @Test
-    fun `should stop repositories when generic settings overlap Maven storage`() {
-        // given: a file in Maven's releases repository
-        val (_, gav, file, content) = useDocument("releases", "gav", "artifact.jar", "content", true)
-        val storage = useTargetStorageSettings<S3StorageProviderSettings>()
-
-        // when: a generic repository tries to use Maven's storage path
-        useRepositories(GenericRepositorySettings(
-            id = "overlapping",
-            storageProvider = storage.copy(
-                prefix = storage.resolveKeyPrefix("releases"),
-                sharedBucket = false,
-            ),
-        ))
-
-        // then: repositories stop without discarding the conflicting setting
-        assertThat(mavenFacade.getRepositories()).isEmpty()
-        assertThat(genericFacade.getRepositories()).isEmpty()
-        assertThat(genericSettings.get().repositories.map { it.id }).contains("overlapping")
-
-        // when: the conflict is removed
-        genericSettings.update { it.copy(repositories = it.repositories.filterNot { it.id == "overlapping" }) }
-
-        // then: repositories return and Maven's stored file is preserved
-        assertThat(genericFacade.getRepository("overlapping")).isNull()
-        val response = get("$base/releases/$gav/$file").asString()
-        assertThat(response.isSuccess).isTrue
-        assertThat(response.body).isEqualTo(content)
-        assertThat(genericFacade.getRepository("files")).isNotNull()
-    }
-
-    @Test
-    fun `should stop repositories when Maven settings overlap generic storage`() {
-        // given: a file in a running generic repository
-        val address = useGenericFile("files", "file.txt", "content")
-        val storage = useTargetStorageSettings<S3StorageProviderSettings>()
-        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
-
-        // when: Maven settings add a repository using the generic repository's storage
-        settings.update {
-            it.copy(repositories = it.repositories + RepositorySettings(
-                id = "overlapping",
-                storageProvider = storage.copy(prefix = storage.resolveKeyPrefix("files"), sharedBucket = false),
-            ))
-        }
-
-        // then: repositories stop without discarding the conflicting setting
-        assertThat(mavenFacade.getRepositories()).isEmpty()
-        assertThat(genericFacade.getRepositories()).isEmpty()
-        assertThat(settings.get().repositories.map { it.id }).contains("overlapping")
-
-        // when: the conflict is removed
-        settings.update { it.copy(repositories = it.repositories.filterNot { it.id == "overlapping" }) }
-
-        // then: repositories return and the generic file is preserved
-        assertThat(mavenFacade.getRepository("overlapping")).isNull()
-        assertThat(mavenFacade.getRepository("releases")).isNotNull()
-        val response = get(address).asString()
-        assertThat(response.isSuccess).isTrue
-        assertThat(response.body).isEqualTo("content")
-    }
 
     @Test
     fun `should retain files when renaming a repository with a fixed S3 prefix`() {
@@ -196,7 +95,7 @@ internal abstract class GenericIntegrationTest : GenericIntegrationSpecification
 
     @ParameterizedTest
     @ValueSource(strings = ["maven", "generic"])
-    fun `should rebuild repositories when either type changes`(domain: String) {
+    fun `should rebuild only the repository type whose settings changed`(domain: String) {
         // given: stored files and both repository instances
         val genericAddress = useGenericFile("files", "file.txt", "generic content")
         val (_, gav, file, content) = useDocument("releases", "gav", "artifact.jar", "maven content", true)
@@ -211,9 +110,17 @@ internal abstract class GenericIntegrationTest : GenericIntegrationSpecification
         val mavenResponse = get("$base/releases/$gav/$file").asString()
         val genericResponse = get(genericAddress).asString()
 
-        // then: both types are rebuilt and still serve their files
-        assertThat(mavenFacade.getRepository("releases")).isNotNull.isNotSameAs(previousMaven)
-        assertThat(genericFacade.getRepository("files")).isNotNull.isNotSameAs(previousGeneric)
+        // then: only the changed type is rebuilt and both types still serve their files
+        when (domain) {
+            "maven" -> {
+                assertThat(mavenFacade.getRepository("releases")).isNotNull.isNotSameAs(previousMaven)
+                assertThat(genericFacade.getRepository("files")).isSameAs(previousGeneric)
+            }
+            "generic" -> {
+                assertThat(mavenFacade.getRepository("releases")).isSameAs(previousMaven)
+                assertThat(genericFacade.getRepository("files")).isNotNull.isNotSameAs(previousGeneric)
+            }
+        }
         assertThat(mavenResponse.isSuccess).isTrue
         assertThat(mavenResponse.body).isEqualTo(content)
         assertThat(genericResponse.isSuccess).isTrue
@@ -382,12 +289,11 @@ internal abstract class GenericIntegrationTest : GenericIntegrationSpecification
 
     @Test
     fun `should skip repositories with duplicate names in settings`() {
-        // given: two repository definitions with the same name but separate storage
+        // given: a repository definition supplied twice
         val repository = GenericRepositorySettings(id = "duplicated", storageProvider = useTargetStorageSettings())
-        val duplicate = repository.copy(storageProvider = FileSystemStorageProviderSettings(mount = "duplicate-name"))
 
         // when: the duplicate definitions are added
-        useRepositories(repository, duplicate)
+        useRepositories(repository, repository)
 
         // then: neither duplicate is initialized and existing repositories remain available
         assertThat(genericFacade.getRepository("duplicated")).isNull()
