@@ -25,6 +25,7 @@ import com.reposilite.shared.extensions.uri
 import com.reposilite.shared.extractFromHeader
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.infrastructure.ReposiliteDsl.ReposiliteConfiguration
 import io.javalin.community.routing.dsl.DslExceptionHandler
 import io.javalin.community.routing.dsl.DslRoute
@@ -34,8 +35,10 @@ import io.javalin.community.routing.dsl.RoutingDslFactory
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
+import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.router.Endpoint
 import io.javalin.util.javalinLazy
 
 typealias ReposiliteRouting = DslRouting<ReposiliteConfiguration, ReposiliteDslRoute, ReposiliteScope, Unit>
@@ -59,6 +62,15 @@ class ReposiliteDsl(
     override fun createExceptionHandler(handler: ReposiliteExceptionHandler): ExceptionHandler<Exception> =
         exceptionRouteFactory.invoke(handler)
 
+    internal fun createEndpoints(routes: ReposiliteRoutes): Collection<Endpoint> =
+        routes.routes().map { route ->
+            Endpoint(
+                method = HandlerType.values().first { it.name == route.method.toString() },
+                path = route.path,
+                handler = createHandler(route),
+            )
+        }
+
 }
 
 fun createReposiliteDsl(
@@ -66,7 +78,15 @@ fun createReposiliteDsl(
     accessTokenFacade: AccessTokenFacade,
     authenticationFacade: AuthenticationFacade,
     failureFacade: FailureFacade
-): ReposiliteRouting {
+): ReposiliteRouting =
+    ReposiliteRouting(createReposiliteDslFactory(journalist, accessTokenFacade, authenticationFacade, failureFacade))
+
+internal fun createReposiliteDslFactory(
+    journalist: Journalist,
+    accessTokenFacade: AccessTokenFacade,
+    authenticationFacade: AuthenticationFacade,
+    failureFacade: FailureFacade,
+): ReposiliteDsl {
     fun Context.toDslContext(): ContextDsl<Any> =
         ContextDsl(
             logger = journalist.logger,
@@ -113,5 +133,5 @@ fun createReposiliteDsl(
         }
     )
 
-    return ReposiliteRouting(dsl)
+    return dsl
 }

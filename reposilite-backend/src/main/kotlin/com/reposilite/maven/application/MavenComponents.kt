@@ -21,18 +21,17 @@ import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.MavenRepositories
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.MirrorService
 import com.reposilite.maven.ResolutionProvider
-import com.reposilite.maven.RepositoryProvider
-import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.PluginComponents
+import com.reposilite.repository.RepositoryFacade
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
-import com.reposilite.token.AccessTokenFacade
 import panda.std.reactive.Reference
 import java.nio.file.Path
 import java.time.Clock
@@ -47,18 +46,15 @@ internal class MavenComponents(
     private val failureFacade: FailureFacade,
     private val storageFacade: StorageFacade,
     private val authenticationFacade: AuthenticationFacade,
-    private val accessTokenFacade: AccessTokenFacade,
+    private val repositoryFacade: RepositoryFacade,
     private val statisticsFacade: StatisticsFacade,
     private val ioService: ExecutorService,
     private val mavenSettings: Reference<MavenSettings>,
     private val frontendSettings: Reference<FrontendSettings>,
 ) : PluginComponents {
 
-    private fun securityProvider(): RepositorySecurityProvider =
-        RepositorySecurityProvider(accessTokenFacade)
-
     private fun metadataService(): MetadataService =
-        MetadataService(securityProvider())
+        MetadataService(repositoryFacade)
 
     private fun mirrorService(): MirrorService =
         MirrorService(
@@ -71,12 +67,11 @@ internal class MavenComponents(
     private fun resolutionProvider(): ResolutionProvider =
         ResolutionProvider(journalist)
 
-    private fun repositoryProvider(
+    private fun repositories(
         mirrorService: MirrorService = mirrorService(),
         resolutionProvider: ResolutionProvider = resolutionProvider(),
-        securityProvider: RepositorySecurityProvider = securityProvider(),
-    ): RepositoryProvider =
-        RepositoryProvider(
+    ): MavenRepositories =
+        MavenRepositories(
             journalist = journalist,
             workingDirectory = workingDirectory,
             remoteClientProvider = remoteClientProvider,
@@ -87,7 +82,7 @@ internal class MavenComponents(
             resolutionProvider = resolutionProvider,
             statisticsFacade = statisticsFacade,
             extensions = extensions,
-            repositorySecurityProvider = securityProvider,
+            repositoryFacade = repositoryFacade,
             repositoriesSource = mavenSettings.computed { it.repositories }
         )
 
@@ -95,15 +90,14 @@ internal class MavenComponents(
         LatestService(frontendSettings.computed { it.id })
 
     fun mavenFacade(
-        securityProvider: RepositorySecurityProvider = securityProvider(),
         metadataService: MetadataService = metadataService(),
         latestService: LatestService = latestService(),
-        repositoryProvider: RepositoryProvider = repositoryProvider(),
+        repositories: MavenRepositories = repositories(),
     ): MavenFacade =
         MavenFacade(
             journalist = journalist,
-            repositorySecurityProvider = securityProvider,
-            repositoryProvider = repositoryProvider,
+            repositoryFacade = repositoryFacade,
+            repositories = repositories,
             metadataService = metadataService,
             latestService = latestService
         )

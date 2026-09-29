@@ -23,9 +23,7 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.storage.api.toLocation
-import io.javalin.Javalin
 import java.util.concurrent.Callable
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -44,9 +42,9 @@ internal class RemoteMavenMirrorsIntegrationTest : MavenMirrorsIntegrationTest()
 internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
-    fun `should proxy remote file`() = runBlocking {
+    fun `should proxy remote file`() {
         // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/remote.jar", "content") { gav, content ->
+        useProxiedHost("com/reposilite/remote.jar", "content") { gav, content ->
             // when: non-existing file is requested
             val notFoundResponse = get("$base/proxied/not/found.jar").asString()
 
@@ -63,9 +61,9 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     }
 
     @Test
-    fun `should not proxy file with forbidden extension`() = runBlocking {
+    fun `should not proxy file with forbidden extension`() {
         // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/remote.file", "content") { gav, _ ->
+        useProxiedHost("com/reposilite/remote.file", "content") { gav, _ ->
             // when: file that exists in remote repository is requested
             val response = get("$base/proxied/$gav").asString()
             // then: service responds with 404 status page as .file extension is not allowed
@@ -77,14 +75,10 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     fun `should not respond with 200 and empty body when upstream HEAD succeeds but GET fails`() {
         // given: an upstream where HEAD reports the artifact exists but GET fails (network blip / 5xx mid-fetch)
         val gav = "com/reposilite/broken.jar"
-        val started = CountDownLatch(1)
-        val upstream = Javalin.start { config ->
-            config.jetty.port = reposilite.parameters.port + 1
-            config.events.serverStarted { started.countDown() }
+        val upstream = startProxiedHost { config ->
             config.routes.head("/releases/$gav") { ctx -> ctx.contentType("application/java-archive").header("Content-Length", "100").status(200) }
             config.routes.get("/releases/$gav") { ctx -> ctx.status(500).result("upstream temporarily unavailable") }
         }
-        assertThat(started.await(10, TimeUnit.SECONDS)).isTrue
 
         try {
             // when: client requests the artifact through the proxy
@@ -103,10 +97,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
         val gav = "com/reposilite/concurrent.jar"
         val content = "concurrent-content"
         val upstreamHits = AtomicInteger(0)
-        val started = CountDownLatch(1)
-        val upstream = Javalin.start { config ->
-            config.jetty.port = reposilite.parameters.port + 1
-            config.events.serverStarted { started.countDown() }
+        val upstream = startProxiedHost { config ->
             config.routes.head("/releases/$gav") { ctx ->
                 ctx.contentType("application/java-archive").header("Content-Length", content.length.toString()).status(200)
             }
@@ -116,7 +107,6 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
                 ctx.result(content)
             }
         }
-        assertThat(started.await(10, TimeUnit.SECONDS)).isTrue
 
         try {
             // when: five clients request the same artifact in parallel through a storing mirror
@@ -143,7 +133,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     @Test
     fun `should prioritize upstream metadata file over local copy`() = runBlocking {
         // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/maven-metadata.xml", "upstream") { gav, _ ->
+        useProxiedHost("com/reposilite/maven-metadata.xml", "upstream") { gav, _ ->
             // and: local repository with cached metadata file
             useDocument("proxied", "com/reposilite", "maven-metadata.xml", "local", true)
 
