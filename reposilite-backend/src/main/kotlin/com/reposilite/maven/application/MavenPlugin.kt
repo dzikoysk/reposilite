@@ -35,6 +35,7 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.status.FailureFacade
 import com.reposilite.web.api.RoutingSetupEvent
 import java.time.Clock
 
@@ -48,6 +49,7 @@ internal class MavenPlugin : ReposilitePlugin() {
     override fun initialize(): MavenFacade {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val repositoryFacade = facade<RepositoryFacade>()
+        val failureFacade = facade<FailureFacade>()
 
         val mavenFacade =
             MavenComponents(
@@ -56,7 +58,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 journalist = this,
                 extensions = extensions(),
                 remoteClientProvider = reposilite().remoteClientProvider,
-                failureFacade = facade(),
+                failureFacade = failureFacade,
                 storageFacade = facade(),
                 authenticationFacade = facade(),
                 repositoryFacade = repositoryFacade,
@@ -80,7 +82,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 compressionStrategy = localConfiguration.compressionStrategy.get(),
             ),
             provider = mavenFacade,
-        ).onError { logger.error("Cannot register Maven repositories: $it") }
+        ).onError { failureFacade.throwException("Cannot register Maven repositories", IllegalArgumentException(it)) }
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(MavenApiEndpoints(mavenFacade))
