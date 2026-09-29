@@ -54,10 +54,9 @@ class GenericFacade internal constructor(
         repositoryFacade.canAccessResource(accessToken, repository, location)
             .flatMap { repository.storageProvider.getFileDetails(location) }
             .flatMap { details ->
-                if (details.type == DIRECTORY) {
-                    repositoryFacade.canBrowseResource(accessToken, repository, location).map { details }
-                } else {
-                    details.asSuccess()
+                when (details.type) {
+                    DIRECTORY -> repositoryFacade.canBrowseResource(accessToken, repository, location).map { details }
+                    else -> details.asSuccess()
                 }
             }
             .map { details ->

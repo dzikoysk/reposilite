@@ -21,6 +21,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.repository.api.RepositoryIdentity
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
+import panda.std.Result.supplyThrowing
 import panda.std.reactive.Reference
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
@@ -52,32 +53,45 @@ internal class GenericRepositories(
         repositories.get().values.forEach { it.storageProvider.shutdown() }
 
     private fun createRepositories(settings: List<GenericRepositorySettings>): Map<String, GenericRepository> {
-        val duplicatedNames = settings.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys
+        val duplicatedNames =
+            settings
+                .groupingBy { it.id }
+                .eachCount()
+                .filterValues { it > 1 }
+                .keys
 
-        return settings.mapNotNull { configuration ->
-            val identity = RepositoryIdentity.create(configuration.id)
-                .onError { failureFacade.throwException("Cannot load ${configuration.id} repository", IllegalArgumentException(it)) }
-                .orNull() ?: return@mapNotNull null
+        return settings
+            .mapNotNull { configuration ->
+                RepositoryIdentity
+                    .create(configuration.id)
+                    .filter(
+                        { it.name !in duplicatedNames },
+                        { "Repository name '${it.name}' is duplicated in generic repository settings" }
+                    )
+                    .mapErr<Exception> { IllegalArgumentException(it) }
+                    .flatMap { identity ->
+                        supplyThrowing {
+                            val storageProvider = storageFacade.createStorageProvider(
+                                journalist = journalist,
+                                failureFacade = failureFacade,
+                                workingDirectory = workingDirectory.resolve("repositories"),
+                                repository = identity.name,
+                                storageSettings = configuration.storageProvider,
+                            ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")
 
-            runCatching {
-                require(configuration.id !in duplicatedNames) {
-                    "Repository name '${configuration.id}' is duplicated in generic repository settings"
-                }
-                GenericRepository(
-                    identity = identity,
-                    visibility = configuration.visibility,
-                    redeployment = configuration.redeployment,
-                    storageProvider = storageFacade.createStorageProvider(
-                        journalist = journalist,
-                        failureFacade = failureFacade,
-                        workingDirectory = workingDirectory.resolve("repositories"),
-                        repository = identity.name,
-                        storageSettings = configuration.storageProvider,
-                    ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
-                )
+                            GenericRepository(
+                                identity = identity,
+                                visibility = configuration.visibility,
+                                redeployment = configuration.redeployment,
+                                storageProvider = storageProvider,
+                            )
+                        }
+                    }
+                    .onError {
+                        failureFacade.throwException("Cannot load ${configuration.id} repository", it)
+                    }
+                    .orNull()
             }
-                .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
-                .getOrNull()
-        }.associateBy { it.name }
+            .associateBy { it.name }
     }
 }

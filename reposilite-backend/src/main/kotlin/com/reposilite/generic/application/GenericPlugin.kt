@@ -43,28 +43,39 @@ internal class GenericPlugin : ReposilitePlugin() {
     override fun initialize(): GenericFacade {
         val repositoryFacade = facade<RepositoryFacade>()
         val failureFacade = facade<FailureFacade>()
+        val frontendFacade = facade<FrontendFacade>()
+        val localConfiguration = facade<LocalConfiguration>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
+        val storageFacade = facade<StorageFacade>()
+
         val repositories = GenericRepositories(
             journalist = this,
             workingDirectory = parameters().workingDirectory,
             failureFacade = failureFacade,
-            storageFacade = facade<StorageFacade>(),
-            repositoriesSource = facade<SharedConfigurationFacade>()
-                .getDomainSettings<GenericSettings>()
-                .computed { it.repositories },
+            storageFacade = storageFacade,
+            repositoriesSource = sharedConfigurationFacade.getDomainSettings<GenericSettings>().computed { it.repositories },
         )
-        val genericFacade = GenericFacade(this, repositories, repositoryFacade)
+        event { _: ReposiliteDisposeEvent ->
+            repositories.shutdown()
+        }
 
-        repositoryFacade.register(
-            type = GENERIC_REPOSITORY_TYPE,
-            routes = GenericEndpoints(
-                genericFacade = genericFacade,
-                frontendFacade = facade<FrontendFacade>(),
-                compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get(),
-            ),
-            provider = genericFacade,
-        ).onError { failureFacade.throwException("Cannot register generic repositories", IllegalArgumentException(it)) }
-
-        event { _: ReposiliteDisposeEvent -> repositories.shutdown() }
+        val genericFacade = GenericFacade(
+            journalist = this,
+            repositories = repositories,
+            repositoryFacade = repositoryFacade,
+        )
+        repositoryFacade
+            .register(
+                type = GENERIC_REPOSITORY_TYPE,
+                routes = GenericEndpoints(
+                    genericFacade = genericFacade,
+                    frontendFacade = frontendFacade,
+                    compressionStrategy = localConfiguration.compressionStrategy.get(),
+                ),
+                provider = genericFacade,
+            ).onError {
+                failureFacade.throwException("Cannot register generic repositories", IllegalArgumentException(it))
+            }
 
         return genericFacade
     }
