@@ -42,10 +42,11 @@ internal class GenericPlugin : ReposilitePlugin() {
 
     override fun initialize(): GenericFacade {
         val repositoryFacade = facade<RepositoryFacade>()
+        val failureFacade = facade<FailureFacade>()
         val repositories = GenericRepositories(
             journalist = this,
             workingDirectory = parameters().workingDirectory,
-            failureFacade = facade<FailureFacade>(),
+            failureFacade = failureFacade,
             storageFacade = facade<StorageFacade>(),
             repositoriesSource = facade<SharedConfigurationFacade>()
                 .getDomainSettings<GenericSettings>()
@@ -61,7 +62,7 @@ internal class GenericPlugin : ReposilitePlugin() {
                 compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get(),
             ),
             provider = genericFacade,
-        ).onError { logger.error("Cannot register generic repositories: $it") }
+        ).onError { failureFacade.throwException("Cannot register generic repositories", IllegalArgumentException(it)) }
 
         event { _: ReposiliteDisposeEvent -> repositories.shutdown() }
 
