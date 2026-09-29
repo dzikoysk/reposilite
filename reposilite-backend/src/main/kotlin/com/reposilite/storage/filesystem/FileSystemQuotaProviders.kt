@@ -22,6 +22,7 @@ import com.reposilite.shared.toErrorResponse
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import panda.std.Result
 import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.fileStore
 
 /**
@@ -32,9 +33,11 @@ internal class FixedQuota(
     journalist: Journalist,
     rootDirectory: Path,
     private val maxSize: Long,
+    filePermissions: Set<PosixFilePermission>,
 ) : FileSystemStorageProvider(
     journalist = journalist,
     rootDirectory = rootDirectory,
+    filePermissions = filePermissions,
 ) {
 
     init {
@@ -58,9 +61,11 @@ internal class PercentageQuota(
     journalist: Journalist,
     rootDirectory: Path,
     private val maxPercentage: Double,
+    filePermissions: Set<PosixFilePermission>,
 ) : FileSystemStorageProvider(
     journalist = journalist,
     rootDirectory = rootDirectory,
+    filePermissions = filePermissions,
 ) {
 
     init {
