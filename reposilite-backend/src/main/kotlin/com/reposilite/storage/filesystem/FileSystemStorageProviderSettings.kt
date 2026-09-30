@@ -24,8 +24,8 @@ import io.javalin.openapi.Custom
 data class FileSystemStorageProviderSettings(
     @get:Custom(name = "const", value = "fs")
     override val type: String = "fs",
-    @get:Doc(title = "Quota", description = "Control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)")
-    val quota: String = "100%",
+    @get:Doc(title = "Quota", description = "Control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB. Null or absent means no quota enforcement (default).")
+    val quota: String? = null,
     @get:Doc(title = "Mount", description = "Use custom directory to locate the repository data (optional, by default it's './repositories/{name}')")
     val mount: String = "",
 ) : StorageProviderSettings

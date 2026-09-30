@@ -23,6 +23,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.filesystem.FileSystemStorageProvider
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
+import com.reposilite.storage.filesystem.NoQuota
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -167,9 +168,7 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
 
         @Test
         fun `should reject an upload meaningfully over the quota boundary`() {
-            // given: a payload comfortably above the configured 1 MB. Note: an exact `maxSize + 1`
-            // payload currently passes due to a one-byte slack inherited from `usage()` returning -1
-            // for the storage root — see docs/follow-ups/QUOTA_REDESIGN.md.
+            // given: a payload comfortably above the configured 1 MB
             val payload = ByteArray(2 * 1024 * 1024) { 'a'.code.toByte() }
 
             // when: the upload is attempted
@@ -191,6 +190,43 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
                 }
             }
             error("Thread did not park or terminate, last state was ${thread.state}")
+        }
+
+    }
+
+    @Nested
+    inner class NoQuotaTests {
+
+        @BeforeEach
+        fun setup() {
+            val logger = InMemoryLogger()
+            val failureFacade = FailureFacade(logger)
+            val storageFacade = StorageFacade()
+
+            this@FileSystemStorageProviderIntegrationTest.storageProvider = storageFacade.createStorageProvider(
+                journalist = logger,
+                failureFacade = failureFacade,
+                workingDirectory = rootDirectory.toPath(),
+                repository = "test-noquota",
+                storageSettings = FileSystemStorageProviderSettings(quota = null)
+            )!!
+        }
+
+        @Test
+        fun `should report -1 usage when no quota is configured`() {
+            assertThat(assertOk(storageProvider.usage())).isEqualTo(-1L)
+        }
+
+        @Test
+        fun `should accept large upload when no quota is configured`() {
+            val payload = ByteArray(10 * 1024 * 1024) { 'b'.code.toByte() }
+            val response = storageProvider.putFile("/large.jar".toLocation(), payload.inputStream())
+            assertOk(response)
+        }
+
+        @Test
+        fun `should create NoQuota provider`() {
+            assertThat(storageProvider).isInstanceOf(NoQuota::class.java)
         }
 
     }
