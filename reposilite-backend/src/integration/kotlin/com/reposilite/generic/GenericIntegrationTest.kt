@@ -59,10 +59,11 @@ internal class RemoteGenericIntegrationTest : GenericIntegrationTest() {
                 repositories = listOf(
                     GenericRepositorySettings(
                         id = "downloads",
-                        storageProvider = useTargetStorageSettings<S3StorageProviderSettings>().copy(
-                            prefix = "downloads",
-                            sharedBucket = false,
-                        ),
+                        storageProvider = useTargetStorageSettings<S3StorageProviderSettings>()
+                            .copy(
+                                prefix = "downloads",
+                                sharedBucket = false,
+                            ),
                     )
                 )
             )

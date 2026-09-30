@@ -97,7 +97,8 @@ internal class MavenPlugin : ReposilitePlugin() {
                     compressionStrategy = localConfiguration.compressionStrategy.get(),
                 ),
                 provider = mavenFacade,
-            ).onError {
+            )
+            .onError {
                 failureFacade.throwException("Cannot register Maven repositories", IllegalArgumentException(it))
             }
 

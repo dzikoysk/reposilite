@@ -34,9 +34,11 @@ internal abstract class GenericIntegrationSpecification : ReposiliteSpecificatio
     protected abstract fun repositories(): List<GenericRepositorySettings>
 
     override fun overrideSharedConfiguration(sharedConfigurationFacade: SharedConfigurationFacade) {
-        sharedConfigurationFacade.getDomainSettings<GenericSettings>().update {
-            GenericSettings(repositories = repositories())
-        }
+        sharedConfigurationFacade
+            .getDomainSettings<GenericSettings>()
+            .update {
+                GenericSettings(repositories = repositories())
+            }
     }
 
     protected fun useRepositories(vararg repositories: GenericRepositorySettings) {

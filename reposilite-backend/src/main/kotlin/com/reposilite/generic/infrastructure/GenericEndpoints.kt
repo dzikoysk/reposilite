@@ -73,24 +73,26 @@ internal class GenericEndpoints(
         repository: GenericRepository,
         location: Location,
     ): Result<Unit, ErrorResponse> =
-        genericFacade.findDetails(identifier, repository, location)
+        genericFacade
+            .findDetails(identifier, repository, location)
             .flatMap { details ->
                 when (details) {
                     is DocumentInfo ->
                         when (ctx.method()) {
                             HEAD_METHOD -> InputStream.nullInputStream().asSuccess()
                             else -> genericFacade.findData(identifier, repository, location)
-                        }.map { data ->
-                            ctx.resultAttachment(
-                                name = details.name,
-                                contentType = details.contentType,
-                                contentLength = details.contentLength,
-                                lastTimeModified = details.lastModifiedTime,
-                                compressionStrategy = compressionStrategy,
-                                cache = false,
-                                data = data,
-                            )
                         }
+                            .map { data ->
+                                ctx.resultAttachment(
+                                    name = details.name,
+                                    contentType = details.contentType,
+                                    contentLength = details.contentLength,
+                                    lastTimeModified = details.lastModifiedTime,
+                                    compressionStrategy = compressionStrategy,
+                                    cache = false,
+                                    data = data,
+                                )
+                            }
                     is DirectoryInfo -> {
                         ctx.html(
                             createDirectoryIndexPage(
@@ -105,13 +107,15 @@ internal class GenericEndpoints(
                 }
             }
             .onError { error ->
-                ctx.status(error.status).html(
-                    frontendFacade.createNotFoundPage(
-                        originUri = ctx.uri(),
-                        details = error.message,
-                        forwardedPrefix = ctx.header(frontendFacade.forwardedPrefixHeader.get()),
+                ctx
+                    .status(error.status)
+                    .html(
+                        frontendFacade.createNotFoundPage(
+                            originUri = ctx.uri(),
+                            details = error.message,
+                            forwardedPrefix = ctx.header(frontendFacade.forwardedPrefixHeader.get()),
+                        )
                     )
-                )
             }
 
     private val deployFile = ReposiliteRoute<Unit>("/{repository}/<path>", POST, PUT) {
@@ -137,13 +141,15 @@ internal class GenericEndpoints(
     override val routes = routes(browseRepositoryRoot, browseRepositoryPath, deployFile, deleteFile)
 
     private fun <R> ContextDsl<R>.requireRepository(block: (GenericRepository) -> Unit) {
-        genericFacade.getRepository(requireParameter("repository"))
+        genericFacade
+            .getRepository(requireParameter("repository"))
             ?.let(block)
             ?: run { response = notFoundError("Repository not found") }
     }
 
     private fun <R> ContextDsl<R>.requireLocation(block: (Location) -> Unit) {
-        Location.ofRequest(requireParameter("path"))
+        Location
+            .ofRequest(requireParameter("path"))
             .peek(block)
             .onError { response = it.asError() }
     }

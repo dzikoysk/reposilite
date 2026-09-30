@@ -73,7 +73,8 @@ internal class GenericPlugin : ReposilitePlugin() {
                     compressionStrategy = localConfiguration.compressionStrategy.get(),
                 ),
                 provider = genericFacade,
-            ).onError {
+            )
+            .onError {
                 failureFacade.throwException("Cannot register generic repositories", IllegalArgumentException(it))
             }
 

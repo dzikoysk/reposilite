@@ -51,7 +51,8 @@ class GenericFacade internal constructor(
         repository: GenericRepository,
         location: Location,
     ): Result<out FileDetails, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository, location)
+        repositoryFacade
+            .canAccessResource(accessToken, repository, location)
             .flatMap { repository.storageProvider.getFileDetails(location) }
             .flatMap { details ->
                 when (details.type) {
@@ -73,7 +74,8 @@ class GenericFacade internal constructor(
         repository: GenericRepository,
         location: Location,
     ): Result<InputStream, ErrorResponse> =
-        repositoryFacade.canAccessResource(accessToken, repository, location)
+        repositoryFacade
+            .canAccessResource(accessToken, repository, location)
             .flatMap { repository.storageProvider.getFile(location) }
 
     fun deployFile(
@@ -88,8 +90,10 @@ class GenericFacade internal constructor(
                 unauthorizedError("Unauthorized access request")
             !repository.redeployment && repository.storageProvider.exists(location) ->
                 errorResponse(CONFLICT, "Redeployment is not allowed")
-            else -> repository.storageProvider.putFile(location, content)
-                .peek { logger.info("DEPLOY | File $location successfully deployed to ${repository.name} by $by") }
+            else ->
+                repository.storageProvider
+                    .putFile(location, content)
+                    .peek { logger.info("DEPLOY | File $location successfully deployed to ${repository.name} by $by") }
         }
 
     fun deleteFile(
@@ -100,7 +104,8 @@ class GenericFacade internal constructor(
     ): Result<Unit, ErrorResponse> =
         when {
             repositoryFacade.canModifyResource(accessToken, repository, location) ->
-                repository.storageProvider.removeFile(location)
+                repository.storageProvider
+                    .removeFile(location)
                     .peek { logger.info("DELETE | File $location has been deleted from ${repository.name} by $by") }
             else -> unauthorizedError("Unauthorized access request")
         }
