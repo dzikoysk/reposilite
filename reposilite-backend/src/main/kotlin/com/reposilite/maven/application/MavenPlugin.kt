@@ -16,9 +16,11 @@
 
 package com.reposilite.maven.application
 
+import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.console.api.CommandsSetupEvent
+import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.MAVEN_REPOSITORY_TYPE
 import com.reposilite.maven.MavenFacade
@@ -35,7 +37,9 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.repository.RepositoryFacade
+import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
+import com.reposilite.storage.StorageFacade
 import com.reposilite.web.api.RoutingSetupEvent
 import java.time.Clock
 
@@ -50,6 +54,11 @@ internal class MavenPlugin : ReposilitePlugin() {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val repositoryFacade = facade<RepositoryFacade>()
         val failureFacade = facade<FailureFacade>()
+        val localConfiguration = facade<LocalConfiguration>()
+        val storageFacade = facade<StorageFacade>()
+        val authenticationFacade = facade<AuthenticationFacade>()
+        val statisticsFacade = facade<StatisticsFacade>()
+        val frontendFacade = facade<FrontendFacade>()
 
         val mavenFacade =
             MavenComponents(
@@ -59,30 +68,39 @@ internal class MavenPlugin : ReposilitePlugin() {
                 extensions = extensions(),
                 remoteClientProvider = reposilite().remoteClientProvider,
                 failureFacade = failureFacade,
-                storageFacade = facade(),
-                authenticationFacade = facade(),
+                storageFacade = storageFacade,
+                authenticationFacade = authenticationFacade,
                 repositoryFacade = repositoryFacade,
-                statisticsFacade = facade(),
+                statisticsFacade = statisticsFacade,
                 ioService = reposilite().ioService,
                 mavenSettings = sharedConfigurationFacade.getDomainSettings<MavenSettings>(),
                 frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
             ).mavenFacade()
+
+        event { _: ReposiliteDisposeEvent ->
+            mavenFacade.getRepositories().forEach {
+                it.shutdown()
+            }
+        }
 
         logger.info("")
         logger.info("--- Repositories")
         mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().lowercase()})") }
         logger.info("${mavenFacade.getRepositories().size} repositories have been found")
 
-        val localConfiguration = facade<LocalConfiguration>()
-        repositoryFacade.register(
-            type = MAVEN_REPOSITORY_TYPE,
-            routes = MavenEndpoints(
-                mavenFacade = mavenFacade,
-                frontendFacade = facade(),
-                compressionStrategy = localConfiguration.compressionStrategy.get(),
-            ),
-            provider = mavenFacade,
-        ).onError { failureFacade.throwException("Cannot register Maven repositories", IllegalArgumentException(it)) }
+        repositoryFacade
+            .register(
+                type = MAVEN_REPOSITORY_TYPE,
+                routes = MavenEndpoints(
+                    mavenFacade = mavenFacade,
+                    frontendFacade = frontendFacade,
+                    compressionStrategy = localConfiguration.compressionStrategy.get(),
+                ),
+                provider = mavenFacade,
+            )
+            .onError {
+                failureFacade.throwException("Cannot register Maven repositories", IllegalArgumentException(it))
+            }
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(MavenApiEndpoints(mavenFacade))
@@ -93,12 +111,6 @@ internal class MavenPlugin : ReposilitePlugin() {
 
         event { event: CommandsSetupEvent ->
             event.registerCommand(CacheCommand(mavenFacade))
-        }
-
-        event { _: ReposiliteDisposeEvent ->
-            mavenFacade.getRepositories().forEach {
-                it.shutdown()
-            }
         }
 
         return mavenFacade

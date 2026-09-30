@@ -41,8 +41,9 @@ internal class JavadocPlugin : ReposilitePlugin() {
         val failureFacade = facade<FailureFacade>()
         val mavenFacade = facade<MavenFacade>()
         val frontendFacade = facade<FrontendFacade>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
 
-        val javadocSettings = facade<SharedConfigurationFacade>().getDomainSettings<JavadocSettings>()
+        val javadocSettings = sharedConfigurationFacade.getDomainSettings<JavadocSettings>()
         val javadocEnabled = javadocSettings.computed { it.enabled }
         val javadocSuffixes = javadocSettings.computed { it.suffixes }
         val javadocFolder = parameters().workingDirectory.resolve("javadocs")

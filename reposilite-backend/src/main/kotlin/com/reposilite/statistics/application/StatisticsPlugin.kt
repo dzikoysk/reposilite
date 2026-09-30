@@ -36,17 +36,18 @@ import java.util.concurrent.TimeUnit.SECONDS
 internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
-        val settingsFacade = facade<SharedConfigurationFacade>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
+        val accessTokenFacade = facade<AccessTokenFacade>()
+        val consoleFacade = facade<ConsoleFacade>()
 
         val statisticsFacade = StatisticsComponents(
             journalist = this,
             database = reposilite().database,
             runMigrations = parameters().runMigrations,
-            statisticsSettings = settingsFacade.getDomainSettings<StatisticsSettings>(),
-            accessTokenFacade = facade<AccessTokenFacade>()
+            statisticsSettings = sharedConfigurationFacade.getDomainSettings<StatisticsSettings>(),
+            accessTokenFacade = accessTokenFacade
         ).statisticsFacade()
 
-        val consoleFacade = facade<ConsoleFacade>()
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
         event { _: ReposiliteInitializeEvent ->

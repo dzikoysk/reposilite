@@ -1,9 +1,11 @@
 ---
 id: repositories
-title: Repositories
+title: Maven
 ---
 
-By default, Reposilite generates three standard repositories:
+Maven repositories store Maven artifacts. For other files, use a [generic repository](/guide/generic).
+
+By default, the Maven provider generates three standard repositories:
 
 * `releases` - the most popular repository type where we can push our artifacts
 * `snapshots` - dedicated repository for snapshot artifacts (with `-SNAPSHOT` suffix)
