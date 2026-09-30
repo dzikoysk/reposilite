@@ -82,7 +82,6 @@ internal class GenericRepositories(
                             GenericRepository(
                                 identity = identity,
                                 visibility = configuration.visibility,
-                                redeployment = configuration.redeployment,
                                 storageProvider = storageProvider,
                             )
                         }

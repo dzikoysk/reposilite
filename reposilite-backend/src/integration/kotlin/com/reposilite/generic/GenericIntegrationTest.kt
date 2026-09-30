@@ -30,7 +30,6 @@ import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.s3.S3StorageProviderSettings
-import io.javalin.http.HttpStatus.CONFLICT
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.core.HeaderNames.CONTENT_LENGTH
@@ -88,10 +87,9 @@ internal abstract class GenericIntegrationTest : GenericIntegrationSpecification
 
     override fun repositories(): List<GenericRepositorySettings> =
         listOf(
-            GenericRepositorySettings(id = "files", redeployment = true, storageProvider = useTargetStorageSettings()),
-            GenericRepositorySettings(id = "immutable-files", redeployment = false, storageProvider = useTargetStorageSettings()),
-            GenericRepositorySettings(id = "private-files", visibility = PRIVATE, redeployment = true, storageProvider = useTargetStorageSettings()),
-            GenericRepositorySettings(id = "hidden-files", visibility = HIDDEN, redeployment = true, storageProvider = useTargetStorageSettings()),
+            GenericRepositorySettings(id = "files", storageProvider = useTargetStorageSettings()),
+            GenericRepositorySettings(id = "private-files", visibility = PRIVATE, storageProvider = useTargetStorageSettings()),
+            GenericRepositorySettings(id = "hidden-files", visibility = HIDDEN, storageProvider = useTargetStorageSettings()),
         )
 
     @ParameterizedTest
@@ -256,20 +254,20 @@ internal abstract class GenericIntegrationTest : GenericIntegrationSpecification
     }
 
     @Test
-    fun `should enforce redeployment setting`() {
-        // given: content deployed in an immutable repository
-        val address = useGenericFile("immutable-files", "releases/application.zip", "first")
+    fun `should replace an existing file`() {
+        // given: a file in the repository and valid credentials
+        val address = useGenericFile("files", "releases/application.zip", "first")
         val (name, secret) = useDefaultManagementToken()
 
         // when: new content is deployed at the same address
         val response = put(address)
             .basicAuth(name, secret)
             .body("second")
-            .asObject(ErrorResponse::class.java)
+            .asEmpty()
 
-        // then: redeployment is rejected and the original content remains
-        assertThat(response.status).isEqualTo(CONFLICT.code)
-        assertThat(get(address).asString().body).isEqualTo("first")
+        // then: the upload succeeds and replaces the original content
+        assertThat(response.isSuccess).isTrue
+        assertThat(get(address).asString().body).isEqualTo("second")
     }
 
     @ParameterizedTest

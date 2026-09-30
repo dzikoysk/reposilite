@@ -22,14 +22,12 @@ import com.reposilite.plugin.api.Facade
 import com.reposilite.repository.RepositoryFacade
 import com.reposilite.repository.api.RepositoryProvider
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.shared.errorResponse
 import com.reposilite.shared.unauthorizedError
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
-import io.javalin.http.HttpStatus.CONFLICT
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
@@ -86,14 +84,11 @@ class GenericFacade internal constructor(
         by: String,
     ): Result<Unit, ErrorResponse> =
         when {
-            !repositoryFacade.canModifyResource(accessToken, repository, location) ->
-                unauthorizedError("Unauthorized access request")
-            !repository.redeployment && repository.storageProvider.exists(location) ->
-                errorResponse(CONFLICT, "Redeployment is not allowed")
-            else ->
+            repositoryFacade.canModifyResource(accessToken, repository, location) ->
                 repository.storageProvider
                     .putFile(location, content)
                     .peek { logger.info("DEPLOY | File $location successfully deployed to ${repository.name} by $by") }
+            else -> unauthorizedError("Unauthorized access request")
         }
 
     fun deleteFile(

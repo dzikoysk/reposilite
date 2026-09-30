@@ -41,8 +41,6 @@ data class GenericRepositorySettings(
     val id: String = "",
     @get:Doc(title = "Visibility", description = "The visibility of this repository.")
     val visibility: RepositoryVisibility = PUBLIC,
-    @get:Doc(title = "Redeployment", description = "Whether an existing file can be overwritten.")
-    val redeployment: Boolean = false,
     @get:Doc(title = "Storage provider", description = "The storage used by this repository.")
     @get:OneOf(FileSystemStorageProviderSettings::class, S3StorageProviderSettings::class)
     val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),

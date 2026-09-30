@@ -26,7 +26,6 @@ internal const val GENERIC_REPOSITORY_TYPE = "generic"
 class GenericRepository internal constructor(
     identity: RepositoryIdentity,
     override val visibility: RepositoryVisibility,
-    val redeployment: Boolean,
     val storageProvider: StorageProvider,
 ) : RepositoryInfo {
 
