@@ -57,6 +57,14 @@ const categories = [
     ]
   },
   {
+    name: 'Repositories',
+    directory: 'repositories',
+    content: [
+      'repositories',
+      'generic',
+    ]
+  },
+  {
     name: 'Deployment',
     directory: 'deployment',
     content: [
@@ -72,7 +80,6 @@ const categories = [
     directory: 'features',
     content: [
       'dashboard',
-      'repositories',
       's3',
       'mirrors',
       'javadocs',
