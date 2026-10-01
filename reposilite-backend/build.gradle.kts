@@ -110,7 +110,7 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:26.7.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.36.0")
+    implementation("com.google.protobuf:protobuf-java:4.36.2")
 
     val jackson = "2.22.2"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
