@@ -53,7 +53,8 @@ const categories = [
     content: [
       'tokens',
       'routes',
-      'ldap'
+      'ldap',
+      'oauth2'
     ]
   },
   {

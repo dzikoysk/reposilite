@@ -17,6 +17,7 @@
 package com.reposilite.auth.application
 
 import com.reposilite.configuration.shared.api.Doc
+import com.reposilite.configuration.shared.api.Min
 import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.token.AccessTokenType
 import com.reposilite.token.AccessTokenType.PERSISTENT
@@ -28,6 +29,7 @@ data class AuthenticationSettings(
     @get:Doc(title = "Brute Force Protection", description = "Rate limiting for failed authentication attempts")
     val bruteForceProtection: BruteForceProtectionSettings = BruteForceProtectionSettings(),
     val ldap: LdapSettings = LdapSettings(),
+    val oauth2: OAuth2Settings = OAuth2Settings(),
 ) : SharedSettings
 
 @Doc(title = "Brute Force Protection", description = "Brute force protection settings")
@@ -64,4 +66,33 @@ data class LdapSettings(
     val userFilter: String = "(&(objectClass=$typeAttribute)(ou=Maven Users))",
     @get:Doc(title = "User Type", description = "Should the created through LDAP access token be TEMPORARY or PERSISTENT")
     val userType: AccessTokenType = PERSISTENT
+) : SharedSettings
+
+@Doc(title = "OAuth2", description = "OAuth2 / OpenID Connect settings")
+data class OAuth2Settings(
+    @get:Doc(title = "Enabled", description = "OAuth2 authentication is enabled")
+    val enabled: Boolean = false,
+    @get:Doc(title = "Provider Name", description = "Name of the identity provider displayed on the sign in button")
+    val providerName: String = "SSO",
+    @get:Doc(title = "Issuer", description = "Issuer URL of the OpenID Connect provider (the one that serves /.well-known/openid-configuration)")
+    val issuer: String = "https://sso.domain.com/realms/company",
+    @get:Doc(title = "Client ID", description = "Identifier of the client registered in the identity provider")
+    val clientId: String = "reposilite",
+    @get:Doc(title = "Client Secret", description = "Secret of the client registered in the identity provider (leave empty for public clients)")
+    val clientSecret: String = "",
+    @get:Doc(title = "Scopes", description = "Space separated list of scopes requested during sign in")
+    val scopes: String = "openid profile email",
+    @get:Doc(title = "Username Claim", description = "Token claim that represents unique username used to create access token")
+    val usernameClaim: String = "preferred_username",
+    @get:Doc(title = "User Type", description = "Should the created through OAuth2 access token be TEMPORARY or PERSISTENT")
+    val userType: AccessTokenType = PERSISTENT,
+    @get:Doc(title = "Redirect Base URL", description = "Public URL of this Reposilite instance used to build the redirect URI (leave empty to detect it from the request)")
+    val redirectBaseUrl: String = "",
+    @Min(1)
+    @get:Doc(title = "Session Duration Minutes", description = "Duration in minutes of the dashboard session created after sign in")
+    val sessionDurationMinutes: Long = 480,
+    @get:Doc(title = "Bearer Tokens", description = "Accept JWTs issued by the identity provider as credentials (Authorization: Bearer or basic auth password)")
+    val bearerEnabled: Boolean = false,
+    @get:Doc(title = "Bearer Audience", description = "Audience (aud claim) required in JWTs used as credentials")
+    val bearerAudience: String = ""
 ) : SharedSettings

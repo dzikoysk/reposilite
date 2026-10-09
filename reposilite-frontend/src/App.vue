@@ -16,6 +16,7 @@
 
 <script setup>
 import { useHead } from '@unhead/vue'
+import { createToast } from 'mosha-vue-toastify'
 import { useSession } from "./store/session"
 import useTheme from "./store/theme"
 import useQualifier from "./store/qualifier"
@@ -32,7 +33,11 @@ useHead({
   description
 })
 fetchColorMode()
-initializeSession().catch(() => {})
+initializeSession().catch(error => {
+  if (error?.oauth2) {
+    createToast(`Sign in failed: ${error.message}`, { type: 'danger' })
+  }
+})
 </script>
 
 <template>

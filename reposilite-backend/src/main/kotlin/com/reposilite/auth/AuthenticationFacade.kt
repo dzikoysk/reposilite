@@ -83,9 +83,9 @@ class AuthenticationFacade(
                         authenticator
                             .authenticate(credentials)
                             .onError { logger.debug("${credentials.name}@${credentials.ip} failed to authenticate with ${authenticator.realm()} realm due to $it") }
+                            .peek { if (authenticator.cacheable()) authenticationCache.put(credentials, it) }
                     }
                     .firstOrNull { it.isOk }
-                    ?.peek { authenticationCache.put(credentials, it) }
                 ?: unauthorizedError("Invalid authorization credentials")
 
         trackBruteForceAttempt(ip = credentials.ip, success = result.isOk)

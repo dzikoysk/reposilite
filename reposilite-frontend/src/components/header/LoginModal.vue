@@ -19,9 +19,11 @@ import { ref } from 'vue'
 import { VueFinalModal } from 'vue-final-modal'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
+import usePlaceholders from '../../store/placeholders'
 import CloseIcon from '../icons/CloseIcon.vue'
 
-const { login } = useSession()
+const { login, client } = useSession()
+const { oauth2Provider } = usePlaceholders()
 const showLogin = ref(false)
 const name = ref('')
 const secret = ref('')
@@ -62,6 +64,14 @@ export default {
           </div>
           <button type="submit" class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer">Sign in</button>
         </form>
+        <a
+          v-if="oauth2Provider"
+          id="login-oauth2"
+          :href="client.auth.oauth2.loginUrl()"
+          class="block bg-gray-100 dark:bg-gray-800 py-2 mb-3 rounded-md cursor-pointer"
+        >
+          Sign in with {{ oauth2Provider }}
+        </a>
         <button
           type="button"
           class="absolute top-0 right-0 mt-5 mr-5"
@@ -90,7 +100,7 @@ export default {
   @apply bg-gray-50 dark:bg-gray-800;
   @apply rounded-md;
 }
-#login-modal button:hover {
+#login-modal button:hover, #login-oauth2:hover {
   @apply bg-gray-200 dark:bg-gray-700;
   transition: background-color 0.5s;
 }

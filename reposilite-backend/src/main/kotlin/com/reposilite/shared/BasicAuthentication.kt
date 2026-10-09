@@ -26,6 +26,11 @@ fun extractFromHeader(authorizationHeader: String?): Result<BasicAuthCredentials
         return unauthorizedError("Missing authorization credentials")
     }
 
+    if (authorizationHeader.startsWith("Bearer ")) {
+        // Bearer tokens carry the identity on their own, so they're passed as a secret of anonymous credentials
+        return BasicAuthCredentials("", authorizationHeader.substring("Bearer ".length).trim()).asSuccess()
+    }
+
     val method = when {
         authorizationHeader.startsWith("Basic") -> "Basic" // Standard basic auth
         authorizationHeader.startsWith("xBasic") -> "xBasic" // Basic auth for browsers to avoid built-in auth popup

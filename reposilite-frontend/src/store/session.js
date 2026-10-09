@@ -16,6 +16,9 @@
 
 import { computed, ref, watchEffect } from "vue"
 import { createClient } from './client'
+import usePlaceholders from './placeholders'
+
+const { oauth2Provider } = usePlaceholders()
 
 const token = ref({
   name: localStorage.getItem('token-name') || '',
@@ -58,6 +61,9 @@ const defaultDetails = undefined
 const details = ref(defaultDetails)
 
 const logout = () => {
+  if (oauth2Provider && isLogged.value) {
+    client.value.auth.oauth2.closeSession().catch(() => {})
+  }
   setToken('', '')
   details.value = undefined
 }
@@ -72,7 +78,41 @@ const login = (name, secret) =>
     })
 
 const client = computed(() => createClient(token.value.name, token.value.secret))
-const initializeSession = () => login(token.value.name, token.value.secret)
+
+const takeQueryParameter = (name) => {
+  const url = new URL(window.location.href)
+  const value = url.searchParams.get(name)
+  if (value !== null) {
+    url.searchParams.delete(name)
+    window.history.replaceState(window.history.state, '', url)
+  }
+  return value
+}
+
+const oauth2Error = (message) =>
+  Promise.reject({ oauth2: true, message })
+
+// Identity provider redirects back to the dashboard with one-time code that has to be exchanged for session credentials
+const initializeSession = () => {
+  const error = takeQueryParameter('oauth2_error')
+  const code = takeQueryParameter('oauth2_code')
+
+  if (error) {
+    return oauth2Error(error)
+  }
+
+  if (code) {
+    return createClient()
+      .auth
+      .oauth2
+      .openSession(code)
+      .then(response => login(response.data.name, response.data.secret))
+      .catch(error => oauth2Error(error.response?.data?.message || error.message))
+  }
+
+  return login(token.value.name, token.value.secret)
+}
+
 const isLogged = computed(() => details.value !== undefined)
 
 const isManager = computed(() => {

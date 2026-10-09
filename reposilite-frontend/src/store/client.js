@@ -44,6 +44,17 @@ const createClient = (defaultName, defaultSecret) => {
       me() {
         return get("/api/auth/me")
       },
+      oauth2: {
+        loginUrl() {
+          return createURL("/api/auth/oauth2/login")
+        },
+        openSession(code) {
+          return axios.post(createURL("/api/auth/oauth2/session"), { code })
+        },
+        closeSession() {
+          return axios.delete(createURL("/api/auth/oauth2/session"), defaultAuthorization())
+        },
+      },
     },
     console: {
       execute(command) {
