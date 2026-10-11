@@ -23,6 +23,7 @@ import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.exists
+import kotlin.io.path.fileSize
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readText
 import kotlin.io.path.walk
@@ -46,6 +47,65 @@ internal class JavadocContainerServiceTest : JavadocSpecification() {
         assertThat(unpack.resolve("index.html").exists()).isTrue
         assertThat(unpack.resolve("index.html").readText()).isEqualTo("<html></html>")
         assertThat(unpack.resolve("Foo.html").exists()).isTrue
+    }
+
+    @Test
+    fun `should unpack an entry at the default 10 MiB limit`() {
+        // given
+        val (jar, unpack) = stageJavadocJar("default-limit")
+        writeJar(jar, mapOf(
+            "index.html" to "<html></html>".toByteArray(),
+            "index-all.html" to ByteArray(10 * 1024 * 1024)
+        ))
+
+        // when
+        val result = javadocContainerService.unpackJavadocJar(jar, unpack)
+
+        // then
+        assertOk(result)
+        assertThat(unpack.resolve("index-all.html").fileSize()).isEqualTo(10L * 1024 * 1024)
+    }
+
+    @Test
+    fun `should reject an entry exceeding the default 10 MiB limit`() {
+        // given
+        val (jar, unpack) = stageJavadocJar("above-default-limit")
+        writeJar(jar, mapOf("index.html" to ByteArray(10 * 1024 * 1024 + 1)))
+
+        // when
+        val result = javadocContainerService.unpackJavadocJar(jar, unpack)
+
+        // then
+        assertError(result)
+        assertThat(result.error.message).contains("size limit of 10485760 bytes")
+    }
+
+    @Test
+    fun `should configure the per-entry limit through a system property`() {
+        // given
+        val property = "reposilite.javadocs.maxEntryBytes"
+        val previous = System.setProperty(property, "12582912")
+
+        try {
+            initializeJavadocService()
+            val (jar, unpack) = stageJavadocJar("configured-limit")
+            writeJar(jar, mapOf("index.html" to ByteArray(11 * 1024 * 1024)))
+
+            // when
+            val result = javadocContainerService.unpackJavadocJar(jar, unpack)
+
+            // then
+            assertOk(result)
+            assertThat(unpack.resolve("index.html").fileSize()).isEqualTo(11L * 1024 * 1024)
+
+            val (oversizedJar, oversizedUnpack) = stageJavadocJar("above-configured-limit")
+            writeJar(oversizedJar, mapOf("index.html" to ByteArray(12 * 1024 * 1024 + 1)))
+            val oversizedResult = javadocContainerService.unpackJavadocJar(oversizedJar, oversizedUnpack)
+            assertError(oversizedResult)
+            assertThat(oversizedResult.error.message).contains("size limit of 12582912 bytes")
+        } finally {
+            if (previous == null) System.clearProperty(property) else System.setProperty(property, previous)
+        }
     }
 
     @Test
