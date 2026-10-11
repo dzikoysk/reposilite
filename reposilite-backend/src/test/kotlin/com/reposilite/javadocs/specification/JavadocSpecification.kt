@@ -39,16 +39,11 @@ internal abstract class JavadocSpecification : MavenSpecification() {
     @BeforeEach
     fun initializeJavadocService() {
         javadocFailureFacade = FailureFacade(InMemoryLogger())
-        javadocContainerService = JavadocContainerService(
-            failureFacade = javadocFailureFacade,
-            mavenFacade = mavenFacade,
-            javadocFolder = workingDirectory.toPath().resolve("javadocs"),
-            suffixes = Reference.reference(listOf("-javadoc.jar", "-groovydoc.jar")),
-        )
+        javadocContainerService = newJavadocContainerService()
     }
 
     protected fun newJavadocContainerService(
-        maxEntryBytes: Long = 10L * 1024 * 1024,
+        maxEntryBytes: Long = 2L * 1024 * 1024,
         maxTotalBytes: Long = 50L * 1024 * 1024,
         maxEntries: Int = 50_000,
     ): JavadocContainerService =
