@@ -417,6 +417,9 @@ application
       () => invalidCredentials(res)
     )
   })
+  .get("/api/auth/oauth2/login", (req, res) => res.redirect("http://localhost:8888/?oauth2_code=fake-code"))
+  .post("/api/auth/oauth2/session", (req, res) => res.send({ name: "name", secret: "secret" }))
+  .delete("/api/auth/oauth2/session", (req, res) => res.status(204).send(""))
   .get("/api/status/instance", (req, res) => {
     authorized(
       req,

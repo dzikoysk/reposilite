@@ -95,6 +95,9 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
+    // Verification of JWTs issued by OAuth2 / OpenID Connect providers
+    implementation("com.nimbusds:nimbus-jose-jwt:10.10")
+
     val exposed = "1.5.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")

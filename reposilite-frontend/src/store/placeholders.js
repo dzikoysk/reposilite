@@ -26,6 +26,8 @@ export default function usePlaceholders() {
   const icpLicense = available ? '{{REPOSILITE.ICP_LICENSE}}' : '国ICP备000000000号'
   const javadocSuffixes = available ? '{{REPOSILITE.JAVADOC_SUFFIXES}}'.split(',').filter(suffix => suffix.length > 0) : ['-javadoc.jar', '-groovydoc.jar']
 
+  const oauth2Provider = available ? '{{REPOSILITE.OAUTH2_PROVIDER}}' : 'Fake SSO'
+
   const productionUrl =
     window.location.protocol + '//' + location.host + basePath
 
@@ -45,6 +47,7 @@ export default function usePlaceholders() {
     privacyPolicy,
     icpLicense,
     javadocSuffixes,
+    oauth2Provider,
     productionUrl,
     baseUrl
   }

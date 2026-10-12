@@ -20,6 +20,12 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.Authenticator
 import com.reposilite.auth.BasicAuthenticator
 import com.reposilite.auth.LdapAuthenticator
+import com.reposilite.auth.oauth2.HttpOAuth2ProviderClient
+import com.reposilite.auth.oauth2.OAuth2BearerAuthenticator
+import com.reposilite.auth.oauth2.OAuth2Service
+import com.reposilite.auth.oauth2.OAuth2SessionAuthenticator
+import com.reposilite.auth.oauth2.OAuth2SessionStore
+import com.reposilite.auth.oauth2.OAuth2TokenVerifier
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.PluginComponents
 import com.reposilite.status.FailureFacade
@@ -47,10 +53,26 @@ class AuthenticationComponents(
             ldapSettings = authenticationSettings.computed { it.ldap },
         )
 
+    internal val oauth2Service: OAuth2Service by lazy {
+        val oauth2Settings = authenticationSettings.computed { it.oauth2 }
+        val providerClient = HttpOAuth2ProviderClient()
+
+        OAuth2Service(
+            journalist = journalist,
+            settings = oauth2Settings,
+            providerClient = providerClient,
+            tokenVerifier = OAuth2TokenVerifier(providerClient, oauth2Settings),
+            sessionStore = OAuth2SessionStore(),
+            accessTokenFacade = accessTokenFacade
+        )
+    }
+
     private fun authenticators(): SortedSet<Authenticator> =
         sortedSetOf(
             Authenticator.priorityComparator,
+            OAuth2SessionAuthenticator(oauth2Service),
             basicAuthenticator(),
+            OAuth2BearerAuthenticator(oauth2Service),
             ldapAuthenticator()
         )
 

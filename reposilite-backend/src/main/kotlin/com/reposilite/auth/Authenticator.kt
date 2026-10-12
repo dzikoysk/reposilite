@@ -31,6 +31,10 @@ interface Authenticator {
 
     fun realm(): String
 
+    /** Whether a successful result may be reused for the same credentials without asking the authenticator again */
+    fun cacheable(): Boolean =
+        true
+
     companion object {
 
         val priorityComparator = compareByDescending<Authenticator>{it.priority()}
