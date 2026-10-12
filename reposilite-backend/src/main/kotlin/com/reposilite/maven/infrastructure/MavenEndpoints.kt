@@ -36,6 +36,7 @@ import io.javalin.community.routing.Route.HEAD
 import io.javalin.community.routing.Route.POST
 import io.javalin.community.routing.Route.PUT
 import io.javalin.http.Context
+import io.javalin.http.HandlerType.HEAD as HEAD_METHOD
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
 import io.javalin.openapi.ContentType.HTML
 import io.javalin.openapi.HttpMethod
@@ -45,6 +46,7 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.asSuccess
+import java.io.InputStream
 
 const val X_GENERATE_CHECKSUMS = "X-Generate-Checksums"
 
@@ -103,7 +105,10 @@ internal class MavenEndpoints(
         return allDetails.flatMap { details ->
             when (details) {
                 is DocumentInfo ->
-                    mavenFacade.findData(request).map { data ->
+                    when (ctx.method()) {
+                        HEAD_METHOD -> InputStream.nullInputStream().asSuccess()
+                        else -> mavenFacade.findData(request)
+                    }.map { data ->
                         ctx.resultAttachment(
                             name = details.name,
                             contentType = details.contentType,
