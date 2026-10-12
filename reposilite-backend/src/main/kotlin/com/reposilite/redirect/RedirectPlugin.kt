@@ -42,11 +42,13 @@ class RedirectPlugin : ReposilitePlugin() {
         }
 
         val mavenFacade = facade<MavenFacade>()
+        val frontendFacade = facade<FrontendFacade>()
+        val localConfiguration = facade<LocalConfiguration>()
 
         val mavenEndpoints = MavenEndpoints(
             mavenFacade = mavenFacade,
-            frontendFacade = facade<FrontendFacade>(),
-            compressionStrategy = facade<LocalConfiguration>().compressionStrategy.get()
+            frontendFacade = frontendFacade,
+            compressionStrategy = localConfiguration.compressionStrategy.get()
         )
 
         logger.info("")

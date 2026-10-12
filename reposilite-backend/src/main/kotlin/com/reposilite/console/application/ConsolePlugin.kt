@@ -15,6 +15,7 @@
  */
 package com.reposilite.console.application
 
+import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.console.HelpCommand
 import com.reposilite.console.LevelCommand
@@ -33,6 +34,8 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
+import com.reposilite.status.FailureFacade
+import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.application.WebSettings
@@ -44,24 +47,33 @@ internal class ConsolePlugin : ReposilitePlugin() {
     override fun initialize(): Facade {
         val journalist = reposilite().journalist
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
+        val failureFacade = facade<FailureFacade>()
+        val accessTokenFacade = facade<AccessTokenFacade>()
+        val authenticationFacade = facade<AuthenticationFacade>()
+
+        val forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
 
         val consoleComponents = ConsoleComponents(
             journalist = journalist,
-            failureFacade = facade(),
+            failureFacade = failureFacade,
         )
         val consoleFacade = consoleComponents.consoleFacade()
 
-        val client = ConsoleSseHandler(
+        val sseHandler = ConsoleSseHandler(
             journalist = journalist,
-            accessTokenFacade = facade(),
-            authenticationFacade = facade(),
-            forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp },
+            accessTokenFacade = accessTokenFacade,
+            authenticationFacade = authenticationFacade,
             scheduler = reposilite().scheduler
         )
 
+        event { _: ReposiliteDisposeEvent ->
+            consoleFacade.commandExecutor.stop()
+            sseHandler.users.keys.forEach(SseClient::close)
+        }
+
         event { _: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
-            consoleFacade.registerCommand(LevelCommand(reposilite().journalist))
+            consoleFacade.registerCommand(LevelCommand(journalist))
             consoleFacade.registerCommand(StopCommand(reposilite()))
 
             val setup = extensions().emitEvent(CommandsSetupEvent())
@@ -82,16 +94,16 @@ internal class ConsolePlugin : ReposilitePlugin() {
             event.config.routes.ws(
                 "/api/console/sock",
                 ConsoleWebSocketHandler(
-                    journalist = reposilite().journalist,
-                    accessTokenFacade = facade(),
-                    authenticationFacade = facade(),
+                    journalist = journalist,
+                    accessTokenFacade = accessTokenFacade,
+                    authenticationFacade = authenticationFacade,
                     consoleFacade = consoleFacade,
-                    forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+                    forwardedIp = forwardedIp
                 )
             )
             event.config.routes.sse(
                 "/api/console/log",
-                client::handleSseLiveLog
+                sseHandler::handleSseLiveLog
             )
         }
 
@@ -105,11 +117,6 @@ internal class ConsolePlugin : ReposilitePlugin() {
                     logger.info("For help, type 'help' or '?'")
                 }
             }
-        }
-
-        event { _: ReposiliteDisposeEvent ->
-            consoleFacade.commandExecutor.stop()
-            client.users.keys.forEach(SseClient::close)
         }
 
         return consoleFacade

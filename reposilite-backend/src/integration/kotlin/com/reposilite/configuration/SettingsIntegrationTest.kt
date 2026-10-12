@@ -26,6 +26,7 @@ import com.reposilite.auth.application.LdapSettings
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.specification.SettingsIntegrationSpecification
 import com.reposilite.frontend.application.FrontendSettings
+import com.reposilite.generic.application.GenericSettings
 import com.reposilite.javadocs.application.JavadocSettings
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.shared.ErrorResponse
@@ -53,6 +54,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
             "authentication" to AuthenticationSettings::class,
             "statistics" to StatisticsSettings::class,
             "frontend" to FrontendSettings::class,
+            "generic" to GenericSettings::class,
             "javadoc" to JavadocSettings::class,
             "maven" to MavenSettings::class
         )
@@ -123,6 +125,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
         "authentication" to AuthenticationSettings(ldap = LdapSettings(enabled = true)),
         "statistics" to StatisticsSettings(resolvedRequestsInterval = YEARLY),
         "frontend" to FrontendSettings(id = "test"),
+        "generic" to GenericSettings(),
         "javadoc" to JavadocSettings(enabled = false),
         "maven" to MavenSettings(repositories = emptyList())
     )

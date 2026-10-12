@@ -16,6 +16,7 @@
 
 package com.reposilite.configuration.shared.application
 
+import com.reposilite.configuration.ConfigurationFacade
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.api.SharedSettings
@@ -27,6 +28,7 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
+import com.reposilite.status.FailureFacade
 import com.reposilite.web.api.RoutingSetupEvent
 import java.util.concurrent.TimeUnit
 
@@ -35,14 +37,16 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
 
     override fun initialize(): SharedConfigurationFacade {
         val localConfiguration = facade<LocalConfiguration>()
+        val failureFacade = facade<FailureFacade>()
+        val configurationFacade = facade<ConfigurationFacade>()
 
         val sharedConfigurationFacade = SharedConfigurationComponents(
             journalist = this,
             workingDirectory = parameters().workingDirectory,
             extensions = extensions(),
             sharedConfigurationPath = parameters().sharedConfigurationPath,
-            failureFacade = facade(),
-            configurationFacade = facade()
+            failureFacade = failureFacade,
+            configurationFacade = configurationFacade
         ).sharedConfigurationFacade()
 
         logger.info("")

@@ -31,9 +31,14 @@ import com.reposilite.web.infrastructure.createReposiliteDslFactory
 
 @Plugin(name = "repository", dependencies = ["web", "failure", "access-token", "authentication"])
 class RepositoryPlugin : ReposilitePlugin() {
+
     override fun initialize(): RepositoryFacade {
+        val accessTokenFacade = facade<AccessTokenFacade>()
+        val failureFacade = facade<FailureFacade>()
+        val authenticationFacade = facade<AuthenticationFacade>()
+
         val repositoryFacade = RepositoryFacade(
-            accessResolver = RepositoryAccessResolver(facade<AccessTokenFacade>()),
+            accessResolver = RepositoryAccessResolver(accessTokenFacade),
         )
 
         event { event: HttpServerInitializationEvent ->
@@ -43,9 +48,9 @@ class RepositoryPlugin : ReposilitePlugin() {
                     registrations = repositoryFacade.getRegistrations(),
                     dsl = createReposiliteDslFactory(
                         journalist = this,
-                        failureFacade = facade<FailureFacade>(),
-                        accessTokenFacade = facade<AccessTokenFacade>(),
-                        authenticationFacade = facade<AuthenticationFacade>(),
+                        failureFacade = failureFacade,
+                        accessTokenFacade = accessTokenFacade,
+                        authenticationFacade = authenticationFacade,
                     ),
                     routerConfig = event.config.router,
                 )
