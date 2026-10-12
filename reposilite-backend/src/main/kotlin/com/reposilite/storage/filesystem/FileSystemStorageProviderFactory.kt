@@ -31,23 +31,17 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
         private const val MB_FACTOR = 1024 * KB_FACTOR
         private const val GB_FACTOR = 1024 * MB_FACTOR
 
-        /**
-         * @param rootDirectory root directory of storage space
-         * @param quota quota to use as % or in bytes
-         */
-        fun of(journalist: Journalist, rootDirectory: Path, quota: String): FileSystemStorageProvider =
-            if (quota.endsWith("%")) {
-                of(
-                    journalist = journalist,
-                    rootDirectory = rootDirectory,
-                    maxPercentage = quota.substring(0, quota.length - 1).toInt() / 100.0,
-                )
+        fun of(journalist: Journalist, rootDirectory: Path, quota: String?): FileSystemStorageProvider =
+            if (quota == null) {
+                NoQuota(journalist, rootDirectory)
+            } else if (quota.endsWith("%")) {
+                val percentage = quota.substring(0, quota.length - 1).toInt() / 100.0
+                val usageTracker = UsageTracker(rootDirectory)
+                PercentageQuota(journalist, rootDirectory, usageTracker, percentage)
             } else {
-                of(
-                    journalist = journalist,
-                    rootDirectory = rootDirectory,
-                    maxSize = displaySizeToBytesCount(quota),
-                )
+                val maxSize = displaySizeToBytesCount(quota)
+                val usageTracker = UsageTracker(rootDirectory)
+                FixedQuota(journalist, rootDirectory, usageTracker, maxSize)
             }
 
         /**
@@ -58,6 +52,7 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
             FixedQuota(
                 journalist = journalist,
                 rootDirectory = rootDirectory,
+                usageTracker = UsageTracker(rootDirectory),
                 maxSize = maxSize,
             )
 
@@ -69,6 +64,7 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
             PercentageQuota(
                 journalist = journalist,
                 rootDirectory = rootDirectory,
+                usageTracker = UsageTracker(rootDirectory),
                 maxPercentage = maxPercentage,
             )
 
