@@ -45,7 +45,7 @@ const routesOf = (draft) => {
 }
 
 const createUser = () => {
-  const email = newUser.value.email.trim()
+  const email = newUser.value.email.trim().toLowerCase()
   if (!/^[^\s:#@]+@[^\s:#@]+$/.test(email)) { createWarningToast('Enter a valid e-mail address'); return }
   if (tokens.value.some(token => token.name === email)) { createWarningToast(`User '${email}' already exists`); return }
   client.value.tokens.createOrUpdate(email, {

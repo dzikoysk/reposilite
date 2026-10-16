@@ -19,6 +19,7 @@ package com.reposilite.auth
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.reposilite.auth.application.OidcSettings
 import com.reposilite.token.AccessTokenPermission.MANAGER
+import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
@@ -27,6 +28,7 @@ import com.reposilite.token.specification.AccessTokenSpecification
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.reactive.toMutableReference
+import java.time.Instant
 
 internal class OidcServiceTest : AccessTokenSpecification() {
 
@@ -58,6 +60,38 @@ internal class OidcServiceTest : AccessTokenSpecification() {
     fun `should reject unusable user names`() {
         assertThat(oidcService.login(userinfo("""{ "sub": "123" }""")).error.message).contains("available claims: sub")
         assertThat(oidcService.login(userinfo("""{ "email": "john#laptop" }""")).isErr).isTrue
+    }
+
+    @Test
+    fun `should refuse unverified e-mail addresses and normalize case`() {
+        assertThat(oidcService.login(userinfo("""{ "email": "john@company.com", "email_verified": false, "roles": ["reposilite-user"] }""")).error.status).isEqualTo(403)
+        assertThat(accessTokenFacade.getAccessToken("john@company.com")).isNull()
+
+        assertThat(oidcService.login(userinfo("""{ "email": "John@Company.com", "email_verified": true, "roles": ["reposilite-user"] }""")).get().name).isEqualTo("john@company.com")
+        assertThat(accessTokenFacade.getAccessToken("john@company.com")).isNotNull
+    }
+
+    @Test
+    fun `should never take over tokens that are not oidc users`() {
+        val admin = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(type = PERSISTENT, name = "admin@company.com")).accessToken
+        accessTokenFacade.addPermission(admin.identifier, MANAGER)
+
+        val refused = oidcService.login(userinfo("""{ "email": "admin@company.com", "roles": ["reposilite-user"] }"""))
+        assertThat(refused.error.status).isEqualTo(403)
+        assertThat(accessTokenFacade.hasPermission(admin.identifier, MANAGER)).isTrue
+    }
+
+    @Test
+    fun `should limit and clean up user tokens`() {
+        oidcService.login(userinfo("""{ "email": "john@company.com", "roles": ["reposilite-user"] }"""))
+        val user = accessTokenFacade.getAccessToken("john@company.com")!!
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(type = PERSISTENT, name = "john@company.com#old", expiresAt = Instant.now().minusSeconds(1)))
+
+        assertThat(oidcService.getUserTokens(user).get()).isEmpty()
+        assertThat(accessTokenFacade.getAccessToken("john@company.com#old")).isNull()
+
+        repeat(20) { assertThat(oidcService.createUserToken(user, "t$it", emptySet()).isOk).isTrue }
+        assertThat(oidcService.createUserToken(user, "t20", emptySet()).error.status).isEqualTo(400)
     }
 
     @Test

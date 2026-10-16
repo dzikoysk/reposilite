@@ -41,9 +41,10 @@ internal class OidcEndpoints(private val oidcService: OidcService) : ReposiliteR
 
     private val callback = ReposiliteRoute<Unit>("/oidc/callback", GET) {
         if (!oidcService.isEnabled()) return@ReposiliteRoute run { response = notFoundError("OIDC is disabled") }
-        // a reload of the callback page after successful login has no cookie anymore, so it just starts a new login
+        // a reload of the callback page after successful login has no cookie anymore, the session is already in localStorage.
+        // never start a new login here: a cookie the browser refuses (e.g. 'Secure' over plain HTTP) would loop through the identity provider forever
         val (expectedState, verifier) = ctx.cookie(LOGIN_COOKIE)?.split('.')?.takeIf { it.size == 2 }
-            ?: return@ReposiliteRoute ctx.redirect("login")
+            ?: return@ReposiliteRoute ctx.redirect("../")
         ctx.res().addHeader("Set-Cookie", "$LOGIN_COOKIE=; Max-Age=0; HttpOnly; Secure; SameSite=Lax")
         ctx.header("Cache-Control", "no-store")
 

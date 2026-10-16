@@ -45,6 +45,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse.BodyHandlers
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.HOURS
@@ -54,6 +55,11 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 private val LABEL = Regex("[A-Za-z0-9._-]{1,32}")
+private const val MAX_USER_TOKENS = 20
+private val TIMEOUT = Duration.ofSeconds(10)
+
+/** Description of users created by OIDC logins or the Users tab, OIDC logins never take over other tokens */
+const val OIDC_USER_DESCRIPTION = "OIDC user"
 
 data class OidcLoginRequest(val url: String, val state: String, val verifier: String)
 
@@ -69,7 +75,7 @@ class OidcService(
     private val accessTokenFacade: AccessTokenFacade,
 ) {
 
-    private val http = HttpClient.newHttpClient()
+    private val http = HttpClient.newBuilder().connectTimeout(TIMEOUT).build()
     private val json = ObjectMapper()
     private val random = SecureRandom()
     private val discoveries = ConcurrentHashMap<String, JsonNode>()
@@ -124,9 +130,13 @@ class OidcService(
 
     internal fun login(userinfo: JsonNode, tokenClaims: List<JsonNode> = emptyList()): Result<OidcSession, ErrorResponse> {
         val config = settings.get()
-        val name = userinfo.path(config.usernameClaim).asText()
+        // people don't care about the case of e-mail addresses, the database does
+        val name = userinfo.path(config.usernameClaim).asText().lowercase()
         if (name.isBlank() || name.contains(':') || name.contains(USER_TOKEN_SEPARATOR) || name.length > 200)
             return badRequestError("Unsupported '${config.usernameClaim}' claim: '$name' (available claims: ${userinfo.fieldNames().asSequence().joinToString()})")
+        // an unverified address may belong to someone else (self-registration, typos), providers without this claim are trusted
+        if (config.usernameClaim == "email" && userinfo.path("email_verified").asText() == "false")
+            return FORBIDDEN.toErrorResult("Your e-mail address '$name' is not verified by the identity provider")
 
         val roles = (listOf(userinfo) + tokenClaims)
             .map { it.path(config.rolesClaim) }
@@ -141,7 +151,13 @@ class OidcService(
         journalist.logger.info("OIDC | $name signed in, roles from '${config.rolesClaim}' claim: $roles")
 
         val user = accessTokenFacade.getAccessToken(name)
-            ?: accessTokenFacade.createAccessToken(CreateAccessTokenRequest(type = PERSISTENT, name = name, description = "OIDC user")).accessToken
+            ?: accessTokenFacade.createAccessToken(CreateAccessTokenRequest(type = PERSISTENT, name = name, description = OIDC_USER_DESCRIPTION)).accessToken
+
+        if (user.description != OIDC_USER_DESCRIPTION) {
+            // e.g. an admin or build server token with the same name, its routes and manager permission must stay untouched
+            journalist.logger.warn("OIDC | $name was refused, an access token with this name exists that is not an OIDC user")
+            return FORBIDDEN.toErrorResult("The name '$name' is already used by another access token, ask an administrator")
+        }
 
         if (config.managerRole.isNotBlank() && manager != accessTokenFacade.hasPermission(user.identifier, MANAGER)) {
             // permissions are unique in the database, so only changes are written
@@ -162,9 +178,12 @@ class OidcService(
 
     fun getUserTokens(user: AccessTokenDto): Result<List<AccessTokenDto>, ErrorResponse> =
         requireUser(user).map {
-            accessTokenFacade.getAccessTokens()
+            val (expired, tokens) = accessTokenFacade.getAccessTokens()
                 .filter { it.name.startsWith("${user.name}$USER_TOKEN_SEPARATOR") }
-                .sortedBy { it.name }
+                .partition { it.isExpired() }
+            // expired tokens can't be used anymore, but the database doesn't remove them on its own
+            expired.forEach { accessTokenFacade.deleteToken(it.identifier) }
+            tokens.sortedBy { it.name }
         }
 
     fun createUserToken(user: AccessTokenDto, label: String, routes: Set<CreateAccessTokenRequest.Route>): Result<CreateAccessTokenResponse, ErrorResponse> {
@@ -174,6 +193,7 @@ class OidcService(
         return requireUser(user)
             .filter({ LABEL.matches(label) }) { BAD_REQUEST.toErrorResponse("Label must have 1-32 characters: letters, digits, '.', '_' or '-'") }
             .filter({ accessTokenFacade.getAccessToken(name) == null }) { CONFLICT.toErrorResponse("Token '$label' already exists") }
+            .filter({ getUserTokens(user).get().size < MAX_USER_TOKENS }) { BAD_REQUEST.toErrorResponse("You can have at most $MAX_USER_TOKENS tokens, revoke unused ones first") }
             .filter({ routes.all { route -> route.permissions.all { permission -> allowedRoutes.any { it.hasPermissionTo(route.path, permission) } } } }) {
                 FORBIDDEN.toErrorResponse("Requested routes exceed the routes of user '${user.name}'")
             }
@@ -186,7 +206,7 @@ class OidcService(
                         expiresAt = Instant.now().plus(settings.get().tokenLifetimeDays, DAYS),
                         description = "Created by ${user.name}",
                     )
-                )
+                ).also { journalist.logger.info("OIDC | ${user.name} created token '$label' with routes ${routes.joinToString { "${it.path} ${it.permissions}" }}") }
             }
     }
 
@@ -194,6 +214,7 @@ class OidcService(
         requireUser(user).flatMap {
             accessTokenFacade.getAccessToken("${user.name}$USER_TOKEN_SEPARATOR$label")
                 ?.let { accessTokenFacade.deleteToken(it.identifier) }
+                ?.also { journalist.logger.info("OIDC | ${user.name} revoked token '$label'") }
                 ?: notFoundError("Token '$label' not found")
         }
 
@@ -220,7 +241,7 @@ class OidcService(
         send(HttpRequest.newBuilder(URI(uri)).header("Authorization", "Bearer $bearer"))
 
     private fun send(request: HttpRequest.Builder): JsonNode =
-        http.send(request.header("Accept", "application/json").build(), BodyHandlers.ofString())
+        http.send(request.header("Accept", "application/json").timeout(TIMEOUT).build(), BodyHandlers.ofString())
             .also { check(it.statusCode() == 200) { "OIDC request to ${it.uri()} failed (${it.statusCode()}): ${it.body()}" } }
             .let { json.readTree(it.body()) }
 

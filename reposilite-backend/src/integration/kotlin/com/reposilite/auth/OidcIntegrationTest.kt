@@ -24,8 +24,10 @@ import com.reposilite.auth.application.AuthenticationSettings
 import com.reposilite.auth.application.OidcSettings
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission.READ
+import com.reposilite.token.api.CreateAccessTokenRequest
 import com.sun.net.httpserver.HttpServer
 import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -73,7 +75,10 @@ internal class OidcIntegrationTest : ReposiliteSpecification() {
         val idp = useIdentityProvider("""{ "email": "john@company.com", "roles": ["reposilite-user"] }""")
         useFacade<SharedConfigurationFacade>().getDomainSettings<AuthenticationSettings>()
             .update(AuthenticationSettings(oidc = OidcSettings(enabled = true, discoveryUrl = idp, clientId = "reposilite", redirectUri = "$base/oidc/callback")))
-        val (_, user) = useAuth("john@company.com", "unused-secret", routes = mapOf("/private" to READ)).let { it to useFacade<AccessTokenFacade>().getAccessToken(it.first)!! }
+        // created like the Users tab does it
+        val accessTokenFacade = useFacade<AccessTokenFacade>()
+        val user = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, "john@company.com", description = OIDC_USER_DESCRIPTION)).accessToken
+            .also { accessTokenFacade.addRoute(it.identifier, Route("/private", READ)) }
         val (repository, gav, file, content) = useDocument("private", "com/company/app/1.0", "app-1.0.jar", "jar-content", store = true)
 
         // when: the browser starts the login
@@ -102,6 +107,10 @@ internal class OidcIntegrationTest : ReposiliteSpecification() {
         // and: a forged state is rejected
         val forged = http.send(HttpRequest.newBuilder(URI("$base/oidc/callback?code=code&state=forged")).header("Cookie", cookie).build(), BodyHandlers.discarding())
         assertThat(forged.statusCode()).isEqualTo(400)
+
+        // and: a callback without the login cookie (reload, cookie refused by the browser) goes home instead of looping through the identity provider
+        val noCookie = http.send(HttpRequest.newBuilder(URI("$base/oidc/callback?code=code&state=$state")).build(), BodyHandlers.discarding())
+        assertThat(noCookie.headers().firstValue("Location").get()).isEqualTo("../")
 
         // when: the user creates a token for maven
         val created = Unirest.post("$base/api/auth/me/tokens")
