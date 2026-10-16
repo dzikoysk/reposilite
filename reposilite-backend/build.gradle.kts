@@ -128,7 +128,7 @@ dependencies {
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
 
-    val tinylog = "2.7.0"
+    val tinylog = "2.8.0"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
