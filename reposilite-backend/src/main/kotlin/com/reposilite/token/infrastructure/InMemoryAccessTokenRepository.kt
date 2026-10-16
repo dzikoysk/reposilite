@@ -20,7 +20,6 @@ import com.reposilite.token.AccessToken
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.AccessTokenRepository
-import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.Route
 import com.reposilite.token.UNINITIALIZED_ENTITY_ID
 import java.util.concurrent.ConcurrentHashMap
@@ -36,7 +35,7 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
 
     override fun saveAccessToken(accessToken: AccessToken): AccessToken {
         val initializedAccessToken = when (accessToken.identifier.value) {
-            UNINITIALIZED_ENTITY_ID -> accessToken.copy(identifier = AccessTokenIdentifier(type = TEMPORARY, value = id.incrementAndGet()))
+            UNINITIALIZED_ENTITY_ID -> accessToken.copy(identifier = accessToken.identifier.copy(value = id.incrementAndGet()))
             else -> accessToken
         }
 

@@ -44,6 +44,22 @@ const createClient = (defaultName, defaultSecret) => {
       me() {
         return get("/api/auth/me")
       },
+      myTokens() {
+        return get("/api/auth/me/tokens")
+      },
+      createMyToken(label, routes) {
+        return axios.post(createURL("/api/auth/me/tokens"), { label, routes }, {
+          headers: {
+            "Content-Type": "application/json",
+            ...defaultAuthorization().headers,
+          },
+        })
+      },
+      deleteMyToken(label) {
+        return axios.delete(createURL(`/api/auth/me/tokens/${encodeURIComponent(label)}`), {
+          ...defaultAuthorization(),
+        })
+      },
     },
     console: {
       execute(command) {

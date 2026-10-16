@@ -164,14 +164,28 @@ class AccessTokenFacade internal constructor(
         identifier.type.getRepository().findAccessTokenPermissionsById(identifier).contains(permission)
 
     fun hasPermissionTo(identifier: AccessTokenIdentifier, toPath: String, requiredPermission: RoutePermission): Boolean =
-        hasPermission(identifier, MANAGER) || identifier.type.getRepository()
-            .findAccessTokenRoutesById(identifier)
-            .any { it.hasPermissionTo(toPath, requiredPermission) }
+        hasPermission(identifier, MANAGER) || (
+            identifier.type.getRepository()
+                .findAccessTokenRoutesById(identifier)
+                .any { it.hasPermissionTo(toPath, requiredPermission) }
+            && withinUserRoutes(identifier) { hasPermissionTo(it, toPath, requiredPermission) }
+        )
 
     fun canSee(identifier: AccessTokenIdentifier, pathFragment: String): Boolean =
-        hasPermission(identifier, MANAGER) || identifier.type.getRepository()
-            .findAccessTokenRoutesById(identifier)
-            .any { it.path.startsWith(pathFragment, ignoreCase = true) || pathFragment.startsWith(it.path) }
+        hasPermission(identifier, MANAGER) || (
+            identifier.type.getRepository()
+                .findAccessTokenRoutesById(identifier)
+                .any { it.path.startsWith(pathFragment, ignoreCase = true) || pathFragment.startsWith(it.path) }
+            && withinUserRoutes(identifier) { canSee(it, pathFragment) }
+        )
+
+    /** Tokens created by users (`user#label`) never exceed the current routes of their user, a removed user disables them */
+    private fun withinUserRoutes(identifier: AccessTokenIdentifier, userAllows: (AccessTokenIdentifier) -> Boolean): Boolean {
+        val name = getRawAccessTokenById(identifier)?.name ?: return false
+        if (!name.contains(USER_TOKEN_SEPARATOR)) return true
+        val user = getAccessToken(name.substringBefore(USER_TOKEN_SEPARATOR)) ?: return false
+        return userAllows(user.identifier)
+    }
 
     fun deletePermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission) =
         identifier.type.getRepository().deletePermission(identifier, permission)

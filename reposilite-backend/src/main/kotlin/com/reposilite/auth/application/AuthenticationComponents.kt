@@ -20,6 +20,8 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.Authenticator
 import com.reposilite.auth.BasicAuthenticator
 import com.reposilite.auth.LdapAuthenticator
+import com.reposilite.auth.OidcAuthenticator
+import com.reposilite.auth.OidcService
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.PluginComponents
 import com.reposilite.status.FailureFacade
@@ -47,11 +49,23 @@ class AuthenticationComponents(
             ldapSettings = authenticationSettings.computed { it.ldap },
         )
 
+    private val oidcService by lazy {
+        OidcService(
+            journalist = journalist,
+            settings = authenticationSettings.computed { it.oidc },
+            accessTokenFacade = accessTokenFacade,
+        )
+    }
+
+    fun oidcService(): OidcService =
+        oidcService
+
     private fun authenticators(): SortedSet<Authenticator> =
         sortedSetOf(
             Authenticator.priorityComparator,
             basicAuthenticator(),
-            ldapAuthenticator()
+            ldapAuthenticator(),
+            OidcAuthenticator(oidcService, accessTokenFacade)
         )
 
     fun authenticationFacade(authenticators: SortedSet<Authenticator> = authenticators()): AuthenticationFacade =
