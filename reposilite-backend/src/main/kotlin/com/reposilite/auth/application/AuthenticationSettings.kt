@@ -28,6 +28,7 @@ data class AuthenticationSettings(
     @get:Doc(title = "Brute Force Protection", description = "Rate limiting for failed authentication attempts")
     val bruteForceProtection: BruteForceProtectionSettings = BruteForceProtectionSettings(),
     val ldap: LdapSettings = LdapSettings(),
+    val oidc: OidcSettings = OidcSettings(),
 ) : SharedSettings
 
 @Doc(title = "Brute Force Protection", description = "Brute force protection settings")
@@ -64,4 +65,30 @@ data class LdapSettings(
     val userFilter: String = "(&(objectClass=$typeAttribute)(ou=Maven Users))",
     @get:Doc(title = "User Type", description = "Should the created through LDAP access token be TEMPORARY or PERSISTENT")
     val userType: AccessTokenType = PERSISTENT
+) : SharedSettings
+
+@Doc(title = "OIDC", description = "OpenID Connect login for the web interface, users then create their own tokens for Maven & Gradle")
+data class OidcSettings(
+    @get:Doc(title = "Enabled", description = "Sign in button uses OpenID Connect")
+    val enabled: Boolean = false,
+    @get:Doc(title = "Discovery URL", description = "Issuer base URL, '/.well-known/openid-configuration' is appended")
+    val discoveryUrl: String = "https://idp.domain.com/realms/company",
+    @get:Doc(title = "Client ID", description = "Client ID of the application registered in the identity provider")
+    val clientId: String = "reposilite",
+    @get:Doc(title = "Client Secret", description = "Client secret of the application registered in the identity provider")
+    val clientSecret: String = "",
+    @get:Doc(title = "Redirect URI", description = "Public URL of the callback endpoint, must be registered in the identity provider")
+    val redirectUri: String = "https://repo.domain.com/oidc/callback",
+    @get:Doc(title = "Username Claim", description = "Userinfo claim used as Reposilite user name")
+    val usernameClaim: String = "email",
+    @get:Doc(title = "Roles Claim", description = "Userinfo claim with the list of user roles")
+    val rolesClaim: String = "roles",
+    @get:Doc(title = "User Role", description = "Role required to sign in (manager role is enough as well), empty to allow every user of the identity provider")
+    val userRole: String = "reposilite-user",
+    @get:Doc(title = "Manager Role", description = "Role that grants the manager permission, empty to manage permissions only in Reposilite")
+    val managerRole: String = "reposilite-manager",
+    @get:Doc(title = "Token Lifetime Days", description = "Lifetime of tokens created by users for Maven & Gradle")
+    val tokenLifetimeDays: Long = 90,
+    @get:Doc(title = "Session Hours", description = "How long a web interface login stays valid")
+    val sessionHours: Long = 8,
 ) : SharedSettings

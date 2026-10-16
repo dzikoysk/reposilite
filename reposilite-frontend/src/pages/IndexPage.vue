@@ -28,29 +28,36 @@ const DashboardView = defineAsyncComponent(() => import('../components/dashboard
 const StatisticsView = defineAsyncComponent(() => import('../components/dashboard/StatisticsView.vue'))
 const DiagnosticsView = defineAsyncComponent(() => import('../components/dashboard/DiagnosticsView.vue'))
 const TokensView = defineAsyncComponent(() => import('../components/tokens/TokensView.vue'))
+const MyTokensView = defineAsyncComponent(() => import('../components/tokens/MyTokensView.vue'))
+const UsersView = defineAsyncComponent(() => import('../components/users/UsersView.vue'))
 const SettingsView = defineAsyncComponent(() => import('../components/settings/SettingsView.vue'))
 
 defineProps({
   qualifier: property(Object, true)
 })
 
+// name is the internal key (ids, localStorage), label is displayed
 const listOfTabs = [
   { name: 'Overview', manager: false },
+  { name: 'MyTokens', label: 'Tokens', user: true },
   { name: 'Dashboard', manager: true },
   { name: 'Statistics', manager: true },
   { name: 'Diagnostics', manager: true },
-  { name: 'Tokens', manager: true },
+  { name: 'Users', manager: true },
+  { name: 'Tokens', label: 'Access Tokens', manager: true },
   { name: 'Console', manager: true },
   { name: 'Settings', manager: true },
 ]
 
-const { isManager } = useSession()
+const { isManager, isLogged, token } = useSession()
+// tokens created by users (user#label) can't create further tokens
+const isUser = computed(() => isLogged.value && !token.value.name.includes('#'))
 const { redirectTo } = useQualifier()
 
 const menuTabs = computed(() => {
   return listOfTabs
     .filter(entry => !entry?.manager || isManager.value)
-    .map(entry => entry.name)
+    .filter(entry => !entry?.user || isUser.value)
 })
 
 const selectedTab = ref(localStorage.getItem('selectedTab') || 'Overview')
@@ -58,6 +65,11 @@ const selectedTab = ref(localStorage.getItem('selectedTab') || 'Overview')
 watchEffect(() => {
   localStorage.setItem('selectedTab', selectedTab.value)
 })
+
+// the remembered tab may be unavailable (e.g. manager tab after logout), views must not load without access
+const activeTab = computed(() =>
+  menuTabs.value.some(tab => tab.name === selectedTab.value) ? selectedTab.value : 'Overview'
+)
 
 const createTabClick = (newTab) => {
   if (newTab == 'Overview') {
@@ -84,33 +96,51 @@ const selectHomepage = () =>
         >
           <button
             v-for="(tab, i) in menuTabs"
-            :id="`main-tab-${tab.toLowerCase()}`"
+            :id="`main-tab-${tab.name.toLowerCase()}`"
             :key="`menu${i}`"
             type="button"
             role="tab"
             class="item main-menu-tab font-normal <sm:w-1/3"
             :class="{
-              'main-menu-tab-active': selectedTab === tab,
-              'dashboard': tab === 'Dashboard'
+              'main-menu-tab-active': activeTab === tab.name,
+              'dashboard': tab.name === 'Dashboard'
             }"
-            :aria-selected="selectedTab === tab"
-            :aria-controls="`main-panel-${tab.toLowerCase()}`"
-            @click="selectedTab = tab; createTabClick(tab)"
+            :aria-selected="activeTab === tab.name"
+            :aria-controls="`main-panel-${tab.name.toLowerCase()}`"
+            @click="selectedTab = tab.name; createTabClick(tab.name)"
           >
-            <span class="tab block">{{ tab }}</span>
+            <span class="tab block">{{ tab.label || tab.name }}</span>
           </button>
         </div>
       </div>
       <hr class="dark:border-gray-700">
       <div class="overflow-auto">
-        <TabPanels v-model="selectedTab">
+        <TabPanels :model-value="activeTab" @update:model-value="selectedTab = $event">
           <TabPanel
             id="main-panel-overview"
             role="tabpanel"
             aria-labelledby="main-tab-overview"
             :val="'Overview'"
           >
-            <FileBrowserView v-if="selectedTab == 'Overview'" :qualifier="qualifier" ref=""/>
+            <FileBrowserView v-if="activeTab == 'Overview'" :qualifier="qualifier" ref=""/>
+          </TabPanel>
+          <TabPanel
+            v-show="isUser"
+            id="main-panel-mytokens"
+            role="tabpanel"
+            aria-labelledby="main-tab-mytokens"
+            :val="'MyTokens'"
+          >
+            <MyTokensView v-if="activeTab == 'MyTokens'" />
+          </TabPanel>
+          <TabPanel
+            v-show="isManager"
+            id="main-panel-users"
+            role="tabpanel"
+            aria-labelledby="main-tab-users"
+            :val="'Users'"
+          >
+            <UsersView v-if="activeTab == 'Users'" />
           </TabPanel>
           <TabPanel
             v-show="isManager"
@@ -120,8 +150,8 @@ const selectHomepage = () =>
             :val="'Dashboard'"
           >
             <DashboardView
-              v-if="selectedTab == 'Dashboard'"
-              :selected-tab="selectedTab"
+              v-if="activeTab == 'Dashboard'"
+              :selected-tab="activeTab"
               @goto="selectedTab = $event"
             />
           </TabPanel>
@@ -133,7 +163,7 @@ const selectHomepage = () =>
             :val="'Statistics'"
           >
             <StatisticsView
-              v-if="selectedTab == 'Statistics'"
+              v-if="activeTab == 'Statistics'"
               @goto="selectedTab = $event"
             />
           </TabPanel>
@@ -145,8 +175,8 @@ const selectHomepage = () =>
             :val="'Diagnostics'"
           >
             <DiagnosticsView
-              v-if="selectedTab == 'Diagnostics'"
-              :selected-tab="selectedTab"
+              v-if="activeTab == 'Diagnostics'"
+              :selected-tab="activeTab"
             />
           </TabPanel>
           <TabPanel
@@ -157,8 +187,8 @@ const selectHomepage = () =>
             :val="'Console'"
           >
             <ConsoleView
-              v-if="selectedTab == 'Console'"
-              :selected-tab="selectedTab"
+              v-if="activeTab == 'Console'"
+              :selected-tab="activeTab"
             />
           </TabPanel>
           <TabPanel
@@ -169,8 +199,8 @@ const selectHomepage = () =>
             :val="'Tokens'"
           >
             <TokensView
-              v-if="selectedTab == 'Tokens'"
-              :selected-tab="selectedTab"
+              v-if="activeTab == 'Tokens'"
+              :selected-tab="activeTab"
             />
           </TabPanel>
           <TabPanel
@@ -181,8 +211,8 @@ const selectHomepage = () =>
             :val="'Settings'"
           >
             <SettingsView
-              v-if="selectedTab == 'Settings'"
-              :selected-tab="selectedTab"
+              v-if="activeTab == 'Settings'"
+              :selected-tab="activeTab"
             />
           </TabPanel>
         </TabPanels>

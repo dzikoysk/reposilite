@@ -25,6 +25,9 @@ import java.time.LocalDate
 
 const val UNINITIALIZED_ENTITY_ID: Int = -1
 
+/** Separates the user name from the label in tokens created by users: `john@company.com#laptop` */
+const val USER_TOKEN_SEPARATOR = '#'
+
 enum class AccessTokenType {
     PERSISTENT,
     TEMPORARY

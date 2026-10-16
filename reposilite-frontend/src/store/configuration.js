@@ -26,6 +26,7 @@ import { default as ArrayListRenderer, tester as arrayListTester } from '../comp
 import { default as OneOfRenderer, tester as oneOfTester } from '../components/renderers/OneOfRenderer.vue'
 import { default as ConstantRenderer, tester as constantTester } from '../components/renderers/ConstantRenderer.vue'
 import { default as OptionalRenderer, tester as optionalTester } from '../components/renderers/OptionalRenderer.vue'
+import { default as PasswordRenderer, tester as passwordTester } from '../components/renderers/PasswordRenderer.vue'
 
 const { client } = useSession()
 const domains = ref([])
@@ -66,6 +67,7 @@ const renderers = markRaw([
   { tester: oneOfTester, renderer: OneOfRenderer },
   { tester: constantTester, renderer: ConstantRenderer },
   { tester: optionalTester, renderer: OptionalRenderer },
+  { tester: passwordTester, renderer: PasswordRenderer },
   {
     // needed because without it hangs TODO find out why
     tester: (uischema, schema) => {
