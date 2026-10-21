@@ -56,7 +56,7 @@
     "jsdoc": "^4.0.5",
     "nodemon": "^3.1.14",
     "rollup-plugin-visualizer": "^7.1.1",
-    "vite": "^8.2.2",
+    "vite": "^8.3.4",
     "vite-plugin-windicss": "^1.9.4",
     "windicss": "^3.5.6"
   }
