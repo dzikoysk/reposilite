@@ -18,6 +18,7 @@ import { createApp } from 'vue'
 import { createHead } from '@unhead/vue/client'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import { createVfm } from 'vue-final-modal'
 import App from './App.vue'
 import router from './router'
 
@@ -37,6 +38,7 @@ app.config.globalProperties.drop = (path) =>
 
 app
   .use(createHead())
+  .use(createVfm())
   .use(VueAxios, axios)
   .use(router)
   .mount('#app')

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 private const val BASE_PATH = "/custom-base-path"
-private const val FONT_SOURCE_PREFIX = "src: url('"
+private val FONT_SOURCE = Regex("""src:\s*url\(["']?([^"')]+)["']?\)""")
 private const val SCRIPT_SOURCE_PREFIX = "<script type=\"module\" crossorigin src=\""
 
 @ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
@@ -43,7 +43,6 @@ internal class FrontendBasePathIntegrationTest : ReposiliteSpecification() {
         assertThat(indexResponse.body)
             .contains("src=\"$BASE_PATH/assets/")
             .contains("href=\"$BASE_PATH/assets/")
-            .contains("$FONT_SOURCE_PREFIX$BASE_PATH/assets/")
 
         val scriptPath = indexResponse.body
             .substringAfter(SCRIPT_SOURCE_PREFIX)
@@ -60,9 +59,8 @@ internal class FrontendBasePathIntegrationTest : ReposiliteSpecification() {
             .contains(BASE_PATH)
             .doesNotContain("\u0000")
 
-        val fontPath = indexResponse.body
-            .substringAfter(FONT_SOURCE_PREFIX)
-            .substringBefore("')")
+        val fontPath = FONT_SOURCE.find(indexResponse.body)?.groupValues?.get(1)
+            ?: error("Missing font URL in the bundled frontend")
 
         assertThat(fontPath)
             .startsWith("$BASE_PATH/assets/")

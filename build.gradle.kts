@@ -27,7 +27,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "2.4.10"
+    val kotlinVersion = "2.4.21"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
@@ -148,6 +148,8 @@ subprojects {
     }
 
     dependencies {
+        testImplementation(platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
+
         // Capped at 4.6.0: unirest-modules-jackson 4.7.0+ migrated to Jackson 3 (tools.jackson.*); we're pinned to Jackson 2.x.
         val unirest = "4.6.0"
         testImplementation("com.konghq:unirest-java-core:$unirest")

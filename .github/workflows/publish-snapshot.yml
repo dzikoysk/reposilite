@@ -16,13 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: "Fetch git tags" # Required for axion-release-plugin
         run: git fetch --tags --unshallow
 
       - name: "Set up Java ${{ env.JAVA_VERSION }}"
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "${{ env.JAVA_VERSION }}"
           distribution: "liberica"
@@ -47,7 +47,7 @@ jobs:
       packages: write
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: "Fetch Git tags" # Required for axion-release-plugin
         run: git fetch --tags --unshallow
@@ -76,6 +76,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          pull: true
           push: true
           tags: |
             dzikoysk/reposilite:nightly
