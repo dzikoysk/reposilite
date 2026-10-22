@@ -26,7 +26,7 @@ plugins {
     jacoco
     kotlin("jvm")
     kotlin("kapt")
-    id("com.coditory.integration-test") version "2.2.5"
+    id("com.coditory.integration-test") version "2.2.6"
     id("com.gradleup.shadow")
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
@@ -41,7 +41,7 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.4.10"
+    val kotlin = "2.4.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -55,6 +55,15 @@ dependencies {
     val javalinOpenApi = "7.2.3"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
+
+    constraints {
+        kapt("ch.qos.logback:logback-classic:1.5.38") {
+            because("The OpenAPI processor pulls Logback versions affected by deserialization advisories")
+        }
+        kapt("org.mozilla:rhino:1.7.15.1") {
+            because("The OpenAPI processor pulls Rhino 1.7.7.2, affected by GHSA-3w8q-xq97-5j7x")
+        }
+    }
 
     val javalinRouting = "7.2.3"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
@@ -75,7 +84,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.54.7"
+    val awssdk = "2.57.2"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
     implementation("software.amazon.awssdk:s3:$awssdk") {
@@ -93,9 +102,9 @@ dependencies {
     val awsSdkV1 = "1.12.797"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.3.1")
 
-    val exposed = "1.5.0"
+    val exposed = "1.6.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -104,15 +113,16 @@ dependencies {
     // Drivers
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.xerial:sqlite-jdbc:3.53.4.0")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.10")
-    implementation("org.postgresql:postgresql:42.7.13")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.11")
+    implementation("org.postgresql:postgresql:42.7.14")
     implementation("com.h2database:h2:2.4.240")
-    implementation("com.mysql:mysql-connector-j:26.7.0") {
+    implementation("com.mysql:mysql-connector-j:26.10.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.36.0")
+    implementation("com.google.protobuf:protobuf-java:4.36.2")
 
-    val jackson = "2.22.2"
+    val jackson = "2.22.4"
+    kapt(platform("com.fasterxml.jackson:jackson-bom:$jackson"))
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
@@ -121,14 +131,14 @@ dependencies {
     val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    api("commons-codec:commons-codec:1.22.1")
+    api("commons-codec:commons-codec:1.23.0")
 
     val journalist = "1.0.12"
     api("com.reposilite:journalist:$journalist")
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
 
-    val tinylog = "2.7.0"
+    val tinylog = "2.8.1"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
