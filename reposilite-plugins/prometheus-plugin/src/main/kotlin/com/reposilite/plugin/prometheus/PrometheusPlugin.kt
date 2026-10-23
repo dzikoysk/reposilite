@@ -42,6 +42,9 @@ import kotlin.time.DurationUnit
 class PrometheusPlugin : ReposilitePlugin() {
 
     override fun initialize(): PrometheusFacade {
+        val failureFacade = facade<FailureFacade>()
+        val statusFacade = facade<StatusFacade>()
+
         logger.info("")
         logger.info("--- Prometheus")
 
@@ -58,7 +61,7 @@ class PrometheusPlugin : ReposilitePlugin() {
             ?: throw IllegalStateException("Prometheus password is not defined")
 
         val prometheusFacade = PrometheusFacade(
-            failureFacade = facade<FailureFacade>(),
+            failureFacade = failureFacade,
             prometheusUser = prometheusUser,
             prometheusPassword = prometheusPassword
         )
@@ -66,7 +69,7 @@ class PrometheusPlugin : ReposilitePlugin() {
         JvmMetrics.builder().register()
         logger.info("Prometheus | JVM metrics has been initialized.")
 
-        ReposiliteMetrics.register(facade<StatusFacade>(), facade<FailureFacade>())
+        ReposiliteMetrics.register(statusFacade, failureFacade)
 
         event { event: ResolvedFileEvent ->
             event.result.map { (info, _) ->

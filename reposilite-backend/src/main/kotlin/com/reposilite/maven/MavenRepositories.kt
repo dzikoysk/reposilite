@@ -28,6 +28,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
+import panda.std.Result.supplyThrowing
 import panda.std.reactive.Reference
 
 internal class MavenRepositories(
@@ -76,21 +77,28 @@ internal class MavenRepositories(
             repositoriesNames = repositoriesConfiguration.map { it.id },
         )
 
-        val duplicatedNames = repositoriesConfiguration.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys
-        return repositoriesConfiguration.asSequence()
-            .mapNotNull { configuration ->
-                val identity = RepositoryIdentity.create(configuration.id)
-                    .onError { failureFacade.throwException("Cannot load ${configuration.id} repository", IllegalArgumentException(it)) }
-                    .orNull() ?: return@mapNotNull null
+        val duplicatedNames =
+            repositoriesConfiguration
+                .groupingBy { it.id }
+                .eachCount()
+                .filterValues { it > 1 }
+                .keys
 
-                runCatching {
-                    require(configuration.id !in duplicatedNames) {
-                        "Repository name '${configuration.id}' is duplicated in Maven repository settings"
+        return repositoriesConfiguration
+            .asSequence()
+            .mapNotNull { configuration ->
+                RepositoryIdentity
+                    .create(configuration.id)
+                    .filter(
+                        { it.name !in duplicatedNames },
+                        { "Repository name '${it.name}' is duplicated in Maven repository settings" }
+                    )
+                    .mapErr<Exception> { IllegalArgumentException(it) }
+                    .flatMap { identity -> supplyThrowing { factory.createRepository(identity, configuration) } }
+                    .onError {
+                        failureFacade.throwException("Cannot load ${configuration.id} repository", it)
                     }
-                    factory.createRepository(identity, configuration)
-                }
-                    .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
-                    .getOrNull()
+                    .orNull()
             }
             .associateBy { it.name }
     }
