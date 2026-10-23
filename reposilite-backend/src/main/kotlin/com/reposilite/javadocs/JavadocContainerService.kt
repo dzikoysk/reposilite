@@ -64,7 +64,7 @@ internal class JavadocContainerService(
     private val mavenFacade: MavenFacade,
     private val javadocFolder: Path,
     private val suffixes: Reference<List<String>>,
-    private val maxEntryBytes: Long = 2L * 1024 * 1024,
+    private val maxEntryBytes: Long = System.getProperty("reposilite.javadocs.max-entry-bytes", "10485760").toLong(),
     private val maxTotalBytes: Long = 50L * 1024 * 1024,
     private val maxEntries: Int = 50_000,
 ) {

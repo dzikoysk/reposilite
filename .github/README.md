@@ -58,10 +58,10 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx32M -jar reposilite-3.6.3.jar
+$ java -Xmx32M -jar reposilite-3.6.4.jar
 
 # Using the official Docker image
-$ docker pull dzikoysk/reposilite:3.6.3
+$ docker pull dzikoysk/reposilite:3.6.4
 
 # Using the official Helm chart
 $ helm repo add reposilite https://helm.reposilite.com/
@@ -94,6 +94,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/sponsors/dzikoysk">Active GitHub Sponsors</a>
   </td>
   <td>
+    <a href="https://github.com/jobrunr">JobRunr</a>,
     <a href="https://github.com/talismanplatform">talismanplatform</a>,
     <a href="https://github.com/rdehuyss">rdehuyss</a>,
     <a href="https://github.com/insertt">insertt</a>,
@@ -161,7 +162,8 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/gcobr">gcobr</a>,
    <a href="https://github.com/frankielc">frankielc</a>,
    <a href="https://github.com/P3ridot">P3ridot</a>,
-   <a href="https://github.com/sandrwich">sandrwich</a>
+   <a href="https://github.com/sandrwich">sandrwich</a>,
+   <a href="https://github.com/jobrunr">JobRunr</a>
   </td>
  </tr>
 </table>

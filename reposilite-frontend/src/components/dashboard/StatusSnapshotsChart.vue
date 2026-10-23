@@ -19,7 +19,7 @@ import { ref, computed, defineAsyncComponent, onUnmounted } from "vue"
 import { useSession } from "../../store/session"
 import { createErrorToast } from '../../helpers/toast'
 
-const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
+const TimeSeriesChart = defineAsyncComponent(() => import('./TimeSeriesChart.vue'))
 
 const props = defineProps({
   selectedTab: {
@@ -35,11 +35,11 @@ const statusSnapshotsSeries = computed(() => {
   return [
     {
       name: 'Used memory (MB)',
-      data: statusSnapshots.value.map(record => [record.at, record.memory])
+      data: statusSnapshots.value.map(record => ({ x: record.at, y: record.memory }))
     },
     {
       name: 'Used threads',
-      data: statusSnapshots.value.map(record => [record.at, record.threads])
+      data: statusSnapshots.value.map(record => ({ x: record.at, y: record.threads }))
     }
   ]
 })
@@ -60,41 +60,6 @@ function requestStatus() {
 }
 requestStatus()
 onUnmounted(() => clearTimeout(statusTimeout))
-
-const chartOptions = {
-  chart: {
-    id: "reposilite-instance-status",
-  },
-  tooltip: {
-    shared: true,
-  },
-  xaxis: {
-    type: 'datetime',
-    axisBorder: {
-      show: false
-    },
-    axisTicks: {
-      show: false
-    }
-  },
-  dataLabels: {
-    enabled: false
-  },
-  dropShadow: {
-    enabled: true,
-  },
-  onDatasetHover: {
-    highlightDataSeries: true
-  },
-  theme: {
-    palette: 'palette10'
-  },
-  legend: {
-    itemMargin: {
-      vertical: 15
-    }
-  }
-}
 </script>
 
 <template>
@@ -102,12 +67,8 @@ const chartOptions = {
     <figcaption class="sr-only">
       Runtime memory and thread usage over time
     </figcaption>
-    <VueApexCharts 
-      class="dark:text-black"
-      width="100%"
-      height="320px"
-      type="line"
-      :options="chartOptions"
+    <TimeSeriesChart
+      label="Runtime memory and thread usage over time"
       :series="statusSnapshotsSeries"
     />
   </figure>

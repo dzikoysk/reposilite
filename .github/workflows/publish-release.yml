@@ -18,13 +18,13 @@ jobs:
       version: "${{ steps.version.outputs.version }}"
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: "Fetch git tags" # Required for axion-release-plugin
         run: git fetch --tags --unshallow
 
       - name: "Set up Java ${{ env.JAVA_VERSION }}"
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "${{ env.JAVA_VERSION }}"
           distribution: "liberica"
@@ -33,10 +33,12 @@ jobs:
         run: chmod +x gradlew
 
       - name: "Release new version"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          ./gradlew release
+          ./gradlew release -Prelease.customUsername=x-access-token -Prelease.customPassword="$GITHUB_TOKEN"
 
       - name: "Get current version"
         id: version
@@ -48,7 +50,7 @@ jobs:
     needs: [ github ]
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: "refs/tags/${{ needs.github.outputs.version }}"
 
@@ -56,7 +58,7 @@ jobs:
         run: git fetch --tags --unshallow
 
       - name: "Set up Java ${{ env.JAVA_VERSION }}"
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "${{ env.JAVA_VERSION }}"
           distribution: "liberica"
@@ -82,7 +84,7 @@ jobs:
       packages: write
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: "refs/tags/${{ needs.github.outputs.version }}"
 
@@ -123,5 +125,6 @@ jobs:
         with:
           context: .
           platforms: "linux/amd64,linux/arm64"
+          pull: true
           push: true
           tags: ${{ steps.generate-tags.outputs.tags }}
