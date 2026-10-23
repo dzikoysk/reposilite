@@ -505,7 +505,10 @@ loadStatistics(true)
             </dd>
           </div>
         </dl>
-        <ResolvedRequestsChart :statistics="resolvedStatistics" />
+        <ResolvedRequestsChart
+          :key="selectedRange"
+          :statistics="resolvedStatistics"
+        />
       </section>
     </template>
     <div

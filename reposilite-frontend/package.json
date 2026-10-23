@@ -27,8 +27,8 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "ansi-to-html": "^0.7.2",
-    "apexcharts": "^8.4.1",
     "axios": "^1.20.0",
+    "chart.js": "^4.6.1",
     "downloadjs": "^1.4.7",
     "extended-eventsource": "^2.1.0",
     "mime-types": "^3.0.2",
@@ -39,7 +39,6 @@
     "vue-final-modal": "^5.0.0",
     "vue-router": "^5.4.0",
     "vue-upload-component": "^3.2.2",
-    "vue3-apexcharts": "^1.11.3",
     "vue3-tabs": "^0.1.13-beta.3"
   },
   "devDependencies": {
