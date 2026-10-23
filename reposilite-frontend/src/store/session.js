@@ -16,6 +16,7 @@
 
 import { computed, ref, watchEffect } from "vue"
 import { createClient } from './client'
+import usePlaceholders from './placeholders'
 
 const token = ref({
   name: localStorage.getItem('token-name') || '',
@@ -60,6 +61,11 @@ const details = ref(defaultDetails)
 const logout = () => {
   setToken('', '')
   details.value = undefined
+  // sessions created by the OIDC login (see OidcEndpoints) also end at the identity provider
+  if (localStorage.getItem('token-oidc')) {
+    localStorage.removeItem('token-oidc')
+    location.assign(`${usePlaceholders().baseUrl}/oidc/logout`)
+  }
 }
 
 const login = (name, secret) =>

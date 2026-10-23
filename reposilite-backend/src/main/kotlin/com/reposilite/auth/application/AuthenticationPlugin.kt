@@ -17,8 +17,10 @@
 package com.reposilite.auth.application
 
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
+import com.reposilite.auth.infrastructure.OidcEndpoints
 import com.reposilite.auth.infrastructure.PostAuthHandler
 import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.frontend.FrontendFacade
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
@@ -26,23 +28,32 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "authentication", dependencies = ["failure", "shared-configuration", "access-token"], settings = AuthenticationSettings::class)
+@Plugin(name = "authentication", dependencies = ["failure", "shared-configuration", "access-token", "frontend"], settings = AuthenticationSettings::class)
 class AuthenticationPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
 
-        val authenticationFacade =
+        val authenticationSettings = sharedConfigurationFacade.getDomainSettings<AuthenticationSettings>()
+        val authenticationComponents =
             AuthenticationComponents(
                 journalist = this,
                 accessTokenFacade = facade(),
                 failureFacade = facade(),
-                authenticationSettings = sharedConfigurationFacade.getDomainSettings(),
+                authenticationSettings = authenticationSettings,
                 disableUserPasswordAuthentication = System.getProperty("reposilite.ldap.disable-user-password-authentication", "false") == "true"
-            ).authenticationFacade()
+            )
+        val authenticationFacade = authenticationComponents.authenticationFacade()
+        val oidcService = authenticationComponents.oidcService()
+
+        facade<FrontendFacade>().registerPlaceholder(
+            key = "{{REPOSILITE.OIDC_ENABLED}}",
+            value = authenticationSettings.computed { it.oidc.enabled.toString() },
+        )
 
         event { event: RoutingSetupEvent ->
-            event.registerRoutes(AuthenticationEndpoint(authenticationFacade))
+            event.registerRoutes(AuthenticationEndpoint(authenticationFacade, oidcService))
+            event.registerRoutes(OidcEndpoints(oidcService))
             event.registerRoutes(PostAuthHandler())
         }
 
