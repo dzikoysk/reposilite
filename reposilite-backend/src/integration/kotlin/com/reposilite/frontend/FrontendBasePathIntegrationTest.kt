@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 private const val BASE_PATH = "/custom-base-path"
+private val LOGO_SOURCE = Regex("""$BASE_PATH/assets/reposilite-[^"\s]+\.png""")
 private val FONT_SOURCE = Regex("""src:\s*url\(["']?([^"')]+)["']?\)""")
 private const val SCRIPT_SOURCE_PREFIX = "<script type=\"module\" crossorigin src=\""
 
@@ -58,6 +59,13 @@ internal class FrontendBasePathIntegrationTest : ReposiliteSpecification() {
         assertThat(scriptResponse.body.decodeToString())
             .contains(BASE_PATH)
             .doesNotContain("\u0000")
+
+        val logoPath = LOGO_SOURCE.find(scriptResponse.body.decodeToString())?.value ?: error("Missing bundled logo URL in the frontend")
+        val logoResponse = get("$base${logoPath.removePrefix(BASE_PATH)}").asBytes()
+
+        assertThat(logoResponse.isSuccess).isTrue
+        assertThat(logoResponse.headers.getFirst("Content-Type")).isEqualTo("image/png")
+        assertThat(logoResponse.body).isNotEmpty
 
         val fontPath = FONT_SOURCE.find(indexResponse.body)?.groupValues?.get(1)
             ?: error("Missing font URL in the bundled frontend")

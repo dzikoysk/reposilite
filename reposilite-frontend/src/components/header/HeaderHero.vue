@@ -15,6 +15,7 @@
   -->
 
 <script setup>
+import defaultLogo from '../../assets/reposilite.png'
 import GlobeIcon from '../icons/GlobeIcon.vue'
 import usePlaceholders from '../../store/placeholders'
 
@@ -27,7 +28,7 @@ const { description, organizationWebsite, organizationLogo } = usePlaceholders()
       <div class="w-35 <sm:mb-2">
         <img
           class="border-2 rounded-full dark:border-gray-700"
-          :src="organizationLogo"
+          :src="organizationLogo || defaultLogo"
           alt="Organization logo"
         >
       </div>

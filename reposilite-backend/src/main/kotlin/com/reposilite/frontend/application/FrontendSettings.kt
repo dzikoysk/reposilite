@@ -37,8 +37,8 @@ data class FrontendSettings(
     val description: String = "Public Maven repository hosted through the Reposilite",
     @get:Doc(title = "Organisation Website", description = "Link to organization's website.")
     val organizationWebsite: String = "https://reposilite.com",
-    @get:Doc(title = "Organisation Logo", description = "Link to organization's logo.")
-    val organizationLogo: String = "https://avatars.githubusercontent.com/u/88636591",
+    @get:Doc(title = "Organisation Logo", description = "Link to organization's logo. Leave empty to use the bundled Reposilite logo.")
+    val organizationLogo: String = "",
     @get:Doc(title = "Privacy Policy", description = "Link to your privacy policy displayed in the footer. Useful for EU GDPR compliance.")
     val privacyPolicy: String = "",
     @get:Doc(title = "ICP License", description = """

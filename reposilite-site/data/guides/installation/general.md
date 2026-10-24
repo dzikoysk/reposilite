@@ -207,7 +207,7 @@ Example output:
     "title": "Reposilite Repository",
     "description": "Public Maven repository hosted through the Reposilite",
     "organizationWebsite": "https://reposilite.com",
-    "organizationLogo": "https://avatars.githubusercontent.com/u/88636591",
+    "organizationLogo": "",
     "icpLicense": ""
   },
   "web": {
