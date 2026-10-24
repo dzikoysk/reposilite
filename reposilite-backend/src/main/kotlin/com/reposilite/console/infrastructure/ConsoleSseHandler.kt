@@ -33,18 +33,22 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.reactive.Reference
-import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 private const val SSE_EVENT_NAME = "log"
 
-data class SseSession(
+private class SseSession(
     val identifier: String,
     val subscriberId: Int,
-    val scheduler: ScheduledFuture<*>
-)
+    val scheduler: ScheduledFuture<*>,
+    val completion: CompletableFuture<Void>
+) {
+    var closing = false
+}
 
 internal class ConsoleSseHandler(
     private val journalist: ReposiliteJournalist,
@@ -54,7 +58,43 @@ internal class ConsoleSseHandler(
     private val scheduler: ScheduledExecutorService
 ) {
 
-    internal val users: WeakHashMap<SseClient, SseSession> = WeakHashMap()
+    private val sessions = ConcurrentHashMap<SseClient, SseSession>()
+
+    @Volatile
+    private var stopping = false
+
+    fun close() {
+        val clients = synchronized(this) {
+            stopping = true
+            sessions.toMap()
+        }
+        clients.values.forEach(::unsubscribe)
+        clients.forEach(::closeSession)
+    }
+
+    private fun unsubscribe(session: SseSession) {
+        session.scheduler.cancel(false)
+        journalist.unsubscribe(session.subscriberId)
+    }
+
+    private fun closeSession(sse: SseClient, session: SseSession) {
+        synchronized(session) {
+            if (session.closing) {
+                return
+            }
+            session.closing = true
+            unsubscribe(session)
+            sse.close()
+            try {
+                session.completion.complete(null)
+            } finally {
+                sessions.remove(sse, session)
+            }
+        }
+        if (!stopping) {
+            journalist.logger.info("CLI | ${session.identifier} closed connection")
+        }
+    }
 
     @OpenApi(
         path = "/api/console/log",
@@ -70,33 +110,22 @@ internal class ConsoleSseHandler(
         tags = ["Console"]
     )
     fun handleSseLiveLog(sse: SseClient) {
-        sse.keepAlive()
-        sse.onClose {  ->
-            val session = users.remove(sse) ?: return@onClose
-            session.scheduler.cancel(false)
-            journalist.logger.info("CLI | ${session.identifier} closed connection")
-            journalist.unsubscribe(session.subscriberId)
-        }
-
         authenticateContext(sse.ctx())
             .peek { identifier ->
                 journalist.logger.info("CLI | $identifier accessed remote console")
-
-                val subscriberId = journalist.subscribe {
-                    // stop stack overflow log spam
-                    if (!sse.terminated()) {
-                        sse.sendEvent(SSE_EVENT_NAME, it.value)
-                    }
+                val session = registerSession(sse, identifier)
+                if (session == null) {
+                    sse.close()
+                    return@peek
                 }
-
-                val watcher = scheduler.scheduleWithFixedDelay({
-                    sse.sendComment("ping")
-                }, 5, 5, TimeUnit.SECONDS)
-
-                users[sse] = SseSession(identifier, subscriberId, watcher)
-
+                if (sse.terminated()) {
+                    closeSession(sse, session)
+                    return@peek
+                }
                 journalist.cachedLogger.messages
+                    .asSequence()
                     .filter { it.key.priority >= journalist.visibleThreshold.priority }
+                    .takeWhile { !sse.terminated() }
                     .forEach { message -> sse.sendEvent(SSE_EVENT_NAME, message.value) }
             }
             .onError {
@@ -104,6 +133,29 @@ internal class ConsoleSseHandler(
                 sse.sendEvent(SSE_EVENT_NAME, it)
                 sse.close()
             }
+    }
+
+    @Synchronized
+    private fun registerSession(sse: SseClient, identifier: String): SseSession? {
+        if (stopping) {
+            return null
+        }
+        val completion = CompletableFuture<Void>()
+        sse.ctx().future { completion }
+        val subscriberId = journalist.subscribe {
+            if (!sse.terminated()) {
+                sse.sendEvent(SSE_EVENT_NAME, it.value)
+            }
+        }
+        val watcher = scheduler.scheduleWithFixedDelay({
+            if (!sse.terminated()) {
+                sse.sendComment("ping")
+            }
+        }, 5, 5, TimeUnit.SECONDS)
+        val session = SseSession(identifier, subscriberId, watcher, completion)
+        sessions[sse] = session
+        sse.onClose { closeSession(sse, session) }
+        return session
     }
 
     private fun authenticateContext(connection: Context): Result<String, ErrorResponse> {

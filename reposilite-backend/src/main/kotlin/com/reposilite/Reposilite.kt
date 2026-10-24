@@ -82,8 +82,8 @@ class Reposilite(
         alive.peek {
             alive.set(false)
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
-            shutdownSafely("scheduler") { scheduler.shutdown() }
             shutdownSafely("web server") { webServer.stop() }
+            shutdownSafely("scheduler") { scheduler.shutdown() }
             shutdownSafely("IO executor") {
                 if (!ioService.shutdownGracefully(1, MINUTES)) {
                     logger.warn("IO executor did not terminate")
