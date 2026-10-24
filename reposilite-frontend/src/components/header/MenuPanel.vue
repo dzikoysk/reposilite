@@ -22,9 +22,11 @@ import MoonIcon from '../icons/MoonIcon.vue'
 import SunIcon from '../icons/SunIcon.vue'
 import LogoutIcon from '../icons/LogoutIcon.vue'
 import useTheme from "../../store/theme"
+import usePlaceholders from '../../store/placeholders'
 
 const { theme, changeTheme } = useTheme()
 const { token, isLogged, logout } = useSession()
+const { oidcEnabled, baseUrl } = usePlaceholders()
 
 const toggleTheme = () => {
   switch (theme.mode) {
@@ -50,9 +52,17 @@ const toggleTheme = () => {
       Welcome 
       <span class="font-bold underline">{{ token.name }}</span>
     </div>
+    <a
+      v-if="!isLogged && oidcEnabled"
+      :href="`${baseUrl}/oidc/login`"
+      class="mx-2 py-1.5 rounded-full font-bold px-6 text-sm max-h-35px min-w-93px text-center default-button"
+    >
+      Sign in
+    </a>
+    <!-- with OIDC the token login stays available, e.g. for administrators while the identity provider is down -->
     <LoginModal v-if="!isLogged">
       <template v-slot:button>
-        Sign in
+        {{ oidcEnabled ? 'Token' : 'Sign in' }}
       </template>
     </LoginModal>
     <MenuButton v-if="isLogged" @click="logout()" class="<sm:hidden">
