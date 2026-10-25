@@ -22,8 +22,10 @@ import com.reposilite.VERSION
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.api.InstanceStatusResponse
+import com.reposilite.status.api.ResourcePools
 import com.reposilite.status.api.StatusSnapshot
 import panda.std.reactive.Reference
+import java.lang.management.ManagementFactory
 import java.util.ArrayDeque
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit.HOURS
@@ -38,8 +40,19 @@ class StatusFacade(
     private val status: () -> Boolean,
     private val remoteVersionUrl: String,
     private val remoteClientProvider: RemoteClientProvider,
-    private val failureFacade: FailureFacade
+    private val failureFacade: FailureFacade,
+    private val resourcePools: () -> ResourcePools?
 ) : Facade {
+
+    constructor(
+        testEnv: Boolean,
+        startTime: Long = System.currentTimeMillis(),
+        maxThreads: Reference<Int>,
+        status: () -> Boolean,
+        remoteVersionUrl: String,
+        remoteClientProvider: RemoteClientProvider,
+        failureFacade: FailureFacade
+    ) : this(testEnv, startTime, maxThreads, status, remoteVersionUrl, remoteClientProvider, failureFacade, { null })
 
     private val cachedStatusSnapshots = ArrayDeque<StatusSnapshot>(MAX_STATUS_SNAPSHOTS)
 
@@ -76,11 +89,12 @@ class StatusFacade(
             maxMemory = (Runtime.getRuntime().maxMemory() / 1024 / 1024).toInt(),
             usedThreads = getUsedThreads(),
             maxThreads = maxThreads.get(),
-            failuresCount = failureFacade.getFailuresCount()
+            failuresCount = failureFacade.getFailuresCount(),
+            resourcePools = resourcePools()
         )
 
     private fun getUsedThreads(): Int =
-        Thread.activeCount()
+        ManagementFactory.getThreadMXBean().threadCount
 
     private fun getUsedMemory(): Double =
         (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0

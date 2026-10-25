@@ -15,7 +15,7 @@
   -->
 
 <script setup>
-import { ref, computed } from "vue"
+import { ref, computed, onUnmounted } from "vue"
 import { createErrorToast } from '../../helpers/toast'
 import { useSession } from "../../store/session"
 import FailuresList from "./FailuresList.vue"
@@ -36,38 +36,53 @@ const health = ref()
 const failures = ref([])
 const failuresError = ref(false)
 const query = ref('')
+let statusTimeout
+let stopped = false
+let statusFailed = false
 
 function requestFailures() {
-  failuresError.value = false
-  client.value.status.failures()
-    .then(response => failures.value = response.data.failures)
+  return client.value.status.failures()
+    .then(response => {
+      failures.value = response.data.failures
+      failuresError.value = false
+    })
     .catch(error => {
+      if (!failuresError.value) createErrorToast(`Cannot load recorded failures`)
       failuresError.value = true
-      createErrorToast(`Cannot load recorded failures`)
       console.log(error)
     })
 }
 
 function requestStatus() {
-  if (props.selectedTab == 'Diagnostics') {
+  if (props.selectedTab == 'Diagnostics' && !stopped) {
     client.value.status.instance()
       .then(response => response.data)
       .then(instanceStatusData => {
+        statusFailed = false
+        const failuresChanged = instanceStatus.value?.failuresCount !== instanceStatusData.failuresCount
         instanceStatus.value = instanceStatusData
-        if (instanceStatusData.failuresCount > 0) {
-          requestFailures()
-        } else {
+        if (instanceStatusData.failuresCount > 0 && (failuresChanged || failuresError.value)) {
+          return requestFailures()
+        } else if (instanceStatusData.failuresCount === 0) {
           failuresError.value = false
           failures.value = []
         }
       })
       .catch((error) => {
-        createErrorToast(`Cannot load instance status`)
+        if (!statusFailed) createErrorToast(`Cannot load instance status`)
+        statusFailed = true
         console.log(error)
+      })
+      .finally(() => {
+        if (!stopped) statusTimeout = setTimeout(requestStatus, 1000)
       })
   }
 }
 requestStatus()
+onUnmounted(() => {
+  stopped = true
+  clearTimeout(statusTimeout)
+})
 
 function requestHealth() {
   if (props.selectedTab == 'Diagnostics') {
@@ -95,6 +110,12 @@ const prettyUptime = (seconds) => {
 
   return dDisplay + hDisplay + mDisplay
 }
+
+const pools = computed(() => [
+  { id: 'web', label: 'Web workers', unit: 'Busy workers', usage: instanceStatus.value?.resourcePools?.web },
+  { id: 'io', label: 'Background IO', unit: 'Busy workers', usage: instanceStatus.value?.resourcePools?.io },
+  { id: 'database', label: 'Database', unit: 'Connections in use', usage: instanceStatus.value?.resourcePools?.database }
+])
 
 const failureText = (failure) =>
   [failure.path, failure.type, failure.message, ...failure.messages, failure.trace].join(' ')
@@ -152,6 +173,71 @@ const filtered = computed(() => {
         </div>
       </dl>
     </div>
+
+    <section
+      class="mb-5 bg-white dark:bg-gray-900 rounded-lg p-5"
+      aria-labelledby="pool-usage-heading"
+    >
+      <h2
+        id="pool-usage-heading"
+        class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100"
+      >
+        Worker and connection pools
+      </h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Busy workers and borrowed connections, with work waiting for capacity.
+      </p>
+      <div class="mt-4 divide-y divide-gray-150 dark:divide-gray-800">
+        <div
+          v-for="pool in pools"
+          :key="pool.id"
+          class="grid grid-cols-3 gap-4 py-3 text-sm <sm:grid-cols-2 <sm:gap-2"
+        >
+          <div class="min-w-0 <sm:col-span-2">
+            <h3 class="font-semibold text-gray-800 dark:text-gray-100">
+              {{ pool.label }}
+            </h3>
+            <p
+              v-if="pool.id === 'web' && pool.usage"
+              class="mt-1 text-xs text-gray-500 dark:text-gray-400"
+            >
+              {{ pool.usage.capacity + pool.usage.reserved }} configured; {{ pool.usage.reserved }} reserved by the HTTP server
+            </p>
+          </div>
+          <template v-if="pool.usage">
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                {{ pool.unit }} / capacity
+              </div>
+              <div class="mt-1 font-semibold tabular-nums">
+                {{ pool.usage.active }} / {{ pool.usage.capacity }}
+              </div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                {{ pool.id === 'database' ? 'Waiting callers' : 'Queued tasks' }}
+              </div>
+              <div
+                class="mt-1 font-semibold tabular-nums"
+                :class="(pool.usage.queued || pool.usage.waiting) > 0 ? 'text-yellow-700 dark:text-yellow-400' : ''"
+              >
+                {{ pool.usage.queued ?? pool.usage.waiting }}
+              </div>
+            </div>
+          </template>
+          <p
+            v-else
+            class="col-span-2 text-gray-500 dark:text-gray-400"
+          >
+            Unavailable
+          </p>
+        </div>
+      </div>
+      <div class="mt-2 pt-3 border-t border-gray-150 dark:border-gray-800 flex justify-between items-baseline flex-wrap gap-2 text-sm">
+        <span class="text-gray-500 dark:text-gray-400">Live JVM platform threads, including idle workers and runtime services</span>
+        <span class="font-semibold tabular-nums">{{ instanceStatus.usedThreads }}</span>
+      </div>
+    </section>
 
     <section
       class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300"
@@ -231,7 +317,7 @@ const filtered = computed(() => {
             Resource usage
           </h2>
           <p class="mt-0.5 truncate text-sm leading-5 text-gray-500 dark:text-gray-400 <md:whitespace-normal <md:overflow-visible">
-            Memory and thread samples collected from runtime status snapshots.
+            Heap memory and JVM platform threads sampled over time.
           </p>
         </div>
       </div>

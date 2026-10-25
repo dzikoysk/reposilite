@@ -19,7 +19,7 @@ package com.reposilite.status.api
 import com.reposilite.statistics.toUTCMillis
 import java.time.LocalDateTime
 
-data class InstanceStatusResponse(
+data class InstanceStatusResponse @JvmOverloads constructor(
     val version: String,
     val latestVersion: String?,
     val uptime: Long,
@@ -27,7 +27,27 @@ data class InstanceStatusResponse(
     val maxMemory: Int,
     val usedThreads: Int,
     val maxThreads: Int,
-    val failuresCount: Int
+    val failuresCount: Int,
+    val resourcePools: ResourcePools? = null
+)
+
+data class ResourcePools(
+    val web: ThreadPoolStatus?,
+    val io: ThreadPoolStatus?,
+    val database: ConnectionPoolStatus?
+)
+
+data class ThreadPoolStatus(
+    val active: Int,
+    val capacity: Int,
+    val queued: Int,
+    val reserved: Int
+)
+
+data class ConnectionPoolStatus(
+    val active: Int,
+    val capacity: Int,
+    val waiting: Int
 )
 
 data class RecordedFailure(

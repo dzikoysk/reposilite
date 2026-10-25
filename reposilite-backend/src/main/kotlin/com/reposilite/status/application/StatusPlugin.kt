@@ -32,6 +32,7 @@ import com.reposilite.plugin.reposilite
 import com.reposilite.shared.extensions.TimeUtils
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.FailuresCommand
+import com.reposilite.status.ResourceUsageService
 import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
 import com.reposilite.status.StatusSnapshotScheduler
@@ -58,12 +59,19 @@ internal class StatusPlugin : ReposilitePlugin() {
         val localConfiguration = facade<LocalConfiguration>()
         val consoleFacade = facade<ConsoleFacade>()
 
+        val resourceUsageService = ResourceUsageService(
+            webServer = reposilite().webServer,
+            ioService = reposilite().ioService,
+            databaseSource = reposilite().databaseConnection.databaseSource
+        )
+
         val statusFacade = StatusComponents(
             testEnv = parameters().testEnv,
             failureFacade = failureFacade,
             remoteClientProvider = reposilite().remoteClientProvider,
             remoteVersionEndpoint = remoteVersionEndpoint,
             statusSupplier = { if (webServer.isReady) webServer.get().isAlive() else false },
+            resourcePools = resourceUsageService::fetchResourcePools,
             maxThreads = with (localConfiguration) {
                 computed(dependencies(webThreadPool, ioThreadPool, databaseThreadPool)) {
                     webThreadPool.get() + ioThreadPool.get() + databaseThreadPool.get()
