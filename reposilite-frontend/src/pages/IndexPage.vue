@@ -15,9 +15,9 @@
   -->
 
 <script setup>
-import { computed, ref, watchEffect, defineAsyncComponent } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useSession } from '../store/session'
-import useQualifier from '../store/qualifier'
 import DefaultHeader from '../components/header/DefaultHeader.vue'
 import FileBrowserView from '../components/browser/FileBrowserView.vue'
 import {TabPanels, TabPanel} from 'vue3-tabs'
@@ -45,7 +45,8 @@ const listOfTabs = [
 ]
 
 const { isManager } = useSession()
-const { redirectTo } = useQualifier()
+const route = useRoute()
+const router = useRouter()
 
 const menuTabs = computed(() => {
   return listOfTabs
@@ -53,25 +54,20 @@ const menuTabs = computed(() => {
     .map(entry => entry.name)
 })
 
-const selectedTab = ref(localStorage.getItem('selectedTab') || 'Overview')
-
-watchEffect(() => {
-  localStorage.setItem('selectedTab', selectedTab.value)
+const tabLocation = (tab) => ({
+  path: '/',
+  hash: `#${tab.toLowerCase()}`
 })
 
-const createTabClick = (newTab) => {
-  if (newTab == 'Overview') {
-    redirectTo('/')
-  }
-}
-
-const selectHomepage = () => 
-  selectedTab.value = 'Overview'
+const selectedTab = computed({
+  get: () => menuTabs.value.find(tab => tab.toLowerCase() === route.hash.slice(1)) || 'Overview',
+  set: tab => router.push(tabLocation(tab))
+})
 </script>
 
 <template>
   <div>
-    <DefaultHeader :logoClickCallback="selectHomepage" />
+    <DefaultHeader />
     <main
       id="main-content"
       class="bg-gray-100 dark:bg-black overflow-y-visible"
@@ -82,11 +78,11 @@ const selectHomepage = () =>
           role="tablist"
           aria-label="Main views"
         >
-          <button
+          <router-link
             v-for="(tab, i) in menuTabs"
             :id="`main-tab-${tab.toLowerCase()}`"
             :key="`menu${i}`"
-            type="button"
+            :to="tabLocation(tab)"
             role="tab"
             class="item main-menu-tab font-normal <sm:w-1/3"
             :class="{
@@ -94,11 +90,11 @@ const selectHomepage = () =>
               'dashboard': tab === 'Dashboard'
             }"
             :aria-selected="selectedTab === tab"
+            :aria-current="selectedTab === tab ? 'page' : undefined"
             :aria-controls="`main-panel-${tab.toLowerCase()}`"
-            @click="selectedTab = tab; createTabClick(tab)"
           >
             <span class="tab block">{{ tab }}</span>
-          </button>
+          </router-link>
         </div>
       </div>
       <hr class="dark:border-gray-700">

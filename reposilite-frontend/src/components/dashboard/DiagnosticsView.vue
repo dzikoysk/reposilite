@@ -112,10 +112,13 @@ const prettyUptime = (seconds) => {
 }
 
 const pools = computed(() => [
-  { id: 'web', label: 'Web workers', unit: 'Busy workers', usage: instanceStatus.value?.resourcePools?.web },
-  { id: 'io', label: 'Background IO', unit: 'Busy workers', usage: instanceStatus.value?.resourcePools?.io },
-  { id: 'database', label: 'Database', unit: 'Connections in use', usage: instanceStatus.value?.resourcePools?.database }
+  { id: 'web', label: 'Web workers', usage: instanceStatus.value?.resourcePools?.web },
+  { id: 'io', label: 'Background IO', usage: instanceStatus.value?.resourcePools?.io },
+  { id: 'database', label: 'Database', usage: instanceStatus.value?.resourcePools?.database }
 ])
+
+const poolUsage = (pool) =>
+  Math.min(100, Math.round(pool.active / pool.capacity * 100))
 
 const failureText = (failure) =>
   [failure.path, failure.type, failure.message, ...failure.messages, failure.trace].join(' ')
@@ -157,18 +160,18 @@ const filtered = computed(() => {
       <dl class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
         <div>
           <dt class="text-sm text-gray-500 dark:text-gray-400">
-            Failures
+            Uptime
           </dt><dd class="text-lg font-semibold mt-0.5 tabular-nums">
-            {{ instanceStatus.failuresCount }}
+            {{ prettyUptime(instanceStatus.uptime / 1000) }}
           </dd>
         </div>
       </dl>
       <dl class="flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full">
         <div>
           <dt class="text-sm text-gray-500 dark:text-gray-400">
-            Uptime
+            Failures
           </dt><dd class="text-lg font-semibold mt-0.5 tabular-nums">
-            {{ prettyUptime(instanceStatus.uptime / 1000) }}
+            {{ instanceStatus.failuresCount }}
           </dd>
         </div>
       </dl>
@@ -184,63 +187,82 @@ const filtered = computed(() => {
       >
         Worker and connection pools
       </h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Busy workers and borrowed connections, with work waiting for capacity.
-      </p>
-      <div class="mt-4 divide-y divide-gray-150 dark:divide-gray-800">
+      <div class="mt-2 divide-y divide-gray-150 dark:divide-gray-800">
         <div
           v-for="pool in pools"
           :key="pool.id"
-          class="grid grid-cols-3 gap-4 py-3 text-sm <sm:grid-cols-2 <sm:gap-2"
+          class="grid grid-cols-12 items-center gap-x-4 gap-y-2 py-3 text-sm"
         >
-          <div class="min-w-0 <sm:col-span-2">
-            <h3 class="font-semibold text-gray-800 dark:text-gray-100">
-              {{ pool.label }}
-            </h3>
-            <p
-              v-if="pool.id === 'web' && pool.usage"
-              class="mt-1 text-xs text-gray-500 dark:text-gray-400"
-            >
-              {{ pool.usage.capacity + pool.usage.reserved }} configured; {{ pool.usage.reserved }} reserved by the HTTP server
-            </p>
-          </div>
+          <h3 class="col-span-3 order-1 font-semibold text-gray-800 dark:text-gray-100 <sm:col-span-6">
+            {{ pool.label }}
+          </h3>
           <template v-if="pool.usage">
-            <div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">
-                {{ pool.unit }} / capacity
-              </div>
-              <div class="mt-1 font-semibold tabular-nums">
-                {{ pool.usage.active }} / {{ pool.usage.capacity }}
-              </div>
-            </div>
-            <div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">
-                {{ pool.id === 'database' ? 'Waiting callers' : 'Queued tasks' }}
-              </div>
+            <div class="col-span-5 order-2 <sm:col-span-12 <sm:order-3">
               <div
-                class="mt-1 font-semibold tabular-nums"
-                :class="(pool.usage.queued || pool.usage.waiting) > 0 ? 'text-yellow-700 dark:text-yellow-400' : ''"
+                v-if="pool.usage.capacity > 0"
+                class="h-1.5 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden"
+                role="progressbar"
+                :aria-label="`${pool.label} in use`"
+                aria-valuemin="0"
+                :aria-valuemax="pool.usage.capacity"
+                :aria-valuenow="pool.usage.active"
               >
-                {{ pool.usage.queued ?? pool.usage.waiting }}
+                <div
+                  class="h-full rounded-full"
+                  :class="(pool.usage.queued ?? pool.usage.waiting) > 0 ? 'bg-yellow-600 dark:bg-yellow-400' : 'bg-blue-600 dark:bg-blue-500'"
+                  :style="{ width: poolUsage(pool.usage) + '%' }"
+                />
               </div>
             </div>
+            <div class="col-span-2 order-3 text-right tabular-nums whitespace-nowrap <sm:col-span-6 <sm:order-2">
+              {{ pool.usage.active }} <span class="text-gray-500 dark:text-gray-400">/ <span
+                :class="{ 'underline decoration-dotted underline-offset-3 cursor-help': pool.id === 'web' }"
+                :title="pool.id === 'web' ? `${pool.usage.capacity} available workers out of ${pool.usage.capacity + pool.usage.reserved} configured, with ${pool.usage.reserved} reserved by the HTTP server` : undefined"
+              >{{ pool.usage.capacity }}</span></span>
+            </div>
+            <p
+              class="col-span-2 order-4 text-right text-xs tabular-nums <sm:col-span-12 <sm:text-left"
+              :class="(pool.usage.queued ?? pool.usage.waiting) > 0 ? 'text-yellow-700 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'"
+            >
+              {{ pool.usage.queued ?? pool.usage.waiting }} {{ pool.id === 'database' ? 'waiting' : 'queued' }}
+            </p>
           </template>
           <p
             v-else
-            class="col-span-2 text-gray-500 dark:text-gray-400"
+            class="col-span-9 order-2 text-right text-gray-500 dark:text-gray-400 <sm:col-span-6"
           >
             Unavailable
           </p>
         </div>
       </div>
-      <div class="mt-2 pt-3 border-t border-gray-150 dark:border-gray-800 flex justify-between items-baseline flex-wrap gap-2 text-sm">
+      <div class="pt-3 border-t border-gray-150 dark:border-gray-800 flex justify-between items-baseline flex-wrap gap-2 text-sm">
         <span class="text-gray-500 dark:text-gray-400">Live JVM platform threads, including idle workers and runtime services</span>
         <span class="font-semibold tabular-nums">{{ instanceStatus.usedThreads }}</span>
       </div>
     </section>
 
     <section
-      class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300"
+      class="bg-white dark:bg-gray-900 rounded-lg p-5"
+      aria-labelledby="resource-usage-heading"
+    >
+      <div class="mb-3 flex items-start justify-between gap-3 min-w-0 <sm:flex-col">
+        <div class="min-w-0">
+          <h2
+            id="resource-usage-heading"
+            class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100"
+          >
+            Resource usage
+          </h2>
+          <p class="mt-0.5 truncate text-sm leading-5 text-gray-500 dark:text-gray-400 <md:whitespace-normal <md:overflow-visible">
+            Heap memory and JVM platform threads sampled over time.
+          </p>
+        </div>
+      </div>
+      <StatusSnapshotsChart :selected-tab="selectedTab" />
+    </section>
+
+    <section
+      class="mt-5 bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300"
       aria-labelledby="recorded-failures-heading"
     >
       <div class="mb-0 px-4.5 py-4 border-b border-gray-200 dark:border-gray-800 flex items-start justify-between gap-3 min-w-0 <sm:flex-col">
@@ -302,26 +324,6 @@ const filtered = computed(() => {
           <b class="text-green-600 dark:text-green-400">All clear.</b> No exceptions recorded since the last restart.
         </p>
       </div>
-    </section>
-
-    <section
-      class="mt-5 bg-white dark:bg-gray-900 rounded-lg p-5"
-      aria-labelledby="resource-usage-heading"
-    >
-      <div class="mb-3 flex items-start justify-between gap-3 min-w-0 <sm:flex-col">
-        <div class="min-w-0">
-          <h2
-            id="resource-usage-heading"
-            class="text-base font-semibold leading-6 text-gray-800 dark:text-gray-100"
-          >
-            Resource usage
-          </h2>
-          <p class="mt-0.5 truncate text-sm leading-5 text-gray-500 dark:text-gray-400 <md:whitespace-normal <md:overflow-visible">
-            Heap memory and JVM platform threads sampled over time.
-          </p>
-        </div>
-      </div>
-      <StatusSnapshotsChart :selected-tab="selectedTab" />
     </section>
   </div>
 </template>

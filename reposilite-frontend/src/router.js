@@ -17,8 +17,52 @@
 import { createWebHashHistory, createRouter } from "vue-router"
 import IndexPage from "./pages/IndexPage.vue"
 
+const readLocation = () => {
+  const fragment = window.location.hash.slice(1)
+  return fragment && !fragment.startsWith('/') ? `/#${fragment}` : fragment || '/'
+}
+
+const toFragment = (path) => path.startsWith('/#') ? path.slice(2) : path
+
+const createViewHistory = () => {
+  let currentLocation = readLocation()
+  let previousLocation = currentLocation
+  const captureLocation = () => {
+    previousLocation = currentLocation
+    currentLocation = readLocation()
+  }
+  // Capture view fragments before Vue Router normalizes their leading slash.
+  window.addEventListener('popstate', captureLocation, true)
+  const history = createWebHashHistory()
+
+  return {
+    ...history,
+    get location() { return currentLocation },
+    get state() { return history.state },
+    createHref: path => history.createHref(toFragment(path)),
+    push(path, state) {
+      history.push(toFragment(path), state)
+      currentLocation = path
+    },
+    replace(path, state) {
+      history.replace(toFragment(path), state)
+      currentLocation = path
+    },
+    listen(callback) {
+      return history.listen((_, __, info) => {
+        if (readLocation() !== currentLocation) history.replace(toFragment(currentLocation))
+        callback(currentLocation, previousLocation, info)
+      })
+    },
+    destroy() {
+      window.removeEventListener('popstate', captureLocation, true)
+      history.destroy()
+    }
+  }
+}
+
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createViewHistory(),
   routes: [
     {
       path: "/:qualifier(.*)",
