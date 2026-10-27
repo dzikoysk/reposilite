@@ -45,27 +45,27 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "7.2.3"
+    val javalin = "7.2.4"
     api("io.javalin:javalin:$javalin") {
         exclude(group = "org.eclipse.jetty", module = "jetty-server")
         exclude(group = "org.eclipse.jetty", module = "jetty-http")
     }
     api("io.javalin.community.ssl:javalin-ssl:$javalin")
 
-    val javalinOpenApi = "7.2.3"
+    val javalinOpenApi = "7.2.4"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
     constraints {
-        kapt("ch.qos.logback:logback-classic:1.5.38") {
+        kapt("ch.qos.logback:logback-classic:1.6.6") {
             because("The OpenAPI processor pulls Logback versions affected by deserialization advisories")
         }
-        kapt("org.mozilla:rhino:1.7.15.1") {
+        kapt("org.mozilla:rhino:1.9.1") {
             because("The OpenAPI processor pulls Rhino 1.7.7.2, affected by GHSA-3w8q-xq97-5j7x")
         }
     }
 
-    val javalinRouting = "7.2.3"
+    val javalinRouting = "7.2.4"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"
@@ -84,7 +84,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.57.2"
+    val awssdk = "2.57.4"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
     implementation("software.amazon.awssdk:s3:$awssdk") {
@@ -115,7 +115,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.53.4.0")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.11")
     implementation("org.postgresql:postgresql:42.7.14")
-    implementation("com.h2database:h2:2.4.240")
+    implementation("com.h2database:h2:2.5.252")
     implementation("com.mysql:mysql-connector-j:26.10.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
