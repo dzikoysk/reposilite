@@ -426,9 +426,8 @@ application
           latestVersion: null,
           uptime: uptime,
           usedMemory: memory,
-          maxMemory: 256,
+          maxMemory: '32',
           usedThreads: threads,
-          maxThreads: 17,
           resourcePools: {
             web: { active: 3, capacity: 8, queued: 0, reserved: 4 },
             io: { active: 4, capacity: 4, queued: 18, reserved: 0 },

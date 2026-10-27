@@ -102,8 +102,8 @@ const heapUsage = computed(() => {
 })
 
 const workerPools = computed(() => [
-  { id: 'web', label: 'Web workers', usage: instanceStatus.value?.resourcePools?.web },
-  { id: 'io', label: 'Background IO', usage: instanceStatus.value?.resourcePools?.io }
+  { id: 'web', label: 'Web workers', usage: instanceStatus.value?.resourcePools.web },
+  { id: 'io', label: 'Background IO', usage: instanceStatus.value?.resourcePools.io }
 ])
 
 const poolUsage = (pool) =>
@@ -316,7 +316,7 @@ const plural = (count, singular, pluralText) =>
             <div class="flex justify-between items-baseline flex-wrap gap-1">
               <span class="text-gray-500 dark:text-gray-400">Database</span>
               <span
-                v-if="instanceStatus.resourcePools?.database"
+                v-if="instanceStatus.resourcePools.database"
                 class="font-semibold tabular-nums whitespace-nowrap"
               >
                 {{ instanceStatus.resourcePools.database.active }} <span class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.resourcePools.database.capacity }} in use</span>
@@ -327,7 +327,7 @@ const plural = (count, singular, pluralText) =>
               >Unavailable</span>
             </div>
             <p
-              v-if="instanceStatus.resourcePools?.database?.waiting > 0"
+              v-if="instanceStatus.resourcePools.database?.waiting > 0"
               class="mt-1.5 text-yellow-700 dark:text-yellow-400 font-semibold tabular-nums"
             >
               {{ instanceStatus.resourcePools.database.waiting }} waiting

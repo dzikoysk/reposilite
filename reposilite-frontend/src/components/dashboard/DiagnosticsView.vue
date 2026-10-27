@@ -112,9 +112,9 @@ const prettyUptime = (seconds) => {
 }
 
 const pools = computed(() => [
-  { id: 'web', label: 'Web workers', usage: instanceStatus.value?.resourcePools?.web },
-  { id: 'io', label: 'Background IO', usage: instanceStatus.value?.resourcePools?.io },
-  { id: 'database', label: 'Database', usage: instanceStatus.value?.resourcePools?.database }
+  { id: 'web', label: 'Web workers', usage: instanceStatus.value?.resourcePools.web },
+  { id: 'io', label: 'Background IO', usage: instanceStatus.value?.resourcePools.io },
+  { id: 'database', label: 'Database', usage: instanceStatus.value?.resourcePools.database }
 ])
 
 const poolUsage = (pool) =>

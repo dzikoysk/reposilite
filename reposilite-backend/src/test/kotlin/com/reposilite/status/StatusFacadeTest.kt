@@ -20,11 +20,11 @@ import com.reposilite.VERSION
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.status.api.InstanceStatusResponse
+import com.reposilite.status.api.ResourcePools
 import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
-import panda.std.reactive.toReference
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -124,11 +124,11 @@ internal class StatusFacadeTest {
 
         return StatusFacade(
             testEnv = testEnv,
-            maxThreads = 16.toReference(),
             status = { true },
             remoteVersionUrl = remoteVersionUrl,
             remoteClientProvider = HttpRemoteClientProvider(failureFacade),
-            failureFacade = failureFacade
+            failureFacade = failureFacade,
+            resourcePools = { ResourcePools(web = null, io = null, database = null) }
         )
     }
 

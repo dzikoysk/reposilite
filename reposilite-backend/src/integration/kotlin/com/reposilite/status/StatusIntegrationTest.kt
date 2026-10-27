@@ -159,7 +159,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // then: capacities describe the actual worker and connection pools
         assertThat(response.isSuccess).isTrue
         val status = response.body
-        val pools = requireNotNull(status.resourcePools)
+        val pools = status.resourcePools
         val web = requireNotNull(pools.web)
         assertThat(web.capacity + web.reserved).isEqualTo(reposilite.localConfiguration.webThreadPool.get())
         assertThat(web.reserved).isPositive()
@@ -187,7 +187,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
             val queued = List(3) { reposilite.ioService.submit {} }
 
             // when: pool usage is sampled
-            val pools = requireNotNull(useFacade<StatusFacade>().fetchInstanceStatus().resourcePools)
+            val pools = useFacade<StatusFacade>().fetchInstanceStatus().resourcePools
             val io = requireNotNull(pools.io)
 
             // then: waiting work is not counted as another running worker
@@ -207,7 +207,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // given: a borrowed connection from the database pool
         reposilite.databaseConnection.databaseSource.connection.use {
             // when: pool usage is sampled
-            val pools = requireNotNull(useFacade<StatusFacade>().fetchInstanceStatus().resourcePools)
+            val pools = useFacade<StatusFacade>().fetchInstanceStatus().resourcePools
             val database = requireNotNull(pools.database)
 
             // then: the connection is in use and the actual connection limit is reported
@@ -222,14 +222,14 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // given: a stopped HTTP server
         reposilite.webServer.stop()
         val statusFacade = useFacade<StatusFacade>()
-        assertThat(statusFacade.fetchInstanceStatus().resourcePools?.web).isNull()
+        assertThat(statusFacade.fetchInstanceStatus().resourcePools.web).isNull()
 
         // when: the HTTP server starts with a different thread limit
         ReferenceUtils.setValue(useFacade<LocalConfiguration>().webThreadPool, 8)
         reposilite.webServer.start(reposilite)
 
         // then: usage describes the replacement pool
-        val web = requireNotNull(statusFacade.fetchInstanceStatus().resourcePools?.web)
+        val web = requireNotNull(statusFacade.fetchInstanceStatus().resourcePools.web)
         assertThat(web.capacity + web.reserved).isEqualTo(8)
         assertThat(web.active).isBetween(0, web.capacity)
     }
