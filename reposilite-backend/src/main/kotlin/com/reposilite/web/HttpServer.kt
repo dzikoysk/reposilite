@@ -20,6 +20,7 @@ import com.reposilite.Reposilite
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.extensions.error
+import com.reposilite.status.api.ThreadPoolStatus
 import com.reposilite.storage.api.UnsupportedLocationException
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
@@ -28,6 +29,7 @@ import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
 import io.javalin.util.ConcurrencyUtil
 import org.eclipse.jetty.io.EofException
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 
 private const val MIN_WEB_THREAD_POOL_SIZE = 4
 private const val MIN_SSL_WEB_THREAD_POOL_SIZE = 6
@@ -76,6 +78,19 @@ class HttpServer {
     fun stop() {
         javalin?.stop()
     }
+
+    internal fun fetchThreadPoolStatus(): ThreadPoolStatus? =
+        (javalin?.jettyServer()?.server()?.threadPool as? QueuedThreadPool)
+            ?.takeIf { it.isStarted }
+            ?.let { pool ->
+                val reserved = pool.leasedThreads
+                ThreadPoolStatus(
+                    active = pool.utilizedThreads.coerceAtLeast(0),
+                    capacity = (pool.maxThreads - reserved).coerceAtLeast(0),
+                    queued = pool.queueSize,
+                    reserved = reserved
+                )
+            }
 
     fun isAlive(): Boolean =
         javalin?.jettyServer()?.server()?.isStarted ?: false

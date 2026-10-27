@@ -39,23 +39,32 @@ const instanceStatus = ref()
 const repositories = ref([])
 const resolved = ref()
 let statusTimeout
+let stopped = false
+let statusFailed = false
 
 function requestStatus() {
-  if (props.selectedTab == 'Dashboard') {
+  if (props.selectedTab == 'Dashboard' && !stopped) {
     client.value.status.instance()
       .then(response => response.data)
       .then(instanceStatusData => {
+        statusFailed = false
         instanceStatus.value = instanceStatusData
-        statusTimeout = setTimeout(requestStatus, 1000)
       })
       .catch((error) => {
-        createErrorToast(`Cannot load instance status`)
+        if (!statusFailed) createErrorToast(`Cannot load instance status`)
+        statusFailed = true
         console.log(error)
+      })
+      .finally(() => {
+        if (!stopped) statusTimeout = setTimeout(requestStatus, 1000)
       })
   }
 }
 requestStatus()
-onUnmounted(() => clearTimeout(statusTimeout))
+onUnmounted(() => {
+  stopped = true
+  clearTimeout(statusTimeout)
+})
 
 client.value.settings.fetch('maven')
   .then(response => repositories.value = response.data.repositories || [])
@@ -92,10 +101,13 @@ const heapUsage = computed(() => {
   return Math.min(100, Math.round((instanceStatus.value.usedMemory / instanceStatus.value.maxMemory) * 100))
 })
 
-const threadsUsage = computed(() => {
-  if (!instanceStatus.value) return 0
-  return Math.min(100, Math.round((instanceStatus.value.usedThreads / instanceStatus.value.maxThreads) * 100))
-})
+const workerPools = computed(() => [
+  { id: 'web', label: 'Web workers', usage: instanceStatus.value?.resourcePools.web },
+  { id: 'io', label: 'Background IO', usage: instanceStatus.value?.resourcePools.io }
+])
+
+const poolUsage = (pool) =>
+  Math.min(100, Math.round(pool.active / pool.capacity * 100))
 
 const repositoryTags = computed(() => {
   const visibilityCounts = new Map()
@@ -125,19 +137,38 @@ const currentIntervalLabels = {
   YEARLY: 'This year'
 }
 
+const trafficColors = [
+  'bg-blue-600 dark:bg-blue-500',
+  'bg-blue-400 dark:bg-blue-300',
+  'bg-blue-200 dark:bg-blue-700',
+  'bg-gray-300 dark:bg-gray-600'
+]
+const trafficPercentage = new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 1 })
+
 const traffic = computed(() => {
   if (!resolved.value?.statisticsEnabled) return null
   const repositories = resolved.value.repositories || []
-  const total = repositories.reduce((sum, repository) => sum + repository.data.reduce((s, r) => s + r.count, 0), 0)
+  const ranked = repositories
+    .map(repository => ({ name: repository.name, count: repository.data.reduce((sum, record) => sum + record.count, 0) }))
+    .filter(repository => repository.count > 0)
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+  const total = ranked.reduce((sum, repository) => sum + repository.count, 0)
   const current = repositories.reduce((sum, repository) => sum + (repository.data.at(-1)?.count || 0), 0)
-  const busiest = repositories
-    .map(repository => ({ name: repository.name, total: repository.data.reduce((s, r) => s + r.count, 0) }))
-    .sort((a, b) => b.total - a.total)[0]
+  const shares = ranked.slice(0, 3)
+  if (ranked.length > 3) {
+    shares.push({ name: 'Other repositories', count: ranked.slice(3).reduce((sum, repository) => sum + repository.count, 0) })
+  }
   return {
     total,
     current,
     currentLabel: currentIntervalLabels[resolved.value.interval] || currentIntervalLabels.MONTHLY,
-    busiest: busiest?.name
+    busiest: ranked[0]?.name,
+    shares: shares.map((repository, index) => ({
+      ...repository,
+      share: repository.count / total,
+      percentage: repository.count / total < 0.01 ? '<1%' : trafficPercentage.format(repository.count / total),
+      color: trafficColors[index]
+    }))
   }
 })
 
@@ -236,22 +267,75 @@ const plural = (count, singular, pluralText) =>
             />
           </div>
         </div>
-        <div class="mt-3.5">
-          <div class="flex justify-between items-baseline gap-3 text-sm mb-2 <sm:flex-wrap">
-            <span class="text-gray-500 dark:text-gray-400">Threads</span><span class="font-semibold tabular-nums">{{ instanceStatus.usedThreads }} <small class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.maxThreads }}</small></span>
-          </div>
+        <div class="grid grid-cols-2 gap-5 mt-4">
           <div
-            class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden"
-            role="progressbar"
-            aria-label="Thread usage"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            :aria-valuenow="threadsUsage"
+            v-for="pool in workerPools"
+            :key="pool.id"
+            class="min-w-0"
           >
-            <div
-              class="h-full rounded-full bg-blue-600 dark:bg-blue-500"
-              :style="{ width: threadsUsage + '%' }"
-            />
+            <div class="flex justify-between items-baseline flex-wrap gap-x-2 gap-y-1 text-sm mb-2">
+              <span class="text-gray-500 dark:text-gray-400">{{ pool.label }}</span>
+              <span
+                v-if="pool.usage"
+                class="font-semibold tabular-nums whitespace-nowrap"
+              >
+                {{ pool.usage.active }} <small class="text-gray-600 dark:text-gray-300 font-normal">/ {{ pool.usage.capacity }}</small>
+              </span>
+              <span
+                v-else
+                class="text-xs text-gray-500 dark:text-gray-400"
+              >Unavailable</span>
+            </div>
+            <template v-if="pool.usage">
+              <div
+                v-if="pool.usage.capacity > 0"
+                class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden"
+                role="progressbar"
+                :aria-label="`${pool.label} in use`"
+                aria-valuemin="0"
+                :aria-valuemax="pool.usage.capacity"
+                :aria-valuenow="pool.usage.active"
+              >
+                <div
+                  class="h-full rounded-full"
+                  :class="pool.usage.queued > 0 ? 'bg-yellow-600 dark:bg-yellow-400' : 'bg-blue-600 dark:bg-blue-500'"
+                  :style="{ width: poolUsage(pool.usage) + '%' }"
+                />
+              </div>
+              <p
+                class="mt-1.5 text-xs tabular-nums"
+                :class="pool.usage.queued > 0 ? 'text-yellow-700 dark:text-yellow-400 font-semibold' : 'text-gray-500 dark:text-gray-400'"
+              >
+                {{ pool.usage.queued }} queued
+              </p>
+            </template>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-5 mt-4 pt-3 border-t border-gray-150 dark:border-gray-800 text-xs">
+          <div>
+            <div class="flex justify-between items-baseline flex-wrap gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Database</span>
+              <span
+                v-if="instanceStatus.resourcePools.database"
+                class="font-semibold tabular-nums whitespace-nowrap"
+              >
+                {{ instanceStatus.resourcePools.database.active }} <span class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.resourcePools.database.capacity }} in use</span>
+              </span>
+              <span
+                v-else
+                class="text-gray-500 dark:text-gray-400"
+              >Unavailable</span>
+            </div>
+            <p
+              v-if="instanceStatus.resourcePools.database?.waiting > 0"
+              class="mt-1.5 text-yellow-700 dark:text-yellow-400 font-semibold tabular-nums"
+            >
+              {{ instanceStatus.resourcePools.database.waiting }} waiting
+            </p>
+          </div>
+          <div class="flex justify-between items-baseline flex-wrap gap-1">
+            <span class="text-gray-500 dark:text-gray-400">JVM threads</span>
+            <span class="font-semibold tabular-nums">{{ instanceStatus.usedThreads }}</span>
           </div>
         </div>
       </section>
@@ -283,6 +367,43 @@ const plural = (count, singular, pluralText) =>
               <b class="block mt-1 truncate text-base text-gray-800 dark:text-gray-100 font-semibold">{{ traffic.busiest || 'No data' }}</b>
             </div>
           </div>
+          <figure
+            v-if="traffic.shares.length"
+            class="mt-4"
+            aria-label="Resolved requests by repository"
+          >
+            <figcaption class="sr-only">
+              Share of resolved requests by repository for the displayed statistics.
+            </figcaption>
+            <div
+              class="flex h-2 rounded-full overflow-hidden bg-gray-150 dark:bg-gray-800"
+              aria-hidden="true"
+            >
+              <span
+                v-for="(repository, index) in traffic.shares"
+                :key="index"
+                class="h-full"
+                :class="repository.color"
+                :style="{ width: repository.share * 100 + '%' }"
+              />
+            </div>
+            <ul class="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <li
+                v-for="(repository, index) in traffic.shares"
+                :key="index"
+                class="flex items-center gap-1.5 min-w-0 max-w-full"
+                :title="`${repository.name}: ${repository.count.toLocaleString()} resolved requests (${repository.percentage})`"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  :class="repository.color"
+                  aria-hidden="true"
+                />
+                <span class="truncate max-w-24">{{ repository.name }}</span>
+                <span class="tabular-nums whitespace-nowrap">{{ repository.percentage }}</span>
+              </li>
+            </ul>
+          </figure>
         </template>
         <div
           v-else

@@ -23,6 +23,7 @@ import com.reposilite.ExperimentalRemoteSpecificationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.VERSION
+import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.status.api.FailuresResponse
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
@@ -36,6 +37,7 @@ import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import panda.std.reactive.ReferenceUtils
 
 @ExtendWith(ExperimentalRemoteSpecificationJunitExtension::class)
 internal class ExperimentalRemoteStatusIntegrationTest : StatusIntegrationTest()
@@ -70,6 +72,13 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // then: service should respond with valid instance dto
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body.version).isEqualTo(VERSION)
+
+        val pools = response.body.resourcePools
+        val web = requireNotNull(pools.web)
+        assertThat(web.capacity + web.reserved).isEqualTo(reposilite.localConfiguration.webThreadPool.get())
+        assertThat(pools.io?.capacity).isEqualTo(reposilite.localConfiguration.ioThreadPool.get())
+        assertThat(pools.database?.capacity).isEqualTo(reposilite.databaseConnection.databaseSource.maximumPoolSize)
+        assertThat(response.body.usedThreads).isPositive()
     }
 
     @Test
@@ -140,6 +149,22 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // then: it responds with 200 and a healthy status
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body.status).isEqualTo("UP")
+    }
+
+    @Test
+    fun `should update pool usage after restart`() {
+        // given: a stopped HTTP server
+        reposilite.webServer.stop()
+        val statusFacade = useFacade<StatusFacade>()
+        assertThat(statusFacade.fetchInstanceStatus().resourcePools.web).isNull()
+
+        // when: the HTTP server starts with a different thread limit
+        ReferenceUtils.setValue(useFacade<LocalConfiguration>().webThreadPool, 8)
+        reposilite.webServer.start(reposilite)
+
+        // then: usage describes the replacement pool
+        val web = requireNotNull(statusFacade.fetchInstanceStatus().resourcePools.web)
+        assertThat(web.capacity + web.reserved).isEqualTo(8)
     }
 
 }
