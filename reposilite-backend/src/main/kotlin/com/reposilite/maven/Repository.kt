@@ -28,6 +28,7 @@ import com.reposilite.storage.api.Location
 import java.io.File
 import java.io.InputStream
 import java.nio.file.attribute.FileTime
+import java.time.Duration
 import panda.std.Result
 
 internal const val MAVEN_REPOSITORY_TYPE = "maven"
@@ -45,6 +46,7 @@ class Repository internal constructor(
     parallelMetadataLookup: Boolean,
     resolutionCacheMaxEntries: Int,
     resolutionCacheLevel: ResolutionCacheLevel,
+    resolutionCacheMissTtlInSeconds: Long = 0L,
 ) : RepositoryInfo {
 
     override val name: String = identity.name
@@ -55,7 +57,11 @@ class Repository internal constructor(
 
     internal val resolutionCache: ResolutionCache? =
         when {
-            resolutionCacheMaxEntries > 0 -> ResolutionCache(maxEntries = resolutionCacheMaxEntries, level = resolutionCacheLevel)
+            resolutionCacheMaxEntries > 0 -> ResolutionCache(
+                maxEntries = resolutionCacheMaxEntries,
+                level = resolutionCacheLevel,
+                missTtl = Duration.ofSeconds(resolutionCacheMissTtlInSeconds),
+            )
             else -> null
         }
 

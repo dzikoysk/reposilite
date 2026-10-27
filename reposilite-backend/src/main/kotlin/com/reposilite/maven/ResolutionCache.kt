@@ -18,17 +18,30 @@ package com.reposilite.maven
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.Expiry
+import com.github.benmanes.caffeine.cache.Ticker
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.Location
+import java.time.Duration
 
 enum class ResolutionCacheLevel {
     PINNING,
     NEGATIVE_CACHING,
 }
 
+/**
+ * Caches routing decisions for metadata reads.
+ *
+ * @param missTtl how long a [State.MirrorsMissing] entry is kept before mirrors are asked again.
+ * [Duration.ZERO] (the default) keeps misses until eviction or invalidation. Routing pins
+ * ([State.PinnedMirror]) never expire by time, regardless of this value.
+ * @param ticker time source used for expiry; only overridden in tests.
+ */
 internal class ResolutionCache(
     maxEntries: Int,
     private val level: ResolutionCacheLevel,
+    missTtl: Duration = Duration.ZERO,
+    ticker: Ticker = Ticker.systemTicker(),
 ) {
 
     private data class Key(val location: Location, val authenticated: Boolean)
@@ -38,10 +51,48 @@ internal class ResolutionCache(
         data object MirrorsMissing : State
     }
 
+    /** Expires only miss entries; pins keep their size-based eviction and nothing else. */
+    private class MissExpiry(private val missTtlNanos: Long) : Expiry<Key, State> {
+
+        override fun expireAfterCreate(key: Key, value: State, currentTime: Long): Long =
+            durationOf(value)
+
+        override fun expireAfterUpdate(key: Key, value: State, currentTime: Long, currentDuration: Long): Long =
+            durationOf(value)
+
+        override fun expireAfterRead(key: Key, value: State, currentTime: Long, currentDuration: Long): Long =
+            currentDuration
+
+        private fun durationOf(value: State): Long =
+            when (value) {
+                State.MirrorsMissing -> missTtlNanos
+                is State.PinnedMirror -> Long.MAX_VALUE
+            }
+
+    }
+
+    init {
+        require(!missTtl.isNegative) { "Resolution cache miss TTL cannot be negative" }
+    }
+
+    // Durations beyond ~292 years overflow nanoseconds; treat them as "never expires".
+    private fun Duration.toNanosSaturated(): Long =
+        try {
+            toNanos()
+        } catch (overflow: ArithmeticException) {
+            Long.MAX_VALUE
+        }
+
     private val entries: Cache<Key, State> =
         Caffeine.newBuilder()
             .maximumSize(maxEntries.toLong())
-            .build()
+            .ticker(ticker)
+            .let { builder ->
+                when {
+                    missTtl.isZero -> builder.build<Key, State>()
+                    else -> builder.expireAfter<Key, State>(MissExpiry(missTtl.toNanosSaturated())).build<Key, State>()
+                }
+            }
 
     fun lookup(gav: Location, authenticated: Boolean): State? {
         val missing = entries.getIfPresent(Key(gav, authenticated))
