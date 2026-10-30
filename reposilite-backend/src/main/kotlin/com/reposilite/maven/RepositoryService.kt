@@ -53,6 +53,7 @@ internal class RepositoryService(
     private val repositories: MavenRepositories,
     private val repositoryFacade: RepositoryFacade,
     private val mirrorService: MirrorService,
+    private val mergedMetadataService: MergedMetadataService,
     private val resolutionProvider: ResolutionProvider,
     private val statisticsFacade: StatisticsFacade,
     private val extensions: Extensions,
@@ -83,6 +84,7 @@ internal class RepositoryService(
                         .putFile(gav, deployRequest.content)
                         .peek { logger.info("DEPLOY | Artifact $gav successfully deployed to ${repository.name} by ${deployRequest.by}") }
                         .peek { resolutionProvider.invalidate(repository, gav) }
+                        .peek { mergedMetadataService.invalidate(gav) }
                         .peek { extensions.emitEvent(DeployEvent(repository, gav, deployRequest.by)) }
                         .flatMap { _ ->
                             when {
@@ -109,6 +111,7 @@ internal class RepositoryService(
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
                         .peek { resolutionProvider.invalidate(repository, gav) }
+                        .peek { mergedMetadataService.invalidate(gav, recursive = true) }
                 else -> unauthorizedError("Unauthorized access request")
             }
         }
@@ -139,16 +142,33 @@ internal class RepositoryService(
     }
 
     private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
-        findDetails(accessToken, repository, gav)
-            .`is`(DocumentInfo::class.java) { notFound("Requested file is a directory") }
-            .flatMap { details -> findInputStream(repository, gav, accessToken).map { details to it } }
-            .let { extensions.emitEvent(ResolvedFileEvent(accessToken, repository, gav, it)).result }
+        when {
+            mergedMetadataService.handles(repository, gav) -> mergedMetadataService.findFile(repository, gav, accessToken)
+                .peek { (details, _) -> recordResolvedRequest(Identifier(repository.name, gav.toString()), details) }
+                .flatMap { (details, stream) ->
+                    extensions.emitEvent(ResolvedFileDataEvent(accessToken, repository, gav, stream.asSuccess())).result.map { details to it }
+                }
+            else -> findDetails(accessToken, repository, gav)
+                .`is`(DocumentInfo::class.java) { notFound("Requested file is a directory") }
+                .flatMap { details -> findInputStream(repository, gav, accessToken).map { details to it } }
+        }.let { extensions.emitEvent(ResolvedFileEvent(accessToken, repository, gav, it)).result }
+
+    fun mergesMetadata(lookupRequest: LookupRequest): Boolean =
+        repositories.getRepository(lookupRequest.repository)?.let { mergedMetadataService.handles(it, lookupRequest.gav) } == true
 
     fun findInputStream(lookupRequest: LookupRequest): Result<InputStream, ErrorResponse> =
         resolve(lookupRequest) { repository, gav -> findInputStream(repository, gav, lookupRequest.accessToken) }
 
     private fun findInputStream(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
-        val result = resolutionProvider.resolve(
+        val result = when {
+            mergedMetadataService.handles(repository, gav) -> mergedMetadataService.findInputStream(repository, gav, accessToken)
+            else -> resolveInputStream(repository, gav, accessToken)
+        }
+        return extensions.emitEvent(ResolvedFileDataEvent(accessToken, repository, gav, result)).result
+    }
+
+    private fun resolveInputStream(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<InputStream, ErrorResponse> =
+        resolutionProvider.resolve(
             repository = repository,
             gav = gav,
             accessToken = accessToken,
@@ -156,18 +176,19 @@ internal class RepositoryService(
             tryLocal = { repository.storageProvider.getFile(gav) },
             tryRemote = { hosts -> mirrorService.findRemoteFile(repository, gav, accessToken, hosts) },
         )
-        return extensions.emitEvent(ResolvedFileDataEvent(accessToken, repository, gav, result)).result
-    }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
-        resolutionProvider.resolve(
-            repository = repository,
-            gav = gav,
-            accessToken = accessToken,
-            mirrorFirst = mirrorService.shouldPrioritizeMirrorRepository(repository, gav),
-            tryLocal = { findLocalDetails(accessToken, repository, gav) },
-            tryRemote = { hosts -> mirrorService.findRemoteDetails(repository, gav, accessToken, hosts) },
-        ).peek {
+        when {
+            mergedMetadataService.handles(repository, gav) -> mergedMetadataService.findDetails(repository, gav, accessToken)
+            else -> resolutionProvider.resolve(
+                repository = repository,
+                gav = gav,
+                accessToken = accessToken,
+                mirrorFirst = mirrorService.shouldPrioritizeMirrorRepository(repository, gav),
+                tryLocal = { findLocalDetails(accessToken, repository, gav) },
+                tryRemote = { hosts -> mirrorService.findRemoteDetails(repository, gav, accessToken, hosts) },
+            )
+        }.peek {
             recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
         }
 

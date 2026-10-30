@@ -60,6 +60,8 @@ import org.junit.jupiter.api.io.TempDir
 import panda.std.Quad
 import panda.std.asSuccess
 import panda.std.reactive.Reference
+import panda.std.reactive.MutableReference
+import panda.std.reactive.mutableReference
 import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
@@ -87,11 +89,12 @@ internal abstract class MavenSpecification {
     @TempDir
     lateinit var workingDirectory: File
     protected lateinit var mavenFacade: MavenFacade
+    protected lateinit var mavenSettings: MutableReference<MavenSettings>
     private lateinit var ioService: ExecutorService
 
     protected val remoteRequestsByUri = ConcurrentHashMap<String, AtomicInteger>()
 
-    private val clock = Clock.systemDefaultZone()
+    protected open val clock: Clock = Clock.systemDefaultZone()
     private val logger = InMemoryLogger()
     protected val extensions = Extensions(logger)
 
@@ -152,6 +155,7 @@ internal abstract class MavenSpecification {
         )
 
         val repositoryFacade = RepositoryFacade(RepositoryAccessResolver(accessTokenFacade))
+        mavenSettings = mutableReference(MavenSettings(repositories = repositories()))
         this.mavenFacade = MavenComponents(
             clock = clock,
             workingDirectory = workingDirectory.toPath(),
@@ -170,9 +174,7 @@ internal abstract class MavenSpecification {
                 accessTokenFacade = accessTokenFacade
             ),
             ioService = ioService,
-            mavenSettings = reference(MavenSettings(
-                repositories = repositories()
-            )),
+            mavenSettings = mavenSettings,
             frontendSettings = reference(FrontendSettings())
         ).mavenFacade()
     }

@@ -87,6 +87,13 @@ data class RepositorySettings(
     val parallelMetadataLookup: Boolean = false,
     @get:Doc(title = "Resolution cache level", description = "PINNING remembers the mirror serving metadata. NEGATIVE_CACHING also caches exact metadata misses from mirrors until eviction or invalidation.")
     val resolutionCacheLevel: ResolutionCacheLevel = NEGATIVE_CACHING,
+    @get:Doc(title = "Merge metadata", description = """
+        Merge maven-metadata.xml files from this repository and all of its mirrored repositories instead of serving the first match.<br/>
+        Similar to repository groups in Nexus or virtual repositories in Artifactory, release and snapshot versions of all repositories are listed,
+        snapshot builds point to the newest build per classifier, latest/release/lastUpdated are recalculated and checksums are generated for the merged file.<br/>
+        Merged metadata is never stored locally. Use "Max age of metadata file" to keep the merged result in memory for a while.
+    """)
+    val mergeMetadata: Boolean = false,
 ) : SharedSettings
 
 @Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")

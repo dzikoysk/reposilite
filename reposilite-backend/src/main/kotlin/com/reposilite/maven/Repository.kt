@@ -45,6 +45,7 @@ class Repository internal constructor(
     parallelMetadataLookup: Boolean,
     resolutionCacheMaxEntries: Int,
     resolutionCacheLevel: ResolutionCacheLevel,
+    mergeMetadata: Boolean = false,
 ) : RepositoryInfo {
 
     override val name: String = identity.name
@@ -62,6 +63,10 @@ class Repository internal constructor(
     @JvmSynthetic
     internal val parallelMetadataLookupEnabled: Boolean =
         parallelMetadataLookup && resolutionCache != null
+
+    @JvmSynthetic
+    internal val mergeMetadataEnabled: Boolean =
+        mergeMetadata && mirrorHosts.isNotEmpty()
 
     fun acceptsDeploymentOf(location: Location): Boolean =
         redeployment || location.getSimpleName().contains(METADATA_FILE) || !storageProvider.exists(location)

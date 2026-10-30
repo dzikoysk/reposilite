@@ -45,6 +45,7 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.asSuccess
+import java.io.InputStream
 
 const val X_GENERATE_CHECKSUMS = "X-Generate-Checksums"
 
@@ -98,37 +99,41 @@ internal class MavenEndpoints(
 
     fun findFile(ctx: Context, identifier: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> {
         val request = LookupRequest(accessToken = identifier, repository = repository, gav = gav)
-        val allDetails = mavenFacade.findDetails(request)
+        fun respond(details: DocumentInfo, data: InputStream) = ctx.resultAttachment(
+            name = details.name,
+            contentType = details.contentType,
+            contentLength = details.contentLength,
+            lastTimeModified = details.lastModifiedTime,
+            compressionStrategy = compressionStrategy,
+            cache = mavenFacade.acceptsCachingOf(request),
+            data = data,
+        )
 
-        return allDetails.flatMap { details ->
-            when (details) {
-                is DocumentInfo ->
-                    mavenFacade.findData(request).map { data ->
-                        ctx.resultAttachment(
-                            name = details.name,
-                            contentType = details.contentType,
-                            contentLength = details.contentLength,
-                            lastTimeModified = details.lastModifiedTime,
-                            compressionStrategy = compressionStrategy,
-                            cache = mavenFacade.acceptsCachingOf(request),
-                            data = data,
+        // Merged metadata must supply headers and body from the same snapshot, even when caching is disabled.
+        val result = when {
+            mavenFacade.mergesMetadata(request) ->
+                mavenFacade.findFile(request).map { file -> respond(file.document, file.content) }
+            else -> mavenFacade.findDetails(request).flatMap { details ->
+                when (details) {
+                    is DocumentInfo ->
+                        mavenFacade.findData(request).map { data -> respond(details, data) }
+                    is DirectoryInfo -> {
+                        ctx.html(
+                            createDirectoryIndexPage(
+                                basePath = frontendFacade.resolveBasePath(ctx.header(frontendFacade.forwardedPrefixHeader.get())),
+                                uri = ctx.uri(),
+                                visibleFiles = mavenFacade.getAvailableFiles(request, details),
+                            )
                         )
+                        Unit.asSuccess()
                     }
-                is DirectoryInfo -> {
-                    ctx.html(
-                        createDirectoryIndexPage(
-                            basePath = frontendFacade.resolveBasePath(ctx.header(frontendFacade.forwardedPrefixHeader.get())),
-                            uri = ctx.uri(),
-                            visibleFiles = mavenFacade.getAvailableFiles(request, details),
-                        )
-                    )
-                    Unit.asSuccess()
+                    else ->
+                        throw IllegalStateException("Expected file details, but got $details")
                 }
-                else ->
-                    throw IllegalStateException("Expected file details, but got $details")
             }
         }
-        .onError {
+
+        return result.onError {
             ctx.status(it.status).html(
                 frontendFacade.createNotFoundPage(
                     originUri = ctx.uri(),

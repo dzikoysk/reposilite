@@ -66,6 +66,7 @@ internal class RepositoryFactory(
                 parallelMetadataLookup = configuration.parallelMetadataLookup,
                 resolutionCacheMaxEntries = configuration.resolutionCacheMaxEntries,
                 resolutionCacheLevel = configuration.resolutionCacheLevel,
+                mergeMetadata = configuration.mergeMetadata,
             )
         } catch (exception: Exception) {
             runCatching { storageProvider.shutdown() }
