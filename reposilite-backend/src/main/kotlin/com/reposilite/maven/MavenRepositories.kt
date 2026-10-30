@@ -40,6 +40,7 @@ internal class MavenRepositories(
     statisticsFacade: StatisticsFacade,
     private val storageFacade: StorageFacade,
     mirrorService: MirrorService,
+    mergedMetadataService: MergedMetadataService,
     resolutionProvider: ResolutionProvider,
     repositoryFacade: RepositoryFacade,
     repositoriesSource: Reference<List<RepositorySettings>>,
@@ -50,6 +51,7 @@ internal class MavenRepositories(
         repositories = this,
         repositoryFacade = repositoryFacade,
         mirrorService = mirrorService,
+        mergedMetadataService = mergedMetadataService,
         resolutionProvider = resolutionProvider,
         statisticsFacade = statisticsFacade,
         extensions = extensions
@@ -61,6 +63,7 @@ internal class MavenRepositories(
         repositoriesSource.subscribe { settings ->
             repositories.get().values.forEach { it.shutdown() }
             repositories.set(createRepositories(settings))
+            mergedMetadataService.invalidateAll()
         }
     }
 

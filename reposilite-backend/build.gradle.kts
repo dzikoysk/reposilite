@@ -103,6 +103,7 @@ dependencies {
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.3.1")
+    implementation("org.apache.maven:maven-artifact:3.9.11")
 
     val exposed = "1.6.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")

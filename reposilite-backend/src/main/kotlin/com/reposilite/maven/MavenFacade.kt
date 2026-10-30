@@ -57,6 +57,9 @@ class MavenFacade internal constructor(
     fun findFile(lookupRequest: LookupRequest): Result<ResolvedDocument, ErrorResponse> =
         repositoryService.findFile(lookupRequest)
 
+    internal fun mergesMetadata(lookupRequest: LookupRequest): Boolean =
+        repositoryService.mergesMetadata(lookupRequest)
+
     fun findData(lookupRequest: LookupRequest): Result<InputStream, ErrorResponse> =
         repositoryService.findInputStream(lookupRequest)
 
