@@ -1,13 +1,7 @@
 # syntax=docker.io/docker/dockerfile:1
 
 # Build stage
-FROM eclipse-temurin:21-jdk-noble AS build
-COPY docker/security /tmp/java-security
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
-    && rm -rf /var/lib/apt/lists/* \
-    && sh /tmp/java-security/patch.sh \
-    && rm -r /tmp/java-security
+FROM eclipse-temurin:21.0.13_9-jdk-noble AS build
 COPY --exclude=entrypoint.sh . /home/reposilite-build
 WORKDIR /home/reposilite-build
 
@@ -32,13 +26,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Run stage
-FROM eclipse-temurin:21-jre-noble AS run
-COPY docker/security /tmp/java-security
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
-    && rm -rf /var/lib/apt/lists/* \
-    && sh /tmp/java-security/patch.sh \
-    && rm -r /tmp/java-security
+FROM eclipse-temurin:21.0.13_9-jre-noble AS run
 
 # Setup runtime environment
 RUN mkdir -p /app/data && mkdir -p /var/log/reposilite

@@ -60,8 +60,11 @@ dependencies {
         kapt("ch.qos.logback:logback-classic:1.6.6") {
             because("The OpenAPI processor pulls Logback versions affected by deserialization advisories")
         }
-        kapt("org.mozilla:rhino:1.9.1") {
+        kapt("org.mozilla:rhino:1.9.2") {
             because("The OpenAPI processor pulls Rhino 1.7.7.2, affected by GHSA-3w8q-xq97-5j7x")
+        }
+        kapt("com.google.guava:guava:33.7.2-jre") {
+            because("The OpenAPI processor pulls Guava versions affected by CVE-2026-102554")
         }
     }
 
@@ -84,7 +87,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.57.4"
+    val awssdk = "2.57.8"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
     implementation("software.amazon.awssdk:s3:$awssdk") {
@@ -112,7 +115,7 @@ dependencies {
 
     // Drivers
     implementation("com.zaxxer:HikariCP:7.1.0")
-    implementation("org.xerial:sqlite-jdbc:3.53.4.0")
+    implementation("org.xerial:sqlite-jdbc:3.54.1.0")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.11")
     implementation("org.postgresql:postgresql:42.7.14")
     implementation("com.h2database:h2:2.5.252")
@@ -245,7 +248,7 @@ kapt {
 }
 
 jacoco {
-    toolVersion = "0.8.15"
+    toolVersion = "0.8.16"
 }
 
 tasks.test {
