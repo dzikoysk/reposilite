@@ -89,6 +89,9 @@ internal class ConsolePlugin : ReposilitePlugin() {
                     forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
                 )
             )
+            event.config.routes.before("/api/console/log") { ctx ->
+                ctx.header("Incremental", "?1")
+            }
             event.config.routes.sse(
                 "/api/console/log",
                 client::handleSseLiveLog
