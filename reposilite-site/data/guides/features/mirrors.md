@@ -183,6 +183,11 @@ while storing is enabled on its Maven Central mirror entry.
 Together, these settings reduce repeated requests to Maven Central,
 but cannot prevent rate limiting caused by other traffic using the same public network address.
 
+The default `NEGATIVE_CACHING` resolution cache level remembers metadata misses until eviction or invalidation.
+Deploying or deleting artifacts on this Reposilite instance invalidates affected entries, but artifacts published
+directly to an upstream repository are not detected. Set **Resolution cache miss TTL** (in seconds) to retry mirrors.
+Mirror pins are not affected by this TTL.
+
 When neither local storage nor another mirror can satisfy a request,
 Reposilite preserves an upstream `429 Too Many Requests` response so clients can distinguish
 rate limiting from a missing artifact.

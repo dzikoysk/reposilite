@@ -16,12 +16,17 @@
 
 package com.reposilite.maven
 
+import com.github.benmanes.caffeine.cache.Ticker
+import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
 import com.reposilite.maven.ResolutionCache.State.MirrorsMissing
 import com.reposilite.maven.ResolutionCache.State.PinnedMirror
 import com.reposilite.maven.ResolutionCacheLevel.NEGATIVE_CACHING
 import com.reposilite.maven.ResolutionCacheLevel.PINNING
 import com.reposilite.maven.api.METADATA_FILE
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.storage.api.toLocation
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicLong
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -92,6 +97,84 @@ internal class ResolutionCacheTest {
         // then: both misses are removed without removing either routing pin
         assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), false)).isEqualTo(PinnedMirror("public"))
         assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), true)).isEqualTo(PinnedMirror("private"))
+    }
+
+    @Test
+    fun `misses expire after the configured ttl`() {
+        // given: a negative cache with a 5 minute miss ttl and a recorded miss
+        val time = FakeTicker()
+        val cache = ResolutionCache(4, NEGATIVE_CACHING, missTtl = Duration.ofMinutes(5), ticker = time)
+        val metadata = "org/example/foo/$METADATA_FILE".toLocation()
+        cache.recordMirrorsMissing(metadata, false)
+
+        // when: time passes up to, and then beyond, the ttl
+        time.advance(Duration.ofMinutes(5).minusSeconds(1))
+        val beforeTtl = cache.lookup(metadata, false)
+        time.advance(Duration.ofSeconds(1))
+        val afterTtl = cache.lookup(metadata, false)
+
+        // then: the miss is served until the ttl elapses and then forgotten
+        assertThat(beforeTtl).isEqualTo(MirrorsMissing)
+        assertThat(afterTtl).isNull()
+    }
+
+    @Test
+    fun `pins never expire by time even with a miss ttl`() {
+        // given: a cache with a short miss ttl holding a pin and a miss
+        val time = FakeTicker()
+        val cache = ResolutionCache(4, NEGATIVE_CACHING, missTtl = Duration.ofSeconds(30), ticker = time)
+        cache.recordPinnedMirror("org/example/foo/$METADATA_FILE".toLocation(), false, "central")
+        cache.recordMirrorsMissing("org/example/bar/$METADATA_FILE".toLocation(), false)
+
+        // when: far more time than the ttl passes
+        time.advance(Duration.ofDays(30))
+
+        // then: the miss is gone but the routing pin still applies
+        assertThat(cache.lookup("org/example/bar/$METADATA_FILE".toLocation(), false)).isNull()
+        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), false)).isEqualTo(PinnedMirror("central"))
+    }
+
+    @Test
+    fun `zero miss ttl keeps misses until invalidation`() {
+        // given: the default configuration, with no miss ttl
+        val time = FakeTicker()
+        val cache = ResolutionCache(4, NEGATIVE_CACHING, ticker = time)
+        val metadata = "org/example/foo/$METADATA_FILE".toLocation()
+        cache.recordMirrorsMissing(metadata, false)
+
+        // when: a long time passes
+        time.advance(Duration.ofDays(365))
+
+        // then: the miss is retained exactly as before this setting existed
+        assertThat(cache.lookup(metadata, false)).isEqualTo(MirrorsMissing)
+    }
+
+    @Test
+    fun `default miss ttl is omitted from serialized settings`() {
+        // given: default and explicitly configured resolution cache settings
+        val defaults = RepositorySettings(id = "defaults")
+        val configured = RepositorySettings(id = "configured", resolutionCacheMissTtl = 60)
+
+        // when: settings are serialized for shared configuration
+        val serializedDefaults = DEFAULT_OBJECT_MAPPER.writeValueAsString(defaults)
+        val serializedConfigured = DEFAULT_OBJECT_MAPPER.writeValueAsString(configured)
+
+        // then: only the explicitly configured ttl changes the wire shape
+        assertThat(serializedDefaults).doesNotContain("resolutionCacheMissTtl")
+        assertThat(serializedConfigured).contains("\"resolutionCacheMissTtl\":60")
+    }
+
+    private class FakeTicker : Ticker {
+
+        private val nanos = AtomicLong()
+
+        fun advance(duration: Duration) {
+            nanos.addAndGet(duration.toNanos())
+        }
+
+        override fun read(): Long =
+            nanos.get()
+
     }
 
 }

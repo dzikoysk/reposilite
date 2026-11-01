@@ -18,8 +18,11 @@ package com.reposilite.maven
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.Expiry
+import com.github.benmanes.caffeine.cache.Ticker
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.Location
+import java.time.Duration
 
 enum class ResolutionCacheLevel {
     PINNING,
@@ -29,6 +32,8 @@ enum class ResolutionCacheLevel {
 internal class ResolutionCache(
     maxEntries: Int,
     private val level: ResolutionCacheLevel,
+    missTtl: Duration = Duration.ZERO,
+    ticker: Ticker = Ticker.systemTicker(),
 ) {
 
     private data class Key(val location: Location, val authenticated: Boolean)
@@ -41,7 +46,20 @@ internal class ResolutionCache(
     private val entries: Cache<Key, State> =
         Caffeine.newBuilder()
             .maximumSize(maxEntries.toLong())
-            .build()
+            .ticker(ticker)
+            .let { builder ->
+                when {
+                    missTtl.isZero -> builder.build<Key, State>()
+                    else -> builder
+                        .expireAfter(Expiry.writing<Key, State> { _, value ->
+                            when (value) {
+                                State.MirrorsMissing -> missTtl
+                                is State.PinnedMirror -> Duration.ofNanos(Long.MAX_VALUE)
+                            }
+                        })
+                        .build()
+                }
+            }
 
     fun lookup(gav: Location, authenticated: Boolean): State? {
         val missing = entries.getIfPresent(Key(gav, authenticated))
