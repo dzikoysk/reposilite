@@ -24,6 +24,9 @@ import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermissions
 import java.util.regex.Pattern
 import kotlin.io.path.createDirectories
+import panda.std.Result
+import panda.std.asError
+import panda.std.asSuccess
 
 class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorageProvider, FileSystemStorageProviderSettings> {
 
@@ -94,11 +97,11 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
                 filePermissions = filePermissions,
             )
 
-        fun parseFilePermissions(value: String): Set<PosixFilePermission> {
+        fun parseFilePermissions(value: String): Result<Set<PosixFilePermission>, String> {
             val trimmed = value.trim()
             val normalized = if (trimmed.length == 4 && trimmed.startsWith("0")) trimmed.substring(1) else trimmed
-            require(normalized.matches(Regex("[0-7]{3}"))) {
-                "File permissions must be an octal value with three digits (for example: 644)"
+            if (!normalized.matches(Regex("[0-7]{3}"))) {
+                return "File permissions must be an octal value with three digits (for example: 644)".asError()
             }
 
             val mode = normalized.toInt(8)
@@ -112,7 +115,10 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
             if ((mode and 4) != 0) permissions += PosixFilePermission.OTHERS_READ
             if ((mode and 2) != 0) permissions += PosixFilePermission.OTHERS_WRITE
             if ((mode and 1) != 0) permissions += PosixFilePermission.OTHERS_EXECUTE
-            return permissions
+            return when {
+                PosixFilePermission.OWNER_READ in permissions -> permissions.asSuccess()
+                else -> "File permissions must allow the owner to read files".asError()
+            }
         }
 
         private fun displaySizeToBytesCount(displaySize: String): Long {
@@ -141,6 +147,7 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
         settings: FileSystemStorageProviderSettings,
     ): FileSystemStorageProvider {
         val filePermissions = parseFilePermissions(settings.filePermissions)
+            .orThrow { IllegalArgumentException(it) }
         val repositoryDirectory =
             if (settings.mount.isEmpty())
                 workingDirectory.resolve(repositoryName)

@@ -28,6 +28,6 @@ data class FileSystemStorageProviderSettings(
     val quota: String = "100%",
     @get:Doc(title = "Mount", description = "Use custom directory to locate the repository data (optional, by default it's './repositories/{name}')")
     val mount: String = "",
-    @get:Doc(title = "File permissions", description = "POSIX permissions for files created by this provider, in octal format (for example: 644; by default: 600)")
+    @get:Doc(title = "File permissions", description = "Set POSIX permissions for newly created files in octal format, e.g. 644 (optional, by default: 600). Owner read access is required.")
     val filePermissions: String = "600",
 ) : StorageProviderSettings

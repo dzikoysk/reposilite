@@ -151,8 +151,8 @@ abstract class FileSystemStorageProvider protected constructor(
                             .flatMap { canHold(temporaryFile.fileSize()).mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") } }
                             .peek {
                                 acquireFileAccessLock(location, LockMode.WRITE).use {
+                                    setFilePermissions(temporaryFile)
                                     temporaryFile.moveTo(file, overwrite = true)
-                                    setFilePermissions(file)
                                 }
                             }
                             .mapToUnit()
