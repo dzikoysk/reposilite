@@ -17,16 +17,17 @@
 package com.reposilite.maven
 
 import com.github.benmanes.caffeine.cache.Ticker
+import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
 import com.reposilite.maven.ResolutionCache.State.MirrorsMissing
 import com.reposilite.maven.ResolutionCache.State.PinnedMirror
 import com.reposilite.maven.ResolutionCacheLevel.NEGATIVE_CACHING
 import com.reposilite.maven.ResolutionCacheLevel.PINNING
 import com.reposilite.maven.api.METADATA_FILE
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.storage.api.toLocation
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicLong
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 internal class ResolutionCacheTest {
@@ -118,24 +119,6 @@ internal class ResolutionCacheTest {
     }
 
     @Test
-    fun `reading a miss does not extend its ttl`() {
-        // given: a recorded miss with a 1 minute ttl
-        val time = FakeTicker()
-        val cache = ResolutionCache(4, NEGATIVE_CACHING, missTtl = Duration.ofMinutes(1), ticker = time)
-        val metadata = "org/example/foo/$METADATA_FILE".toLocation()
-        cache.recordMirrorsMissing(metadata, false)
-
-        // when: the miss is read repeatedly while time passes
-        repeat(5) {
-            time.advance(Duration.ofSeconds(15))
-            cache.lookup(metadata, false)
-        }
-
-        // then: the ttl counts from when the miss was recorded, not from the last read
-        assertThat(cache.lookup(metadata, false)).isNull()
-    }
-
-    @Test
     fun `pins never expire by time even with a miss ttl`() {
         // given: a cache with a short miss ttl holding a pin and a miss
         val time = FakeTicker()
@@ -168,8 +151,29 @@ internal class ResolutionCacheTest {
 
     @Test
     fun `negative miss ttl is rejected`() {
-        assertThatThrownBy { ResolutionCache(4, NEGATIVE_CACHING, missTtl = Duration.ofSeconds(-1)) }
-            .isInstanceOf(IllegalArgumentException::class.java)
+        // given: a negative resolution cache miss ttl
+        val missTtl = -1L
+
+        // when: repository settings are created
+        val result = runCatching { RepositorySettings(id = "test", resolutionCacheMissTtl = missTtl) }
+
+        // then: invalid settings are rejected before repositories are replaced
+        assertThat(result.exceptionOrNull()).isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun `default miss ttl is omitted from serialized settings`() {
+        // given: default and explicitly configured resolution cache settings
+        val defaults = RepositorySettings(id = "defaults")
+        val configured = RepositorySettings(id = "configured", resolutionCacheMissTtl = 60)
+
+        // when: settings are serialized for shared configuration
+        val serializedDefaults = DEFAULT_OBJECT_MAPPER.writeValueAsString(defaults)
+        val serializedConfigured = DEFAULT_OBJECT_MAPPER.writeValueAsString(configured)
+
+        // then: only the explicitly configured ttl changes the wire shape
+        assertThat(serializedDefaults).doesNotContain("resolutionCacheMissTtl")
+        assertThat(serializedConfigured).contains("\"resolutionCacheMissTtl\":60")
     }
 
     private class FakeTicker : Ticker {

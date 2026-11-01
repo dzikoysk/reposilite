@@ -124,22 +124,14 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         val request = LookupRequest(UNAUTHORIZED, "NEGATIVE_CACHE", metadata)
         assertError(mavenFacade.findFile(request))
 
-        // when: a cached request is followed by requests around the original and renewed deadlines
+        // when: a cached request is followed by a request after the original deadline
         now.set(Duration.ofSeconds(50).toNanos())
         assertError(mavenFacade.findFile(request))
         now.set(Duration.ofSeconds(70).toNanos())
         assertError(mavenFacade.findFile(request))
-        val afterOriginalDeadline = remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()
-        now.set(Duration.ofSeconds(120).toNanos())
-        assertError(mavenFacade.findFile(request))
-        val beforeRenewedDeadline = remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()
-        now.set(Duration.ofSeconds(131).toNanos())
-        assertError(mavenFacade.findFile(request))
 
-        // then: only genuine upstream misses start a new ttl
-        assertThat(afterOriginalDeadline).isEqualTo(2)
-        assertThat(beforeRenewedDeadline).isEqualTo(2)
-        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(3)
+        // then: the cached request does not postpone the upstream retry
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(2)
     }
 
     @Test

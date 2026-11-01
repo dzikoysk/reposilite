@@ -46,7 +46,7 @@ class Repository internal constructor(
     parallelMetadataLookup: Boolean,
     resolutionCacheMaxEntries: Int,
     resolutionCacheLevel: ResolutionCacheLevel,
-    resolutionCacheMissTtlInSeconds: Long = 0L,
+    resolutionCacheMissTtlInSeconds: Long,
 ) : RepositoryInfo {
 
     override val name: String = identity.name

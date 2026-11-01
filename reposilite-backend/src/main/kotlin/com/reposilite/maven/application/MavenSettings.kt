@@ -16,6 +16,8 @@
 
 package com.reposilite.maven.application
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT
 import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.Min
 import com.reposilite.configuration.shared.api.SharedSettings
@@ -32,6 +34,7 @@ import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.s3.S3StorageProviderSettings
 import io.javalin.openapi.JsonSchema
 import io.javalin.openapi.OneOf
+import io.javalin.openapi.OpenApiNumberValidation
 
 @JsonSchema(requireNonNulls = false)
 @Doc(title = "Maven", description = "Repositories settings")
@@ -87,14 +90,22 @@ data class RepositorySettings(
     val parallelMetadataLookup: Boolean = false,
     @get:Doc(title = "Resolution cache level", description = "PINNING remembers the mirror serving metadata. NEGATIVE_CACHING also caches exact metadata misses from mirrors until eviction, invalidation or the resolution cache miss TTL.")
     val resolutionCacheLevel: ResolutionCacheLevel = NEGATIVE_CACHING,
-    @Min(0)
+    @field:Min(0)
+    @get:OpenApiNumberValidation(minimum = "0")
+    @get:JsonInclude(NON_DEFAULT)
     @get:Doc(title = "Resolution cache miss TTL", description = """
         How long a cached metadata miss is kept before mirrors are asked again. Applies only to NEGATIVE_CACHING;
         mirror pins are not affected. Useful when artifacts can appear upstream without being deployed through this Reposilite instance.<br/>
         If set to "0" then misses are kept until eviction or invalidation. (Default: 0 seconds)
     """)
     val resolutionCacheMissTtl: Long = 0L,
-) : SharedSettings
+) : SharedSettings {
+
+    init {
+        require(resolutionCacheMissTtl >= 0) { "Resolution cache miss TTL cannot be negative" }
+    }
+
+}
 
 @Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")
 data class MirroredRepositorySettings(

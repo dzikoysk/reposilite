@@ -51,37 +51,9 @@ internal class ResolutionCache(
         data object MirrorsMissing : State
     }
 
-    /** Expires only miss entries; pins keep their size-based eviction and nothing else. */
-    private class MissExpiry(private val missTtlNanos: Long) : Expiry<Key, State> {
-
-        override fun expireAfterCreate(key: Key, value: State, currentTime: Long): Long =
-            durationOf(value)
-
-        override fun expireAfterUpdate(key: Key, value: State, currentTime: Long, currentDuration: Long): Long =
-            durationOf(value)
-
-        override fun expireAfterRead(key: Key, value: State, currentTime: Long, currentDuration: Long): Long =
-            currentDuration
-
-        private fun durationOf(value: State): Long =
-            when (value) {
-                State.MirrorsMissing -> missTtlNanos
-                is State.PinnedMirror -> Long.MAX_VALUE
-            }
-
-    }
-
     init {
         require(!missTtl.isNegative) { "Resolution cache miss TTL cannot be negative" }
     }
-
-    // Durations beyond ~292 years overflow nanoseconds; treat them as "never expires".
-    private fun Duration.toNanosSaturated(): Long =
-        try {
-            toNanos()
-        } catch (overflow: ArithmeticException) {
-            Long.MAX_VALUE
-        }
 
     private val entries: Cache<Key, State> =
         Caffeine.newBuilder()
@@ -90,7 +62,14 @@ internal class ResolutionCache(
             .let { builder ->
                 when {
                     missTtl.isZero -> builder.build<Key, State>()
-                    else -> builder.expireAfter<Key, State>(MissExpiry(missTtl.toNanosSaturated())).build<Key, State>()
+                    else -> builder
+                        .expireAfter(Expiry.writing<Key, State> { _, value ->
+                            when (value) {
+                                State.MirrorsMissing -> missTtl
+                                is State.PinnedMirror -> Duration.ofNanos(Long.MAX_VALUE)
+                            }
+                        })
+                        .build()
                 }
             }
 
