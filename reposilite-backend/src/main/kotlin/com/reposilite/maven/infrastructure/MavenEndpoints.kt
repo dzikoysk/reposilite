@@ -22,7 +22,7 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.shared.extensions.resultAttachment
+import com.reposilite.shared.extensions.attachmentHeaders
 import com.reposilite.shared.extensions.uri
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
@@ -44,7 +44,6 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.asSuccess
-import java.io.InputStream
 
 const val X_GENERATE_CHECKSUMS = "X-Generate-Checksums"
 
@@ -85,17 +84,19 @@ internal class MavenEndpoints(
             when (details) {
                 is DocumentInfo ->
                     when (ctx.method()) {
-                        HEAD_METHOD -> InputStream.nullInputStream().asSuccess()
-                        else -> mavenFacade.findData(request)
-                    }.map { data ->
-                        ctx.resultAttachment(
+                        HEAD_METHOD -> Unit.asSuccess()
+                        else -> mavenFacade.findData(request).map { data ->
+                            ctx.result(data)
+                            Unit
+                        }
+                    }.map {
+                        ctx.attachmentHeaders(
                             name = details.name,
                             contentType = details.contentType,
                             contentLength = details.contentLength,
                             lastTimeModified = details.lastModifiedTime,
                             compressionStrategy = compressionStrategy,
                             cache = mavenFacade.acceptsCachingOf(request),
-                            data = data,
                         )
                     }
                 is DirectoryInfo -> {

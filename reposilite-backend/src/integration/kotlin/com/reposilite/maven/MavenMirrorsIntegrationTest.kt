@@ -29,6 +29,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kong.unirest.core.HeaderNames.CONTENT_LENGTH
+import kong.unirest.core.HeaderNames.CONTENT_TYPE
 import kong.unirest.core.Unirest.get
 import kong.unirest.core.Unirest.head
 import kotlinx.coroutines.runBlocking
@@ -93,6 +95,8 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
 
             // then: response must not be 200-with-empty-body — Aether interprets that as "no checksums available" for .sha1 lookups
             assertThat(response.status == 200 && response.body.isNullOrEmpty()).isFalse
+            assertThat(response.headers.getFirst(CONTENT_LENGTH)).isNotEqualTo("100")
+            assertThat(response.headers.getFirst(CONTENT_TYPE)).startsWith("text/html")
         } finally {
             upstream.stop()
         }
@@ -120,7 +124,10 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
             val response = head("$base/proxied-stored/$gav").asEmpty()
 
             assertThat(response.isSuccess).isTrue
+            assertThat(response.headers.getFirst(CONTENT_LENGTH)).isEqualTo("10")
+            assertThat(response.headers.getFirst(CONTENT_TYPE)).isEqualTo("application/java-archive")
             assertThat(getHits.get()).isZero()
+            assertThat(mavenFacade.getRepository("proxied-stored")!!.storageProvider.exists(gav.toLocation())).isFalse
         } finally {
             upstream.stop()
         }
