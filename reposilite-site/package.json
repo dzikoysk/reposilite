@@ -15,7 +15,7 @@
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@heroicons/react": "2.2.0",
-    "framer-motion": "14.6.0",
+    "framer-motion": "14.7.1",
     "gray-matter": "4.0.3",
     "next": "16.4.3",
     "next-mdx-remote": "6.0.0",
