@@ -46,9 +46,11 @@ import java.io.Closeable
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
+import java.nio.file.attribute.PosixFilePermission
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -76,6 +78,7 @@ import kotlin.io.path.useDirectoryEntries
 abstract class FileSystemStorageProvider protected constructor(
     val journalist: Journalist,
     val rootDirectory: Path,
+    private val filePermissions: Set<PosixFilePermission>,
 ) : StorageProvider {
 
     private enum class LockMode {
@@ -148,6 +151,7 @@ abstract class FileSystemStorageProvider protected constructor(
                             .flatMap { canHold(temporaryFile.fileSize()).mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") } }
                             .peek {
                                 acquireFileAccessLock(location, LockMode.WRITE).use {
+                                    setFilePermissions(temporaryFile)
                                     temporaryFile.moveTo(file, overwrite = true)
                                 }
                             }
@@ -155,6 +159,14 @@ abstract class FileSystemStorageProvider protected constructor(
                     }
                 }
         }
+
+    private fun setFilePermissions(file: Path) {
+        try {
+            Files.setPosixFilePermissions(file, filePermissions)
+        } catch (_: UnsupportedOperationException) {
+            // POSIX permissions are not available on all file systems (for example, Windows).
+        }
+    }
 
     private inline fun <T> useTempFile(block: (Path) -> T): T {
         val temporaryFile = createTempFile("reposilite-", "-fs-put")
