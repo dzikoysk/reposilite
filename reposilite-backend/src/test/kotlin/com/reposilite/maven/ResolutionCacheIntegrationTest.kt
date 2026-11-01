@@ -16,6 +16,7 @@
 
 package com.reposilite.maven
 
+import com.github.benmanes.caffeine.cache.Ticker
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.ResolutionCache.State.MirrorsMissing
 import com.reposilite.maven.ResolutionCache.State.PinnedMirror
@@ -34,9 +35,11 @@ import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 import java.time.Clock
+import java.time.Duration
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
+import java.util.concurrent.atomic.AtomicLong
 
 internal class ResolutionCacheIntegrationTest : MavenSpecification() {
 
@@ -100,6 +103,43 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         // then: the remote is probed once and the exact miss is cached
         assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(1)
         assertThat(mavenFacade.getRepository("NEGATIVE_CACHE")!!.resolutionCache!!.lookup(metadata, false)).isEqualTo(MirrorsMissing)
+    }
+
+    @Test
+    fun `cached requests do not extend mirror miss ttl`() {
+        // given: a cached mirror miss with a 1 minute ttl
+        val now = AtomicLong()
+        val cache = ResolutionCache(
+            maxEntries = 16,
+            level = ResolutionCacheLevel.NEGATIVE_CACHING,
+            missTtl = Duration.ofMinutes(1),
+            ticker = Ticker { now.get() },
+        )
+        val repository = mavenFacade.getRepository("NEGATIVE_CACHE")!!
+        Repository::class.java.getDeclaredField("resolutionCache").apply {
+            isAccessible = true
+            set(repository, cache)
+        }
+        val metadata = "com/missing/ttl/$METADATA_FILE".toLocation()
+        val request = LookupRequest(UNAUTHORIZED, "NEGATIVE_CACHE", metadata)
+        assertError(mavenFacade.findFile(request))
+
+        // when: a cached request is followed by requests around the original and renewed deadlines
+        now.set(Duration.ofSeconds(50).toNanos())
+        assertError(mavenFacade.findFile(request))
+        now.set(Duration.ofSeconds(70).toNanos())
+        assertError(mavenFacade.findFile(request))
+        val afterOriginalDeadline = remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()
+        now.set(Duration.ofSeconds(120).toNanos())
+        assertError(mavenFacade.findFile(request))
+        val beforeRenewedDeadline = remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()
+        now.set(Duration.ofSeconds(131).toNanos())
+        assertError(mavenFacade.findFile(request))
+
+        // then: only genuine upstream misses start a new ttl
+        assertThat(afterOriginalDeadline).isEqualTo(2)
+        assertThat(beforeRenewedDeadline).isEqualTo(2)
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(3)
     }
 
     @Test

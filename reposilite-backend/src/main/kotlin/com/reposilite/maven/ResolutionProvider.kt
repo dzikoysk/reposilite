@@ -46,13 +46,15 @@ internal class ResolutionProvider(
         val cached = cache?.lookup(gav, authenticated)
         val isMetadata = gav.isResolutionMetadata()
 
+        if (isMetadata && cached == ResolutionCache.State.MirrorsMissing) {
+            return tryLocal()
+        }
+
         val hosts = (cached as? ResolutionCache.State.PinnedMirror)
             ?.let { state -> repository.mirrorHosts.sortedBy { it.host != state.host } }
             ?: repository.mirrorHosts
 
         val attempt = when {
-            isMetadata && cached == ResolutionCache.State.MirrorsMissing ->
-                ResolutionAttempt(result = tryLocal(), remote = MirrorResolution.NotFound)
             mirrorFirst ->
                 tryRemoteFirst(tryLocal = tryLocal, tryRemote = tryRemote, hosts = hosts, gav = gav)
             else ->
