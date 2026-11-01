@@ -84,7 +84,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.57.4"
+    val awssdk = "2.57.6"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
     implementation("software.amazon.awssdk:s3:$awssdk") {
