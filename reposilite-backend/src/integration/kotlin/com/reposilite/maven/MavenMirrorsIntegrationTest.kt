@@ -27,7 +27,10 @@ import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kong.unirest.core.HeaderNames.CONTENT_LENGTH
+import kong.unirest.core.HeaderNames.CONTENT_TYPE
 import kong.unirest.core.Unirest.get
+import kong.unirest.core.Unirest.head
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -86,6 +89,35 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
 
             // then: response must not be 200-with-empty-body — Aether interprets that as "no checksums available" for .sha1 lookups
             assertThat(response.status == 200 && response.body.isNullOrEmpty()).isFalse
+            assertThat(response.headers.getFirst(CONTENT_LENGTH)).isNotEqualTo("100")
+            assertThat(response.headers.getFirst(CONTENT_TYPE)).startsWith("text/html")
+        } finally {
+            upstream.stop()
+        }
+    }
+
+    @Test
+    fun `should not download or cache an artifact on head request`() {
+        val gav = "com/reposilite/head-only.jar"
+        val getHits = AtomicInteger()
+        val upstream = startProxiedHost { config ->
+            config.routes.head("/releases/$gav") { ctx ->
+                ctx.contentType("application/java-archive").header("Content-Length", "10").status(200)
+            }
+            config.routes.get("/releases/$gav") { ctx ->
+                getHits.incrementAndGet()
+                ctx.result("0123456789")
+            }
+        }
+
+        try {
+            val response = head("$base/proxied-stored/$gav").asEmpty()
+
+            assertThat(response.isSuccess).isTrue
+            assertThat(response.headers.getFirst(CONTENT_LENGTH)).isEqualTo("10")
+            assertThat(response.headers.getFirst(CONTENT_TYPE)).isEqualTo("application/java-archive")
+            assertThat(getHits.get()).isZero()
+            assertThat(mavenFacade.getRepository("proxied-stored")!!.storageProvider.exists(gav.toLocation())).isFalse
         } finally {
             upstream.stop()
         }
