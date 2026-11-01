@@ -26,8 +26,27 @@ data class InstanceStatusResponse(
     val usedMemory: Double,
     val maxMemory: Int,
     val usedThreads: Int,
-    val maxThreads: Int,
-    val failuresCount: Int
+    val failuresCount: Int,
+    val resourcePools: ResourcePools
+)
+
+data class ResourcePools(
+    val web: ThreadPoolStatus?,
+    val io: ThreadPoolStatus?,
+    val database: ConnectionPoolStatus?
+)
+
+data class ThreadPoolStatus(
+    val active: Int,
+    val capacity: Int,
+    val queued: Int,
+    val reserved: Int
+)
+
+data class ConnectionPoolStatus(
+    val active: Int,
+    val capacity: Int,
+    val waiting: Int
 )
 
 data class RecordedFailure(

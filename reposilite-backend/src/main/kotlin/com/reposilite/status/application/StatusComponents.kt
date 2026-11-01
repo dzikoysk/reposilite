@@ -20,7 +20,7 @@ import com.reposilite.plugin.api.PluginComponents
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
-import panda.std.reactive.Reference
+import com.reposilite.status.api.ResourcePools
 
 class StatusComponents(
     private val testEnv: Boolean,
@@ -28,7 +28,7 @@ class StatusComponents(
     private val remoteClientProvider: RemoteClientProvider,
     private val remoteVersionEndpoint: String,
     private val statusSupplier: () -> Boolean,
-    private val maxThreads: Reference<Int>
+    private val resourcePools: () -> ResourcePools
 ) : PluginComponents {
 
     fun statusFacade(): StatusFacade =
@@ -38,7 +38,7 @@ class StatusComponents(
             remoteVersionUrl = remoteVersionEndpoint,
             remoteClientProvider = remoteClientProvider,
             failureFacade = failureFacade,
-            maxThreads = maxThreads
+            resourcePools = resourcePools
         )
 
 }

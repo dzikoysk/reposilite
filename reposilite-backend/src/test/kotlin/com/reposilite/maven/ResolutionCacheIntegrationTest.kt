@@ -17,7 +17,6 @@
 package com.reposilite.maven
 
 import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.ResolutionCache.State.MirrorsMissing
 import com.reposilite.maven.ResolutionCache.State.PinnedMirror
 import com.reposilite.maven.ResolutionCacheLevel.PINNING
@@ -27,6 +26,7 @@ import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
+import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
 import com.reposilite.status.application.FailureComponents
 import com.reposilite.storage.api.toLocation
 import org.assertj.core.api.Assertions.assertThat

@@ -27,7 +27,7 @@ application {
 
 dependencies {
     compileOnly(project(":reposilite-backend"))
-    implementation("org.apache.groovy:groovy:5.1.1")
+    implementation("org.apache.groovy:groovy:5.1.3")
 }
 
 tasks.withType<ShadowJar> {

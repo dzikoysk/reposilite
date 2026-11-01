@@ -13,10 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: "Review dependency licenses"
+        id: licenses
         uses: actions/dependency-review-action@v5
+        continue-on-error: true
         with:
           vulnerability-check: false
           license-check: true
@@ -29,3 +31,8 @@ jobs:
             MIT,
             OFL-1.1,
             Unlicense
+
+      - name: "Enforce licenses for distributed modules"
+        env:
+          LICENSE_CHANGES: ${{ steps.licenses.outputs.invalid-license-changes }}
+        run: node .github/scripts/check-dependency-licenses.cjs

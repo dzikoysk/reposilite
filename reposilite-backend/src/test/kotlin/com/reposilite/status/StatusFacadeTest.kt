@@ -20,15 +20,17 @@ import com.reposilite.VERSION
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.status.api.InstanceStatusResponse
+import com.reposilite.status.api.ResourcePools
 import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
-import panda.std.reactive.toReference
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.atomic.AtomicInteger
 
 private const val REMOTE_VERSION_CHECK_PROPERTY = "reposilite.status.remote-version-check"
@@ -97,16 +99,36 @@ internal class StatusFacadeTest {
         assertThat(statusFacade.getLatestStatusSnapshots()).hasSize(12)
     }
 
-    private fun createStatusFacade(remoteVersionUrl: String): StatusFacade {
+    @Test
+    fun `should count JVM threads outside the calling thread group`() {
+        // given: a status query running in its own thread group
+        val result = CompletableFuture<Int>()
+        val statusFacade = createStatusFacade("", testEnv = true)
+        val thread = Thread(ThreadGroup("status-query"), {
+            result.complete(statusFacade.fetchInstanceStatus().usedThreads)
+        }, "status-query")
+
+        // when: the isolated thread requests the thread count
+        thread.start()
+
+        // then: the count includes threads outside that group
+        try {
+            assertThat(result.get(5, SECONDS)).isGreaterThan(1)
+        } finally {
+            thread.join(5_000)
+        }
+    }
+
+    private fun createStatusFacade(remoteVersionUrl: String, testEnv: Boolean = false): StatusFacade {
         val failureFacade = FailureFacade(InMemoryLogger())
 
         return StatusFacade(
-            testEnv = false,
-            maxThreads = 16.toReference(),
+            testEnv = testEnv,
             status = { true },
             remoteVersionUrl = remoteVersionUrl,
             remoteClientProvider = HttpRemoteClientProvider(failureFacade),
-            failureFacade = failureFacade
+            failureFacade = failureFacade,
+            resourcePools = { ResourcePools(web = null, io = null, database = null) }
         )
     }
 

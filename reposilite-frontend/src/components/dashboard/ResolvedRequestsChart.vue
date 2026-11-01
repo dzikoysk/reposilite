@@ -17,7 +17,7 @@
 <script setup>
 import { computed, defineAsyncComponent } from "vue"
 
-const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
+const TimeSeriesChart = defineAsyncComponent(() => import('./TimeSeriesChart.vue'))
 
 const props = defineProps({
   statistics: {
@@ -33,41 +33,6 @@ const resolvedSeries = computed(() => props.statistics.repositories.map(reposito
     y: record.count
   }))
 })))
-
-const chartOptions = {
-  chart: {
-    id: "reposilite-requests-over-time",
-  },
-  tooltip: {
-    shared: true,
-  },
-  xaxis: {
-    type: 'datetime',
-    axisBorder: {
-      show: false
-    },
-    axisTicks: {
-      show: false
-    }
-  },
-  dataLabels: {
-    enabled: false
-  },
-  dropShadow: {
-    enabled: true,
-  },
-  onDatasetHover: {
-    highlightDataSeries: true
-  },
-  theme: {
-    palette: 'palette10'
-  },
-  legend: {
-    itemMargin: {
-      vertical: 15
-    }
-  }
-}
 </script>
 
 <template>
@@ -75,13 +40,11 @@ const chartOptions = {
     <figcaption class="sr-only">
       Resolved requests over time by repository
     </figcaption>
-    <VueApexCharts 
-      class="dark:text-black"
-      width="100%"
-      height="320px"
-      type="area"
-      :options="chartOptions"
+    <TimeSeriesChart
+      label="Resolved requests over time by repository"
       :series="resolvedSeries"
+      area
+      date-only
     />
   </figure>
 </template>

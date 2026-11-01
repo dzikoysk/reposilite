@@ -21,8 +21,10 @@ import io.javalin.http.ExceptionHandler
 
 internal class FailureHandler(private val failureFacade: FailureFacade) : ExceptionHandler<Exception> {
 
-    override fun handle(exception: Exception, context: Context) {
-        failureFacade.throwException(context.req().requestURI, exception)
-    }
+    override fun handle(exception: Exception, context: Context) =
+        failureFacade.throwException(
+            runCatching { context.req().requestURI }.getOrDefault("<unavailable request>"),
+            exception
+        )
 
 }

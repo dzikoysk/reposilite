@@ -20,20 +20,17 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
-import com.reposilite.shared.ErrorResponse
+import com.reposilite.repository.RepositoryFacade
+import com.reposilite.repository.api.RepositoryIdentity
 import com.reposilite.shared.http.RemoteClientProvider
-import com.reposilite.shared.notFoundError
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
-import com.reposilite.storage.s3.S3StorageProviderSettings
-import com.reposilite.storage.s3.findS3SharedBucketConflicts
 import java.nio.file.Path
-import panda.std.Result
-import panda.std.asSuccess
+import java.util.concurrent.atomic.AtomicReference
 import panda.std.reactive.Reference
 
-internal class RepositoryProvider(
+internal class MavenRepositories(
     private val journalist: Journalist,
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
@@ -44,26 +41,26 @@ internal class RepositoryProvider(
     private val storageFacade: StorageFacade,
     mirrorService: MirrorService,
     resolutionProvider: ResolutionProvider,
-    repositorySecurityProvider: RepositorySecurityProvider,
+    repositoryFacade: RepositoryFacade,
     repositoriesSource: Reference<List<RepositorySettings>>,
 ) {
 
     val repositoryService = RepositoryService(
         journalist = journalist,
-        repositoryProvider = this,
-        securityProvider = repositorySecurityProvider,
+        repositories = this,
+        repositoryFacade = repositoryFacade,
         mirrorService = mirrorService,
         resolutionProvider = resolutionProvider,
         statisticsFacade = statisticsFacade,
         extensions = extensions
     )
 
-    private var repositories: Map<String, Repository> = createRepositories(repositoriesSource.get())
+    private val repositories = AtomicReference(createRepositories(repositoriesSource.get()))
 
     init {
-        repositoriesSource.subscribe {
-            repositories.forEach { (_, repository) -> repository.shutdown() }
-            this.repositories = createRepositories(it)
+        repositoriesSource.subscribe { settings ->
+            repositories.get().values.forEach { it.shutdown() }
+            repositories.set(createRepositories(settings))
         }
     }
 
@@ -79,41 +76,29 @@ internal class RepositoryProvider(
             repositoriesNames = repositoriesConfiguration.map { it.id },
         )
 
-        val sharedBucketConflicts = findS3SharedBucketConflicts(
-            repositoriesConfiguration.mapNotNull { configuration ->
-                (configuration.storageProvider as? S3StorageProviderSettings)?.let { configuration.id to it }
-            }
-        )
-
+        val duplicatedNames = repositoriesConfiguration.groupingBy { it.id }.eachCount().filterValues { it > 1 }.keys
         return repositoriesConfiguration.asSequence()
             .mapNotNull { configuration ->
-                when (configuration.id) {
-                    in sharedBucketConflicts -> {
-                        failureFacade.throwException(
-                            identifier = "Cannot load repository '${configuration.id}'",
-                            throwable = IllegalStateException("Its S3 key namespace overlaps another repository sharing the same bucket. Give each repository a distinct 'prefix', or enable 'sharedBucket' on every repository sharing the bucket.")
-                        )
-                        null
+                val identity = RepositoryIdentity.create(configuration.id)
+                    .onError { failureFacade.throwException("Cannot load ${configuration.id} repository", IllegalArgumentException(it)) }
+                    .orNull() ?: return@mapNotNull null
+
+                runCatching {
+                    require(configuration.id !in duplicatedNames) {
+                        "Repository name '${configuration.id}' is duplicated in Maven repository settings"
                     }
-                    else ->
-                        runCatching { factory.createRepository(configuration.id, configuration) }
-                            .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
-                            .getOrNull()
+                    factory.createRepository(identity, configuration)
                 }
+                    .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
+                    .getOrNull()
             }
             .associateBy { it.name }
     }
 
-
-    fun findRepository(name: String): Result<Repository, ErrorResponse> =
-        getRepository(name)
-            ?.asSuccess()
-            ?: notFoundError("Repository $name not found")
-
     fun getRepository(name: String): Repository? =
-        repositories[name]
+        repositories.get()[name]
 
     fun getRepositories(): Collection<Repository> =
-        repositories.values
+        repositories.get().values
 
 }

@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.reposilite.maven
+package com.reposilite.repository.api
 
 enum class RepositoryVisibility {
     PUBLIC,
+
+    /** Files can be downloaded without credentials, but browsing requires permission. */
     HIDDEN,
+
     PRIVATE
 }

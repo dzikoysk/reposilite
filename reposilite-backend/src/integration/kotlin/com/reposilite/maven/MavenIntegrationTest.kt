@@ -20,11 +20,16 @@ package com.reposilite.maven
 
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
 import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.maven.application.MavenSettings
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.maxAge
 import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.s3.S3StorageProviderSettings
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import java.util.concurrent.CompletableFuture
@@ -43,9 +48,94 @@ import org.junit.jupiter.api.extension.ExtendWith
 internal class LocalMavenIntegrationTest : MavenIntegrationTest()
 
 @ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
-internal class RemoteMavenIntegrationTest : MavenIntegrationTest()
+internal class RemoteMavenIntegrationTest : MavenIntegrationTest() {
+
+    @Test
+    fun `should preserve invalid repository settings and recover after correction`() {
+        // given: a configuration containing an invalid repository name
+        val storage = useTargetStorageSettings<S3StorageProviderSettings>()
+        val configuration = MavenSettings(repositories = listOf(
+            RepositorySettings(id = " invalid", storageProvider = storage),
+            RepositorySettings(id = "second", storageProvider = storage),
+        ))
+        val (name, secret) = useDefaultManagementToken()
+        val facade = useFacade<SharedConfigurationFacade>()
+
+        // when: the invalid configuration is saved through the settings API
+        val update = put("$base/api/settings/domain/maven").basicAuth(name, secret).body(configuration).asEmpty()
+        val saved = get("$base/api/settings/domain/maven").basicAuth(name, secret).asObject(MavenSettings::class.java)
+        val persisted = DEFAULT_OBJECT_MAPPER.readTree(facade.fetchConfiguration()).get("maven")
+
+        // then: the full configuration is retained and only the valid repository loads
+        assertThat(update.isSuccess).isTrue()
+        assertThat(saved.body).isEqualTo(configuration)
+        assertThat(DEFAULT_OBJECT_MAPPER.treeToValue(persisted, MavenSettings::class.java)).isEqualTo(configuration)
+        assertThat(mavenFacade.getRepositories().map { it.name }).containsExactly("second")
+
+        // when: the invalid name is corrected
+        val corrected = configuration.copy(repositories = configuration.repositories.map {
+            if (it.id == " invalid") it.copy(id = "first") else it
+        })
+        val correction = put("$base/api/settings/domain/maven").basicAuth(name, secret).body(corrected).asEmpty()
+
+        // then: repositories become available without restarting the instance
+        assertThat(correction.isSuccess).isTrue()
+        assertThat(mavenFacade.getRepositories().map { it.name }).containsExactlyInAnyOrder("first", "second")
+    }
+
+}
 
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
+
+    @Test
+    fun `should preserve stored files across repository reloads`() {
+        // given: an artifact and the current storage provider
+        val (repository, gav, file, content) = useDocument("releases", "gav", "artifact.jar", "content", true)
+        val previous = mavenFacade.getRepository(repository)!!.storageProvider
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+
+        // when: repository settings are reloaded twice
+        repeat(2) { settings.update { it.copy() } }
+        val response = get("$base/$repository/$gav/$file").asString()
+
+        // then: replacement storage providers can reuse the same storage and read its files
+        assertThat(mavenFacade.getRepository(repository)!!.storageProvider).isNotSameAs(previous)
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo(content)
+    }
+
+    @Test
+    fun `should skip invalid repository names when reloading settings`() {
+        // given: invalid and valid repository definitions in the same configuration
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+        val configuration = settings.get().copy(
+            repositories = settings.get().repositories + listOf(
+                RepositorySettings(id = " invalid", storageProvider = useTargetStorageSettings()),
+                RepositorySettings(id = "valid-after-invalid", storageProvider = useTargetStorageSettings()),
+            ),
+        )
+
+        // when: the configuration is reloaded
+        settings.update { configuration }
+
+        // then: only the invalid repository is skipped
+        assertThat(mavenFacade.getRepository(" invalid")).isNull()
+        assertThat(mavenFacade.getRepository("valid-after-invalid")).isNotNull()
+        assertThat(mavenFacade.getRepository("releases")).isNotNull()
+    }
+
+    @Test
+    fun `should browse repository root`() {
+        // given: an artifact in a repository directory
+        useDocument("releases", "gav", "artifact.jar", "content", true)
+
+        // when: the repository root is requested
+        val response = get("$base/releases").asString()
+
+        // then: the index contains the artifact directory
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).contains("gav")
+    }
 
     @Test
     fun `should support head requests`() {

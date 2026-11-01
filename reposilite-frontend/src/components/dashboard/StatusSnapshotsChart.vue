@@ -19,7 +19,7 @@ import { ref, computed, defineAsyncComponent, onUnmounted } from "vue"
 import { useSession } from "../../store/session"
 import { createErrorToast } from '../../helpers/toast'
 
-const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
+const TimeSeriesChart = defineAsyncComponent(() => import('./TimeSeriesChart.vue'))
 
 const props = defineProps({
   selectedTab: {
@@ -31,83 +31,53 @@ const props = defineProps({
 const { client } = useSession()
 const statusSnapshots = ref()
 let statusTimeout
+let stopped = false
+let statusFailed = false
 const statusSnapshotsSeries = computed(() => {
   return [
     {
       name: 'Used memory (MB)',
-      data: statusSnapshots.value.map(record => [record.at, record.memory])
+      data: statusSnapshots.value.map(record => ({ x: record.at, y: record.memory }))
     },
     {
-      name: 'Used threads',
-      data: statusSnapshots.value.map(record => [record.at, record.threads])
+      name: 'JVM threads',
+      data: statusSnapshots.value.map(record => ({ x: record.at, y: record.threads }))
     }
   ]
 })
 
 function requestStatus() {
-  if (props.selectedTab == 'Diagnostics') {
+  if (props.selectedTab == 'Diagnostics' && !stopped) {
     client.value.status.snapshots()
       .then(response => response.data)
       .then(snapshotsData => {
+        statusFailed = false
         statusSnapshots.value = snapshotsData
-        statusTimeout = setTimeout(requestStatus, 1000 * 30)
       })
       .catch(error => {
+        if (!statusFailed) createErrorToast(`Cannot load status snapshots statistics`)
+        statusFailed = true
         console.log(error)
-        createErrorToast(`Cannot load status snapshots statistics`)
+      })
+      .finally(() => {
+        if (!stopped) statusTimeout = setTimeout(requestStatus, 1000 * 30)
       })
   }
 }
 requestStatus()
-onUnmounted(() => clearTimeout(statusTimeout))
-
-const chartOptions = {
-  chart: {
-    id: "reposilite-instance-status",
-  },
-  tooltip: {
-    shared: true,
-  },
-  xaxis: {
-    type: 'datetime',
-    axisBorder: {
-      show: false
-    },
-    axisTicks: {
-      show: false
-    }
-  },
-  dataLabels: {
-    enabled: false
-  },
-  dropShadow: {
-    enabled: true,
-  },
-  onDatasetHover: {
-    highlightDataSeries: true
-  },
-  theme: {
-    palette: 'palette10'
-  },
-  legend: {
-    itemMargin: {
-      vertical: 15
-    }
-  }
-}
+onUnmounted(() => {
+  stopped = true
+  clearTimeout(statusTimeout)
+})
 </script>
 
 <template>
   <figure v-if="statusSnapshots">
     <figcaption class="sr-only">
-      Runtime memory and thread usage over time
+      Heap memory and JVM platform threads over time
     </figcaption>
-    <VueApexCharts 
-      class="dark:text-black"
-      width="100%"
-      height="320px"
-      type="line"
-      :options="chartOptions"
+    <TimeSeriesChart
+      label="Heap memory and JVM platform threads over time"
       :series="statusSnapshotsSeries"
     />
   </figure>

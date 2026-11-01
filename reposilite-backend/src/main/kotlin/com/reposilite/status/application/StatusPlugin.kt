@@ -18,7 +18,6 @@ package com.reposilite.status.application
 
 import com.reposilite.VERSION
 import com.reposilite.VERSION_SPONSORS
-import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
@@ -35,27 +34,25 @@ import com.reposilite.status.FailuresCommand
 import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
 import com.reposilite.status.StatusSnapshotScheduler
+import com.reposilite.status.api.ConnectionPoolStatus
+import com.reposilite.status.api.ResourcePools
+import com.reposilite.status.api.ThreadPoolStatus
 import com.reposilite.status.infrastructure.StatusEndpoints
-import com.reposilite.web.HttpServer
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.api.RoutingSetupEvent
-import panda.std.reactive.Completable
-import panda.std.reactive.Reference.Dependencies.dependencies
-import panda.std.reactive.Reference.computed
 import java.nio.file.StandardOpenOption
+import java.util.concurrent.ThreadPoolExecutor
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 
-@Plugin(name = "status", dependencies = ["console", "failure", "local-configuration"])
+@Plugin(name = "status", dependencies = ["console", "failure"])
 internal class StatusPlugin : ReposilitePlugin() {
 
     private val remoteVersionEndpoint = "https://maven.reposilite.com/api/maven/latest/version/releases/com/reposilite/reposilite?type=raw"
 
     override fun initialize(): StatusFacade {
         val journalist = reposilite().journalist
-        val webServer = Completable<HttpServer>()
         val failureFacade = facade<FailureFacade>()
-        val localConfiguration = facade<LocalConfiguration>()
         val consoleFacade = facade<ConsoleFacade>()
 
         val statusFacade = StatusComponents(
@@ -63,12 +60,8 @@ internal class StatusPlugin : ReposilitePlugin() {
             failureFacade = failureFacade,
             remoteClientProvider = reposilite().remoteClientProvider,
             remoteVersionEndpoint = remoteVersionEndpoint,
-            statusSupplier = { if (webServer.isReady) webServer.get().isAlive() else false },
-            maxThreads = with (localConfiguration) {
-                computed(dependencies(webThreadPool, ioThreadPool, databaseThreadPool)) {
-                    webThreadPool.get() + ioThreadPool.get() + databaseThreadPool.get()
-                }
-            }
+            statusSupplier = reposilite().webServer::isAlive,
+            resourcePools = ::fetchResourcePools
         ).statusFacade()
 
         val statusSnapshotScheduler = StatusSnapshotScheduler(reposilite().scheduler, statusFacade)
@@ -79,7 +72,6 @@ internal class StatusPlugin : ReposilitePlugin() {
         }
 
         event { _: ReposiliteInitializeEvent ->
-            webServer.complete(reposilite().webServer)
             consoleFacade.registerCommand(FailuresCommand(failureFacade))
             consoleFacade.registerCommand(StatusCommand(statusFacade))
         }
@@ -118,6 +110,28 @@ internal class StatusPlugin : ReposilitePlugin() {
         return statusFacade
     }
 
+    private fun fetchResourcePools(): ResourcePools {
+        val reposilite = reposilite()
+        val databaseSource = reposilite.databaseConnection.databaseSource
 
+        return ResourcePools(
+            web = reposilite.webServer.fetchThreadPoolStatus(),
+            io = (reposilite.ioService as? ThreadPoolExecutor)?.let { pool ->
+                ThreadPoolStatus(
+                    active = pool.activeCount,
+                    capacity = pool.maximumPoolSize,
+                    queued = pool.queue.size,
+                    reserved = 0
+                )
+            },
+            database = databaseSource.hikariPoolMXBean?.let { pool ->
+                ConnectionPoolStatus(
+                    active = pool.activeConnections,
+                    capacity = databaseSource.maximumPoolSize,
+                    waiting = pool.threadsAwaitingConnection
+                )
+            }
+        )
+    }
 
 }

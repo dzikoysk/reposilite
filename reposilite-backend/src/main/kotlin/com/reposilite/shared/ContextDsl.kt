@@ -25,6 +25,7 @@ import com.reposilite.token.api.AccessTokenDto
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus.FORBIDDEN
+import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
 import panda.std.Result
 import panda.std.asError
 import panda.std.mapToUnit
@@ -40,8 +41,10 @@ class ContextDsl<R>(
         private val METHOD_PERMISSIONS = mapOf(
             HandlerType.HEAD to RoutePermission.READ,
             HandlerType.GET to RoutePermission.READ,
+            HandlerType.OPTIONS to RoutePermission.READ,
             HandlerType.PUT to RoutePermission.WRITE,
             HandlerType.POST to RoutePermission.WRITE,
+            HandlerType.PATCH to RoutePermission.WRITE,
             HandlerType.DELETE to RoutePermission.WRITE
         )
     }
@@ -103,16 +106,20 @@ class ContextDsl<R>(
     inline fun <reified T : Any> body() =
         ctx.bodyAsClass(T::class.java)
 
-    private fun isAuthorized(to: String): Result<Unit, ErrorResponse> =
-        isManager()
+    private fun isAuthorized(to: String): Result<Unit, ErrorResponse> {
+        val requiredPermission = METHOD_PERMISSIONS[ctx.method()]
+            ?: return METHOD_NOT_ALLOWED.toErrorResult("Authorization is not supported for ${ctx.method()} requests")
+
+        return isManager()
             .flatMapErr { _ ->
                 authenticationResult.value
                     .filter(
-                        { accessTokenFacade.hasPermissionTo(it.identifier, to, METHOD_PERMISSIONS[ctx.method()]!!) },
+                        { accessTokenFacade.hasPermissionTo(it.identifier, to, requiredPermission) },
                         { FORBIDDEN.toErrorResponse("This token is not authorized to access this path") }
                     )
                     .mapToUnit()
             }
+    }
 
     fun isManager(): Result<Unit, ErrorResponse> =
         authenticationResult.value

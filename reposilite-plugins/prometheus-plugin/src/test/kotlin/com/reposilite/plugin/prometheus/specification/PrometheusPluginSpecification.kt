@@ -23,9 +23,9 @@ import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.ReposilitePlugin.ReposilitePluginAccessor
 import com.reposilite.plugin.prometheus.PrometheusPlugin
 import com.reposilite.shared.http.HttpRemoteClientProvider
+import com.reposilite.status.api.ResourcePools
 import com.reposilite.status.application.FailureComponents
 import com.reposilite.status.application.StatusComponents
-import panda.std.reactive.Reference
 
 internal open class PrometheusPluginSpecification {
     private val logger = InMemoryLogger()
@@ -41,7 +41,7 @@ internal open class PrometheusPluginSpecification {
                 remoteClientProvider = HttpRemoteClientProvider(extensions),
                 remoteVersionEndpoint = "",
                 statusSupplier = { true },
-                maxThreads = Reference(1)
+                resourcePools = { ResourcePools(web = null, io = null, database = null) }
             ).statusFacade()
         )
         ReposilitePluginAccessor.injectExtension(prometheusPlugin, extensions)

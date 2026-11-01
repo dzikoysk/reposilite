@@ -428,7 +428,11 @@ application
           usedMemory: memory,
           maxMemory: '32',
           usedThreads: threads,
-          maxThreads: 64,
+          resourcePools: {
+            web: { active: 3, capacity: 8, queued: 0, reserved: 4 },
+            io: { active: 4, capacity: 4, queued: 18, reserved: 0 },
+            database: { active: 1, capacity: 1, waiting: 0 }
+          },
           failuresCount: failuresCount()
         })
       },
