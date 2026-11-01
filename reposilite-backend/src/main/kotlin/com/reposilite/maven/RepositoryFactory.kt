@@ -42,6 +42,13 @@ internal class RepositoryFactory(
     private val repositoriesDirectory = Paths.get("repositories")
 
     fun createRepository(identity: RepositoryIdentity, configuration: RepositorySettings): Repository {
+        val resolutionCacheMissTtl = when {
+            configuration.resolutionCacheMissTtl >= 0 -> configuration.resolutionCacheMissTtl
+            else -> {
+                journalist.logger.warn("Repository '${configuration.id}' | Negative resolution cache miss TTL, using default value 0")
+                0L
+            }
+        }
         val mirrorHosts = configuration.proxied.mapNotNull { createMirroredHostConfiguration(it) }
         val storageProvider = storageFacade
             .createStorageProvider(
@@ -66,7 +73,7 @@ internal class RepositoryFactory(
                 parallelMetadataLookup = configuration.parallelMetadataLookup,
                 resolutionCacheMaxEntries = configuration.resolutionCacheMaxEntries,
                 resolutionCacheLevel = configuration.resolutionCacheLevel,
-                resolutionCacheMissTtlInSeconds = configuration.resolutionCacheMissTtl,
+                resolutionCacheMissTtlInSeconds = resolutionCacheMissTtl,
             )
         } catch (exception: Exception) {
             runCatching { storageProvider.shutdown() }

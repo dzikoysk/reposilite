@@ -92,7 +92,7 @@ internal abstract class MavenSpecification {
     protected val remoteRequestsByUri = ConcurrentHashMap<String, AtomicInteger>()
 
     private val clock = Clock.systemDefaultZone()
-    private val logger = InMemoryLogger()
+    protected val logger = InMemoryLogger()
     protected val extensions = Extensions(logger)
 
     private val failureFacade = FailureComponents(

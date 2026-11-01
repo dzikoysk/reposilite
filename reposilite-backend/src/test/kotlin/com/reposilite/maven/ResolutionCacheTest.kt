@@ -150,18 +150,6 @@ internal class ResolutionCacheTest {
     }
 
     @Test
-    fun `negative miss ttl is rejected`() {
-        // given: a negative resolution cache miss ttl
-        val missTtl = -1L
-
-        // when: repository settings are created
-        val result = runCatching { RepositorySettings(id = "test", resolutionCacheMissTtl = missTtl) }
-
-        // then: invalid settings are rejected before repositories are replaced
-        assertThat(result.exceptionOrNull()).isInstanceOf(IllegalArgumentException::class.java)
-    }
-
-    @Test
     fun `default miss ttl is omitted from serialized settings`() {
         // given: default and explicitly configured resolution cache settings
         val defaults = RepositorySettings(id = "defaults")

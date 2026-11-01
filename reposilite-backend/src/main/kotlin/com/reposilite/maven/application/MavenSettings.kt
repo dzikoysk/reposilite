@@ -99,13 +99,7 @@ data class RepositorySettings(
         If set to "0" then misses are kept until eviction or invalidation. (Default: 0 seconds)
     """)
     val resolutionCacheMissTtl: Long = 0L,
-) : SharedSettings {
-
-    init {
-        require(resolutionCacheMissTtl >= 0) { "Resolution cache miss TTL cannot be negative" }
-    }
-
-}
+) : SharedSettings
 
 @Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")
 data class MirroredRepositorySettings(

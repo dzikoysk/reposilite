@@ -29,14 +29,6 @@ enum class ResolutionCacheLevel {
     NEGATIVE_CACHING,
 }
 
-/**
- * Caches routing decisions for metadata reads.
- *
- * @param missTtl how long a [State.MirrorsMissing] entry is kept before mirrors are asked again.
- * [Duration.ZERO] (the default) keeps misses until eviction or invalidation. Routing pins
- * ([State.PinnedMirror]) never expire by time, regardless of this value.
- * @param ticker time source used for expiry; only overridden in tests.
- */
 internal class ResolutionCache(
     maxEntries: Int,
     private val level: ResolutionCacheLevel,
@@ -49,10 +41,6 @@ internal class ResolutionCache(
     sealed interface State {
         data class PinnedMirror(val host: String) : State
         data object MirrorsMissing : State
-    }
-
-    init {
-        require(!missTtl.isNegative) { "Resolution cache miss TTL cannot be negative" }
     }
 
     private val entries: Cache<Key, State> =

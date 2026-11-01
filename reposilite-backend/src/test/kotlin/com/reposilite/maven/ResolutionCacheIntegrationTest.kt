@@ -60,6 +60,14 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
             proxied = listOf(MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST)),
         ),
         RepositorySettings(
+            id = "INVALID_TTL",
+            visibility = PUBLIC,
+            storagePolicy = StoragePolicy.STRICT,
+            resolutionCacheMaxEntries = 16,
+            resolutionCacheMissTtl = -1,
+            proxied = listOf(MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST)),
+        ),
+        RepositorySettings(
             id = "TRANSIENT_FAILURE",
             visibility = PUBLIC,
             storagePolicy = StoragePolicy.STRICT,
@@ -103,6 +111,20 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         // then: the remote is probed once and the exact miss is cached
         assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(1)
         assertThat(mavenFacade.getRepository("NEGATIVE_CACHE")!!.resolutionCache!!.lookup(metadata, false)).isEqualTo(MirrorsMissing)
+    }
+
+    @Test
+    fun `invalid miss ttl falls back to the default`() {
+        // given: a repository configured with a negative miss ttl
+        val metadata = "com/missing/invalid-ttl/$METADATA_FILE".toLocation()
+
+        // when: the same missing metadata is requested twice
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "INVALID_TTL", metadata)))
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "INVALID_TTL", metadata)))
+
+        // then: the default retains the miss and prevents another remote request
+        assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$metadata"]?.get()).isEqualTo(1)
+        assertThat(logger.contains("Negative resolution cache miss TTL, using default value 0")).isTrue()
     }
 
     @Test
