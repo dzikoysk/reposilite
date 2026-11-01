@@ -45,6 +45,7 @@ internal abstract class ConsoleIntegrationSpecification : ReposiliteSpecificatio
         }
         connections.add(connection)
         assertThat(connection.responseCode).isEqualTo(200)
+        assertThat(connection.getHeaderField("Incremental")).isEqualTo("?1")
         return connection.inputStream.bufferedReader().also { reader ->
             val event = generateSequence { reader.readLine() }.firstOrNull { it.contains("console-ready") }
             assertThat(event).isNotNull()
