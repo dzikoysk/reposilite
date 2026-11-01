@@ -112,7 +112,7 @@ dependencies {
 
     // Drivers
     implementation("com.zaxxer:HikariCP:7.1.0")
-    implementation("org.xerial:sqlite-jdbc:3.53.4.0")
+    implementation("org.xerial:sqlite-jdbc:3.54.1.0")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.11")
     implementation("org.postgresql:postgresql:42.7.14")
     implementation("com.h2database:h2:2.5.252")
