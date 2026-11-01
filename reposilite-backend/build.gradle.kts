@@ -60,7 +60,7 @@ dependencies {
         kapt("ch.qos.logback:logback-classic:1.6.6") {
             because("The OpenAPI processor pulls Logback versions affected by deserialization advisories")
         }
-        kapt("org.mozilla:rhino:1.9.1") {
+        kapt("org.mozilla:rhino:1.9.2") {
             because("The OpenAPI processor pulls Rhino 1.7.7.2, affected by GHSA-3w8q-xq97-5j7x")
         }
     }
