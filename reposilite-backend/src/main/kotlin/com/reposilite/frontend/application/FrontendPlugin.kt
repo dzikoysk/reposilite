@@ -47,6 +47,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
         private const val FRONTEND_DIRECTORY = "reposilite-frontend"
         private const val INDEX = "index.html"
         private const val FAVICON = "favicon.png"
+        private const val LOGO = "logo.png"
     }
 
     override fun initialize(): FrontendFacade {
@@ -73,6 +74,10 @@ internal class FrontendPlugin : ReposilitePlugin() {
             staticDirectory.resolve(FAVICON)
                 .takeUnless { it.exists() }
                 ?.also { copyResourceTo(FAVICON, it) }
+
+            staticDirectory.resolve(LOGO)
+                .takeUnless { it.exists() }
+                ?.also { copyResourceTo(LOGO, it) }
         }
 
         event { event: RoutingSetupEvent ->

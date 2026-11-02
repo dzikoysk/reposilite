@@ -71,6 +71,14 @@ internal class FrontendBasePathIntegrationTest : ReposiliteSpecification() {
         assertThat(fontResponse.isSuccess).isTrue
         assertThat(fontResponse.headers.getFirst("Content-Type")).isEqualTo("font/woff2")
         assertThat(fontResponse.body).isNotEmpty
+
+        assertThat(scriptResponse.body.decodeToString()).contains("logo.png")
+
+        val logoResponse = get("$base/logo.png").asBytes()
+
+        assertThat(logoResponse.isSuccess).isTrue
+        assertThat(logoResponse.headers.getFirst("Content-Type")).isEqualTo("image/png")
+        assertThat(logoResponse.body).isNotEmpty
     }
 
 }
