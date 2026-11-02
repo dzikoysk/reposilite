@@ -47,9 +47,12 @@ class Repository internal constructor(
     resolutionCacheMaxEntries: Int,
     resolutionCacheLevel: ResolutionCacheLevel,
     resolutionCacheMissTtlInSeconds: Long,
+    mergeMetadata: Boolean = false,
 ) : RepositoryInfo {
 
     override val name: String = identity.name
+
+    internal val metadataStorage = MetadataStorage(storageProvider)
 
     init {
         check(name.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters" }
@@ -68,6 +71,10 @@ class Repository internal constructor(
     @JvmSynthetic
     internal val parallelMetadataLookupEnabled: Boolean =
         parallelMetadataLookup && resolutionCache != null
+
+    @JvmSynthetic
+    internal val mergeMetadataEnabled: Boolean =
+        mergeMetadata && mirrorHosts.isNotEmpty()
 
     fun acceptsDeploymentOf(location: Location): Boolean =
         redeployment || location.getSimpleName().contains(METADATA_FILE) || !storageProvider.exists(location)
@@ -100,7 +107,7 @@ class Repository internal constructor(
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
-        storageProvider.putFile(location, inputStream)
+        metadataStorage.putFile(location, inputStream)
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun getFile(location: Location): Result<InputStream, ErrorResponse> =
@@ -112,7 +119,7 @@ class Repository internal constructor(
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun removeFile(location: Location): Result<Unit, ErrorResponse> =
-        storageProvider.removeFile(location)
+        metadataStorage.removeFile(location)
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun getFiles(directoryLocation: Location): Result<List<Location>, ErrorResponse> =

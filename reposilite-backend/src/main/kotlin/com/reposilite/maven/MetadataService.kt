@@ -16,13 +16,7 @@
 
 package com.reposilite.maven
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
-import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.reposilite.maven.api.GeneratePomRequest
 import com.reposilite.maven.api.LatestVersionResponse
@@ -49,18 +43,13 @@ import panda.std.mapToUnit
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-internal class MetadataService(private val repositoryFacade: RepositoryFacade) {
+internal class MetadataService(
+    private val repositoryFacade: RepositoryFacade,
+    private val mergedMetadataService: MergedMetadataService,
+) {
 
-    private val xml by lazy {
-        XmlMapper.xmlBuilder()
-            .addModules(JacksonXmlModule(), kotlinModule())
-            .configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
-            .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .defaultUseWrapper(false)
-            .enable(INDENT_OUTPUT)
-            .build()
-    }
+    private val xml: XmlMapper
+        get() = metadataXmlMapper
 
     private val timestampFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
@@ -68,7 +57,8 @@ internal class MetadataService(private val repositoryFacade: RepositoryFacade) {
         with (saveMetadataRequest) {
             supplyThrowing { xml.writeValueAsBytes(metadata) }
                 .mapErr { internalServer("Cannot parse metadata file") }
-                .flatMap { repository.storageProvider.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
+                .flatMap { repository.metadataStorage.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
+                .peek { mergedMetadataService.invalidate(gav.resolveMetadataFile()) }
                 .flatMap { repository.writeFileChecksums(gav.resolveMetadataFile(), it) }
                 .peek { repository.resolutionCache?.invalidate(gav.resolveMetadataFile()) }
                 .map { metadata }
