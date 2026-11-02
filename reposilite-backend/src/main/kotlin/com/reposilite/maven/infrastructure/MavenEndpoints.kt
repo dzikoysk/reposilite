@@ -99,9 +99,10 @@ internal class MavenEndpoints(
 
     fun findFile(ctx: Context, identifier: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> {
         val request = LookupRequest(accessToken = identifier, repository = repository, gav = gav)
-        val allDetails = mavenFacade.findDetails(request)
 
-        return allDetails.flatMap { details ->
+        val result = if (mavenFacade.mergesMetadata(request)) {
+            respondWithMergedMetadata(ctx, request)
+        } else mavenFacade.findDetails(request).flatMap { details ->
             when (details) {
                 is DocumentInfo ->
                     when (ctx.method()) {
@@ -134,7 +135,8 @@ internal class MavenEndpoints(
                     throw IllegalStateException("Expected file details, but got $details")
             }
         }
-        .onError {
+
+        return result.onError {
             ctx.status(it.status).html(
                 frontendFacade.createNotFoundPage(
                     originUri = ctx.uri(),
@@ -145,6 +147,23 @@ internal class MavenEndpoints(
             mavenFacade.logger.debug("FIND | Could not find file due to $it")
         }
     }
+
+    private fun respondWithMergedMetadata(ctx: Context, request: LookupRequest): Result<Unit, ErrorResponse> =
+        // Headers and body must describe the same merge, even when caching is disabled.
+        mavenFacade.findFile(request).map { file ->
+            when (ctx.method()) {
+                HEAD_METHOD -> file.content.close()
+                else -> ctx.result(file.content)
+            }
+            ctx.attachmentHeaders(
+                name = file.document.name,
+                contentType = file.document.contentType,
+                contentLength = file.document.contentLength,
+                lastTimeModified = file.document.lastModifiedTime,
+                compressionStrategy = compressionStrategy,
+                cache = mavenFacade.acceptsCachingOf(request),
+            )
+        }
 
     @OpenApi(
         tags = [ "Maven" ],
