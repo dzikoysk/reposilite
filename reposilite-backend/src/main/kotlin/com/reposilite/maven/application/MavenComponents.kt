@@ -22,6 +22,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MavenRepositories
+import com.reposilite.maven.MergedMetadataService
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.MirrorService
 import com.reposilite.maven.ResolutionProvider
@@ -54,21 +55,30 @@ internal class MavenComponents(
 ) : PluginComponents {
 
     private fun metadataService(): MetadataService =
-        MetadataService(repositoryFacade)
+        MetadataService(repositoryFacade, mergedMetadataService)
 
-    private fun mirrorService(): MirrorService =
+    private val mirrorService: MirrorService by lazy {
         MirrorService(
             journalist = journalist,
             failureFacade = failureFacade,
             clock = clock,
             ioService = ioService,
         )
+    }
+
+    private val mergedMetadataService: MergedMetadataService by lazy {
+        MergedMetadataService(
+            journalist = journalist,
+            mirrorService = mirrorService,
+            clock = clock,
+        )
+    }
 
     private fun resolutionProvider(): ResolutionProvider =
         ResolutionProvider(journalist)
 
     private fun repositories(
-        mirrorService: MirrorService = mirrorService(),
+        mirrorService: MirrorService = this.mirrorService,
         resolutionProvider: ResolutionProvider = resolutionProvider(),
     ): MavenRepositories =
         MavenRepositories(
@@ -79,6 +89,7 @@ internal class MavenComponents(
             failureFacade = failureFacade,
             storageFacade = storageFacade,
             mirrorService = mirrorService,
+            mergedMetadataService = mergedMetadataService,
             resolutionProvider = resolutionProvider,
             statisticsFacade = statisticsFacade,
             extensions = extensions,
