@@ -94,7 +94,7 @@ internal class ResolutionProvider(
                 else -> {
                     val remote = tryRemote(hosts)
                     val result = when {
-                        remote is MirrorResolution.Failed && remote.error.status == 429 -> Result.error(remote.error)
+                        remote is MirrorResolution.Failed && (remote.error.status == 429 || remote.error.status >= 500) -> Result.error(remote.error)
                         else -> remote.toResult(gav).flatMapErr { local }
                     }
                     ResolutionAttempt(result = result, remote = remote)
