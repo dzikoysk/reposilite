@@ -27,6 +27,7 @@ import com.reposilite.shared.extensions.accept
 import com.reposilite.shared.internalServerError
 import com.reposilite.shared.notFoundError
 import com.reposilite.shared.unauthorized
+import com.reposilite.shared.unauthorizedError
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenDto
@@ -70,12 +71,21 @@ internal class LdapAuthenticator(
     }
 
     override fun authenticate(credentials: Credentials): Result<AccessTokenDto, ErrorResponse> =
+        lookupUser(credentials.name)
+            .filter({ (userDomain, _) ->
+                disableUserPasswordAuthentication || Secret.create(credentials.secret)
+                    .map { createUserContext(userDomain, it).isOk }
+                    .orElseGet { false }
+            }) { unauthorized("Unauthorized LDAP access") }
+            .flatMap { (_, username) -> getOrCreateAccessToken(username, credentials.secret) }
+
+    private fun lookupUser(name: String): Result<Pair<String, String>, ErrorResponse> =
         with(ldapSettings.get()) {
             createSearchContext()
                 .flatMap {
                     it.search(
                         ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0})$userFilter)", // find user entry with search user,
-                        ldapFilterQueryArguments = arrayOf(credentials.name),
+                        ldapFilterQueryArguments = arrayOf(name),
                         requestedAttributes = arrayOf(userAttribute)
                     )
                 }
@@ -101,19 +111,26 @@ internal class LdapAuthenticator(
                     }
                 }
                 .map { (userDomain, username) -> userDomain to username.first() }
-                .filter({ (userDomain, _) -> disableUserPasswordAuthentication || createDirContext(user = userDomain, password = credentials.secret).isOk }) { unauthorized("Unauthorized LDAP access") }
-                .map { (_, username) ->
-                    accessTokenFacade.getAccessToken(username)
-                        ?: accessTokenFacade.createAccessToken(
-                            CreateAccessTokenRequest(
-                                type = ldapSettings.map { it.userType },
-                                name = username,
-                                secret = credentials.secret
-                            )
-                        ).accessToken
-                }
-                .filter({ !it.isExpired() }) { unauthorized("Invalid authorization credentials") }
         }
+
+    private fun getOrCreateAccessToken(name: String, secret: String): Result<AccessTokenDto, ErrorResponse> {
+        val accessToken = accessTokenFacade.getAccessToken(name)
+            ?: accessTokenFacade.createAccessToken(
+                CreateAccessTokenRequest(
+                    type = ldapSettings.map { it.userType },
+                    name = name,
+                    secret = secret
+                )
+            ).accessToken
+
+        return when {
+            accessToken.isExpired() -> unauthorizedError("Invalid authorization credentials")
+            else -> accessToken.asSuccess()
+        }
+    }
+
+    private fun createUserContext(user: String, secret: Secret): Result<out DirContext, ErrorResponse> =
+        createDirContext(user = user, password = secret.value)
 
     private fun createDirContext(user: String, password: String): Result<out DirContext, ErrorResponse> =
         Hashtable<String, String>()
