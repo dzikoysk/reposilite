@@ -21,6 +21,7 @@ import com.reposilite.auth.application.LdapSettings
 import com.unboundid.ldap.listener.InMemoryDirectoryServer
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
 import com.unboundid.ldap.listener.InMemoryListenerConfig
+import com.unboundid.ldap.listener.interceptor.InMemoryOperationInterceptor
 import java.net.InetAddress
 import org.junit.jupiter.api.AfterEach
 
@@ -39,13 +40,19 @@ internal open class LdapSpecification : AuthenticationSpecification() {
         }
     }
 
-    fun createLdapServer(ldapSettings: LdapSettings, baseDns: List<String>, credentials: Map<String, String>) {
+    fun createLdapServer(
+        ldapSettings: LdapSettings,
+        baseDns: List<String>,
+        credentials: Map<String, String>,
+        operationInterceptor: InMemoryOperationInterceptor? = null
+    ) {
         val config = InMemoryDirectoryServerConfig(*baseDns.toTypedArray())
         credentials.forEach { (user, password) ->
             config.addAdditionalBindCredentials(user, password)
         }
         config.listenerConfigs.add(InMemoryListenerConfig.createLDAPConfig(ldapSettings.hostname, InetAddress.getLoopbackAddress(), ldapSettings.port, null))
         config.schema = null // remove
+        operationInterceptor?.let { config.addInMemoryOperationInterceptor(it) }
 
         this.ldapServer = InMemoryDirectoryServer(config)
         ldapServer.startListening(ldapSettings.hostname)

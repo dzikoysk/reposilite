@@ -18,6 +18,7 @@ package com.reposilite.auth
 
 import com.reposilite.auth.api.Credentials
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.unauthorized
 import com.reposilite.shared.unauthorizedError
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenDto
@@ -27,8 +28,13 @@ import panda.std.asSuccess
 internal class BasicAuthenticator(private val accessTokenFacade: AccessTokenFacade) : Authenticator {
 
     override fun authenticate(credentials: Credentials): Result<AccessTokenDto, ErrorResponse> =
-        accessTokenFacade.getAccessToken(credentials.name)
-            ?.takeIf { !it.isExpired() && accessTokenFacade.secretMatches(it.identifier, credentials.secret) }
+        Secret.create(credentials.secret)
+            .mapErr { unauthorized("Invalid authorization credentials") }
+            .flatMap { authenticate(credentials.name, it) }
+
+    private fun authenticate(name: String, secret: Secret): Result<AccessTokenDto, ErrorResponse> =
+        accessTokenFacade.getAccessToken(name)
+            ?.takeIf { !it.isExpired() && accessTokenFacade.secretMatches(it.identifier, secret.value) }
             ?.asSuccess()
             ?: unauthorizedError("Invalid authorization credentials")
 
