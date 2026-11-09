@@ -18,13 +18,17 @@ package com.reposilite.web.infrastructure
 
 import io.javalin.http.Header.X_FORWARDED_FOR
 
-internal fun resolveClientIp(forwardedIp: String, peerIp: String, header: (String) -> String?): String {
-    val forwarded = forwardedIp.takeIf { it.isNotBlank() }?.let(header) ?: return peerIp
-    val clientIp = when {
-        forwardedIp.equals(X_FORWARDED_FOR, ignoreCase = true) -> forwarded.substringAfterLast(',')
-        ',' in forwarded -> return peerIp
-        else -> forwarded
+internal fun resolveClientIp(forwardedIp: String, peerIp: String, headers: (String) -> List<String>): String {
+    if (forwardedIp.isBlank()) {
+        return peerIp
     }
 
-    return clientIp.trim().ifEmpty { peerIp }
+    val forwarded = headers(forwardedIp)
+    val clientIp = if (forwardedIp.equals(X_FORWARDED_FOR, ignoreCase = true)) {
+        forwarded.lastOrNull()?.substringAfterLast(',')
+    } else {
+        forwarded.singleOrNull()?.takeUnless { ',' in it }
+    }
+
+    return clientIp?.trim()?.ifEmpty { peerIp } ?: peerIp
 }

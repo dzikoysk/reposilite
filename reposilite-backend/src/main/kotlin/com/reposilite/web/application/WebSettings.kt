@@ -25,7 +25,8 @@ import io.javalin.openapi.JsonSchema
 data class WebSettings(
     @get:Doc(title = "Forwarded IP", description = """
         Leave empty to use the connection's IP address. Set a header name only when all requests
-        go through a proxy that overwrites that header with a single client IP address. <br />
+        go through a proxy that overwrites that header with a single client IP address.
+        For X-Forwarded-For, the proxy can also append the client IP as the last address. <br />
         Nginx: X-Forwarded-For <br />
         Cloudflare: CF-Connecting-IP <br />
         Common alternative: X-Real-IP

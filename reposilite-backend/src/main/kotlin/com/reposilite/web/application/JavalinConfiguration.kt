@@ -93,7 +93,7 @@ internal object JavalinConfiguration {
             resolveClientIp(
                 forwardedIp = forwardedIp.get(),
                 peerIp = context.req().remoteAddr,
-                header = context::header,
+                headers = { context.req().getHeaders(it).toList() },
             )
         }
 

@@ -39,6 +39,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 private const val FORWARDED_PREFIX_HEADER = "X-Forwarded-Prefix"
 private const val BASE_PATH = "/maven"
@@ -156,7 +158,7 @@ internal class ForwardingIntegrationTest {
             assertThat(authenticate(manager.second)).isEqualTo(OK.code)
 
             // when: failed logins arrive over both transports with different forwarded addresses
-            failWebSocketAuthentication(FORWARDED_IP_HEADER)
+            failWebSocketAuthentication(FORWARDED_IP_HEADER, "192.0.2.1")
             assertThat(authenticate("wrong-secret", "192.0.2.2")).isEqualTo(UNAUTHORIZED.code)
 
             // then: the socket IP is blocked even when the next request supplies another forwarded address
@@ -172,38 +174,42 @@ internal class ForwardingIntegrationTest {
             }
 
             // when: one client fails authentication over both transports
-            failWebSocketAuthentication(proxyHeader.lowercase())
-            assertThat(authenticate("wrong-secret", "192.0.2.1", proxyHeader)).isEqualTo(UNAUTHORIZED.code)
+            failWebSocketAuthentication(proxyHeader.lowercase(), "192.0.2.1")
+            assertThat(authenticate("wrong-secret", "192.0.2.1", headerName = proxyHeader)).isEqualTo(UNAUTHORIZED.code)
 
             // then: both attempts count against that client only
-            assertThat(authenticate(manager.second, "192.0.2.1", proxyHeader)).isEqualTo(UNAUTHORIZED.code)
-            assertThat(authenticate(manager.second, "192.0.2.2", proxyHeader)).isEqualTo(OK.code)
+            assertThat(authenticate(manager.second, "192.0.2.1", headerName = proxyHeader)).isEqualTo(UNAUTHORIZED.code)
+            assertThat(authenticate(manager.second, "192.0.2.2", headerName = proxyHeader)).isEqualTo(OK.code)
         }
 
-        @Test
-        fun `should count failed logins against the address appended by the proxy`() {
+        @ParameterizedTest
+        @ValueSource(booleans = [false, true])
+        fun `should count failed logins against the address appended by the proxy`(separateHeaders: Boolean) {
             // given: an installation configured to trust X-Forwarded-For
             useFacade<SharedConfigurationFacade>().getDomainSettings<WebSettings>().update {
                 it.copy(forwardedIp = FORWARDED_IP_HEADER)
             }
 
-            // when: one client sends failed logins with different prefixes
-            assertThat(authenticate("wrong-secret", "192.0.2.2, 192.0.2.1")).isEqualTo(UNAUTHORIZED.code)
-            assertThat(authenticate("wrong-secret", "192.0.2.3, 192.0.2.1")).isEqualTo(UNAUTHORIZED.code)
+            fun forwarded(prefix: String): Array<String> =
+                if (separateHeaders) arrayOf(prefix, "192.0.2.1") else arrayOf("$prefix, 192.0.2.1")
+
+            // when: one client sends failed logins over both transports with different prefixes
+            failWebSocketAuthentication(FORWARDED_IP_HEADER, *forwarded("192.0.2.2"))
+            assertThat(authenticate("wrong-secret", *forwarded("192.0.2.3"))).isEqualTo(UNAUTHORIZED.code)
 
             // then: the appended client is banned and other clients can still authenticate
-            assertThat(authenticate(manager.second, "192.0.2.4, 192.0.2.1")).isEqualTo(UNAUTHORIZED.code)
+            assertThat(authenticate(manager.second, "192.0.2.1")).isEqualTo(UNAUTHORIZED.code)
             assertThat(authenticate(manager.second, "192.0.2.3")).isEqualTo(OK.code)
         }
 
-        private fun authenticate(secret: String, forwarded: String? = null, headerName: String = FORWARDED_IP_HEADER): Int =
+        private fun authenticate(secret: String, vararg forwarded: String, headerName: String = FORWARDED_IP_HEADER): Int =
             get("$base/api/tokens/${manager.first}")
                 .basicAuth(manager.first, secret)
-                .apply { forwarded?.let { header(headerName, it) } }
+                .apply { forwarded.forEach { header(headerName, it) } }
                 .asString()
                 .status
 
-        private fun failWebSocketAuthentication(headerName: String) {
+        private fun failWebSocketAuthentication(headerName: String, vararg forwarded: String) {
             val response = CompletableFuture<String>()
             val listener = object : WebSocket.Listener {
                 override fun onText(socket: WebSocket, data: CharSequence, last: Boolean): CompletionStage<*>? {
@@ -214,7 +220,7 @@ internal class ForwardingIntegrationTest {
 
             val endpoint = URI.create(base.replaceFirst("http://", "ws://") + "/api/console/sock")
             val socket = HttpClient.newHttpClient().newWebSocketBuilder()
-                .header(headerName, "192.0.2.1")
+                .apply { forwarded.forEach { header(headerName, it) } }
                 .buildAsync(endpoint, listener)
                 .get(5, SECONDS)
 

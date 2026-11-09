@@ -110,7 +110,7 @@ internal class ConsoleWebSocketHandler(
 
     private fun authenticateContext(connection: WsMessageContext): Result<String, ErrorResponse> {
         val authMessage = connection.message()
-        val clientIp = connection.resolveClientIp()
+        val clientIp = connection.clientIp()
 
         if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
             return unauthorizedError("Unauthorized CLI access request from $clientIp (missing credentials)")
@@ -132,13 +132,17 @@ internal class ConsoleWebSocketHandler(
             .map { "${it.name}@$clientIp" }
     }
 
-    private fun WsContext.resolveClientIp(): String {
+    private fun WsContext.clientIp(): String {
         val peerIp = when (val address = session.remoteSocketAddress) {
             is InetSocketAddress -> HostPort.normalizeHost(address.address?.hostAddress ?: address.hostString)
             else -> address.toString()
         }
 
-        return resolveClientIp(forwardedIp.get(), peerIp, session.upgradeRequest::getHeader)
+        return resolveClientIp(
+            forwardedIp = forwardedIp.get(),
+            peerIp = peerIp,
+            headers = { session.upgradeRequest.getHeaders(it).orEmpty() },
+        )
     }
 
 }
