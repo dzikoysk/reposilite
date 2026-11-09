@@ -33,7 +33,9 @@ import com.reposilite.storage.api.UNKNOWN_LENGTH
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
+import io.javalin.http.HttpStatus.NOT_FOUND
 import panda.std.Result
+import panda.std.Result.error
 import panda.std.Result.ok
 import panda.std.asSuccess
 import panda.std.letIf
@@ -51,6 +53,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.S3Exception
 import software.amazon.awssdk.services.s3.model.S3Object
 import java.io.File
 import java.io.IOException
@@ -144,7 +147,12 @@ class S3StorageProvider(
             Location.empty() -> listDirectoryDetails(location)
             else -> head(location)
                 .map { toDocumentInfo(location, it) }
-                .flatMapErr { listDirectoryDetails(location) }
+                .flatMapErr { headError ->
+                    when (headError.status) {
+                        NOT_FOUND.code -> listDirectoryDetails(location)
+                        else -> error(headError)
+                    }
+                }
         }
 
     private fun listDirectoryDetails(location: Location): Result<FileDetails, ErrorResponse> =
@@ -288,9 +296,20 @@ class S3StorageProvider(
             s3.headObject(request.build()).asSuccess()
         } catch (ignored: NoSuchKeyException) {
             notFoundError(ignored.message ?: "File not found")
+        } catch (exception: S3Exception) {
+            // HEAD has no error body, so a missing key may come back as a bare 404
+            when (exception.statusCode()) {
+                NOT_FOUND.code -> notFoundError(exception.message ?: "File not found")
+                else -> headFailure(location, exception)
+            }
         } catch (exception: Exception) {
-            internalServerError(exception.message ?: "Generic exception")
+            headFailure(location, exception)
         }
+
+    private fun headFailure(location: Location, exception: Exception): Result<HeadObjectResponse, ErrorResponse> {
+        failureFacade.throwException("S3 Storage Provider failed to HEAD ${location.toBucketKey()}", exception)
+        return internalServerError(exception.message ?: "Generic exception")
+    }
 
     override fun exists(location: Location): Boolean =
         head(location)
