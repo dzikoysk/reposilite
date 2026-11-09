@@ -28,6 +28,11 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 # Run stage
 FROM eclipse-temurin:21.0.13_9-jre-noble AS run
 
+# Disable download retries while updating the APT client affected by CVE-2026-109518.
+RUN apt-get --error-on=any -o Acquire::Retries=0 update \
+    && apt-get -o Acquire::Retries=0 install -y --no-install-recommends --only-upgrade apt libapt-pkg6.0t64 libpcre2-8-0 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Setup runtime environment
 RUN mkdir -p /app/data && mkdir -p /var/log/reposilite
 VOLUME /app/data

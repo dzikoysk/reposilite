@@ -63,7 +63,7 @@ dependencies {
         kapt("org.mozilla:rhino:1.9.2") {
             because("The OpenAPI processor pulls Rhino 1.7.7.2, affected by GHSA-3w8q-xq97-5j7x")
         }
-        kapt("com.google.guava:guava:33.7.2-jre") {
+        kapt("com.google.guava:guava:33.8.0-jre") {
             because("The OpenAPI processor pulls Guava versions affected by CVE-2026-102554")
         }
     }
@@ -87,7 +87,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.57.8"
+    val awssdk = "2.57.11"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
     implementation("software.amazon.awssdk:s3:$awssdk") {
@@ -107,7 +107,7 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.3.1")
 
-    val exposed = "1.6.0"
+    val exposed = "1.6.1"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -124,13 +124,13 @@ dependencies {
     }
     implementation("com.google.protobuf:protobuf-java:4.36.2")
 
-    val jackson = "2.22.4"
+    val jackson = "2.23.0"
     kapt(platform("com.fasterxml.jackson:jackson-bom:$jackson"))
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    // Pinned at 4.x: jsonschema-generator 5.x requires Jackson 3.x (full tools.jackson.* package rename); we're on Jackson 2.22.x.
+    // Pinned at 4.x: jsonschema-generator 5.x requires Jackson 3.x (full tools.jackson.* package rename); we're on Jackson 2.x.
     val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
@@ -156,7 +156,7 @@ dependencies {
     }
     testImplementation("org.apache.commons:commons-compress:1.28.0")
 
-    val ldap = "7.0.5"
+    val ldap = "7.0.6"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 

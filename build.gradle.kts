@@ -148,7 +148,7 @@ subprojects {
     }
 
     dependencies {
-        testImplementation(platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
+        testImplementation(platform("com.fasterxml.jackson:jackson-bom:2.23.0"))
 
         // Capped at 4.6.0: unirest-modules-jackson 4.7.0+ migrated to Jackson 3 (tools.jackson.*); we're pinned to Jackson 2.x.
         val unirest = "4.6.0"
