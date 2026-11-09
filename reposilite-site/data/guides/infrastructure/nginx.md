@@ -31,7 +31,7 @@ server {
         proxy_pass http://reposilite; # the name of Reposilite's upstream specified above
         proxy_set_header   Host              $host;
         proxy_set_header   X-Real-IP         $remote_addr;
-        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-For   $remote_addr;
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   Upgrade           $http_upgrade;
         proxy_set_header   Connection        $connection_upgrade;
@@ -39,6 +39,10 @@ server {
     }
 }
 ```
+
+When Nginx is the only way to reach Reposilite, set `web.forwardedIp` to `X-Forwarded-For` in the shared settings.
+Keep the Reposilite backend private and have Nginx overwrite the header with a single client IP as shown above.
+If you use the older `$proxy_add_x_forwarded_for` example, Reposilite uses the last address in `X-Forwarded-For`, which is the address Nginx appended.
 
 Depending on your inital setup of Reposilite, the IP address to use will vary.
 
@@ -151,6 +155,7 @@ server {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection $connection_upgrade;
     proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
   }
 
   ssl_certificate /etc/letsencrypt/live/repo.example.com/fullchain.pem; # managed by Certbot
@@ -190,7 +195,8 @@ add_header Strict-Transport-Security "max-age=63072000;includeSubdomains;";
 #### Step 4 - Launch
 
 Finally, run `sudo nginx -t` to verify the config and `sudo systemctl restart nginx` to restart nginx.
-This config also works with [Cloudflare](https://www.cloudflare.com/).
+If a CDN or another proxy sits in front of Nginx, configure Nginx to resolve the client IP from that trusted upstream.
+Otherwise, `$remote_addr` identifies the upstream proxy and its clients share one ban counter.
 
 ### Web console
 
@@ -202,6 +208,7 @@ Nginx buffers proxied responses by default, so add a location that disables it:
 location /api/console/log {
     proxy_pass http://reposilite;
     proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
     proxy_buffering off;
 }
 ```

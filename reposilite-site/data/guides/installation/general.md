@@ -211,7 +211,7 @@ Example output:
     "icpLicense": ""
   },
   "web": {
-    "forwardedIp": "X-Forwarded-For"
+    "forwardedIp": ""
   },
   "maven": {
     "repositories": [
@@ -257,3 +257,6 @@ Example output:
 ```
 
 </Spoiler>
+
+For direct access, leave `web.forwardedIp` empty. When upgrading a direct installation, clear any saved value such as the previous default, `X-Forwarded-For`.
+Only set a header name when the backend is reachable exclusively through a reverse proxy that overwrites the header with a single client IP.
