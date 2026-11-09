@@ -24,13 +24,13 @@ import io.javalin.openapi.JsonSchema
 @Doc(title = "Web", description = "General web settings")
 data class WebSettings(
     @get:Doc(title = "Forwarded IP", description = """
-        Any kind of proxy services change real ip.
-        The origin ip should be available in one of the headers. <br />
+        Leave empty to use the connection's IP address. Set a header name only when all requests
+        go through a proxy that overwrites that header with a single client IP address. <br />
         Nginx: X-Forwarded-For <br />
         Cloudflare: CF-Connecting-IP <br />
-        Popular: X-Real-IP
+        Common alternative: X-Real-IP
     """)
-    val forwardedIp: String = "X-Forwarded-For",
+    val forwardedIp: String = "",
     @get:Doc(title = "Forwarded Prefix Header", description = """
         Name of the header a reverse proxy uses to advertise the sub-path Reposilite is mounted under
         (e.g. X-Forwarded-Prefix). When set, requests carrying it render the repository index and 404

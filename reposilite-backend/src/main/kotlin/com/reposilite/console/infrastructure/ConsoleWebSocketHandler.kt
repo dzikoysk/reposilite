@@ -25,13 +25,16 @@ import com.reposilite.shared.unauthorized
 import com.reposilite.shared.unauthorizedError
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
+import com.reposilite.web.infrastructure.resolveClientIp
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
+import org.eclipse.jetty.util.HostPort
 import panda.std.Result
 import panda.std.reactive.Reference
+import java.net.InetSocketAddress
 import java.nio.channels.ClosedChannelException
 import java.util.WeakHashMap
 import java.util.function.Consumer
@@ -107,15 +110,16 @@ internal class ConsoleWebSocketHandler(
 
     private fun authenticateContext(connection: WsMessageContext): Result<String, ErrorResponse> {
         val authMessage = connection.message()
+        val clientIp = connection.resolveClientIp()
 
         if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
-            return unauthorizedError("Unauthorized CLI access request from ${connection.getHost()} (missing credentials)")
+            return unauthorizedError("Unauthorized CLI access request from $clientIp (missing credentials)")
         }
 
         return extractFromString(authMessage.replaceFirst(AUTHORIZATION_PREFIX, ""))
             .map { (name, secret) ->
                 Credentials(
-                    ip = connection.getHost(),
+                    ip = clientIp,
                     name = name,
                     secret = secret
                 )
@@ -123,12 +127,18 @@ internal class ConsoleWebSocketHandler(
             .flatMap { authenticationFacade.authenticateByCredentials(it) }
             .filter(
                 { accessTokenFacade.hasPermission(it.identifier, MANAGER) },
-                { unauthorized("Unauthorized CLI access request from ${connection.getHost()}") }
+                { unauthorized("Unauthorized CLI access request from $clientIp") }
             )
-            .map { "${it.name}@${connection.getHost()}" }
+            .map { "${it.name}@$clientIp" }
     }
 
-    private fun WsContext.getHost(): String =
-        header(forwardedIp.get()) ?: session.remoteSocketAddress.toString()
+    private fun WsContext.resolveClientIp(): String {
+        val peerIp = when (val address = session.remoteSocketAddress) {
+            is InetSocketAddress -> HostPort.normalizeHost(address.address?.hostAddress ?: address.hostString)
+            else -> address.toString()
+        }
+
+        return resolveClientIp(forwardedIp.get(), peerIp, session.upgradeRequest::getHeader)
+    }
 
 }

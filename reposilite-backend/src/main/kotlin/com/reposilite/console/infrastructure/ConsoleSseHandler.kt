@@ -32,7 +32,6 @@ import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
-import panda.std.reactive.Reference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledExecutorService
@@ -54,7 +53,6 @@ internal class ConsoleSseHandler(
     private val journalist: ReposiliteJournalist,
     private val accessTokenFacade: AccessTokenFacade,
     private val authenticationFacade: AuthenticationFacade,
-    private val forwardedIp: Reference<String>,
     private val scheduler: ScheduledExecutorService
 ) {
 

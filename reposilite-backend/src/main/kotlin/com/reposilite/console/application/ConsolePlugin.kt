@@ -74,7 +74,6 @@ internal class ConsolePlugin : ReposilitePlugin() {
                 journalist = journalist,
                 accessTokenFacade = facade(),
                 authenticationFacade = facade(),
-                forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp },
                 scheduler = reposilite().scheduler
             )
             event.config.events.serverStopping(client::close)

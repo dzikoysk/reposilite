@@ -30,12 +30,13 @@ import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.ApiCacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
 import com.reposilite.web.infrastructure.createReposiliteDsl
-import io.javalin.community.routing.RoutingSetupScope
+import com.reposilite.web.infrastructure.resolveClientIp
 import io.javalin.community.ssl.SslPlugin
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.config.JavalinConfig
 import io.javalin.config.JavalinState
+import io.javalin.http.Header.X_FORWARDED_FOR
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.plugin.bundled.SslRedirectPlugin
@@ -54,11 +55,18 @@ internal object JavalinConfiguration {
 
         val localConfiguration = reposilite.extensions.facade<LocalConfiguration>()
         val sharedConfigurationFacade = reposilite.extensions.facade<SharedConfigurationFacade>()
-        val webSettings = sharedConfigurationFacade.getDomainSettings<WebSettings>()
+        val forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         reposilite.extensions.registerEvent { _: HttpServerStartedEvent ->
             server.connectors.filterIsInstance<ServerConnector>().forEach { it.idleTimeout = localConfiguration.idleTimeout.get() }
+
+            if (forwardedIp.get().equals(X_FORWARDED_FOR, ignoreCase = true)) {
+                reposilite.logger.warn(
+                    "web.forwardedIp trusts X-Forwarded-For. Clear it for direct access. " +
+                        "Keep it only if every request goes through a proxy that overwrites the header or appends the client IP."
+                )
+            }
         }
 
         if (localConfiguration.bypassExternalCache.get()) {
@@ -69,7 +77,7 @@ internal object JavalinConfiguration {
             }
         }
 
-        configureJavalin(config, localConfiguration, webSettings)
+        configureJavalin(config, localConfiguration, forwardedIp)
         configureJsonSerialization(config)
         configureSSL(reposilite, localConfiguration, config)
         configureCors(config)
@@ -78,10 +86,16 @@ internal object JavalinConfiguration {
         configureRoutingPlugin(config, reposilite)
     }
 
-    private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
+    private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, forwardedIp: Reference<String>) {
         config.startup.showJavalinBanner = false
         config.http.asyncTimeout = 10.minutes.inWholeMilliseconds
-        config.contextResolver.ip = { it.header(webSettings.get().forwardedIp) ?: it.req().remoteAddr }
+        config.contextResolver.ip = { context ->
+            resolveClientIp(
+                forwardedIp = forwardedIp.get(),
+                peerIp = context.req().remoteAddr,
+                header = context::header,
+            )
+        }
 
         System.getProperty("javalin.maxRequestSize")?.let {
             config.http.maxRequestSize = it.toLong()
