@@ -65,11 +65,12 @@ watchEffect(() => {
   // 2. If not display repository credentials if at least GAV has one element
   // 3. If GAV is empty display generic snippet to repository like domain.com/{repository}
   const qualifier = props.qualifier.path
-  const elements = qualifier.split('/')
+  const elements = qualifier.split('/').filter(Boolean)
 
   const isStale = () => qualifier !== props.qualifier.path
 
-  if (elements.length === 1 && elements[0] == '') {
+  // Repository URLs do not need metadata from any of their mirrors.
+  if (elements.length <= 1) {
     loading.value = false
     displayRepository()
     return
@@ -84,7 +85,14 @@ watchEffect(() => {
       loading.value = false
     })
     .catch(() => {
-      client.value.maven.content(`${qualifier.substring(0, qualifier.indexOf(elements[elements.length-1])-1)}/maven-metadata.xml`)
+      if (isStale()) return
+      // The parent of a top-level group is the repository itself.
+      if (elements.length <= 2) {
+        displayRepository()
+        loading.value = false
+        return
+      }
+      client.value.maven.content(`${elements.slice(0, -1).join('/')}/maven-metadata.xml`)
         .then(response => {
           if (isStale()) return
           displayArtifact(response.data, elements[elements.length-1])

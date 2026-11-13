@@ -38,7 +38,9 @@ import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorCompletionService
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.FutureTask
 import java.util.concurrent.RejectedExecutionException
 
 internal const val NO_EXTENSION_MARKER = "<none>"
@@ -168,15 +170,57 @@ internal class MirrorService(
             .putFile(gav, data)
             .flatMap { repository.storageProvider.getFile(gav) }
 
-    private fun <V> searchInRemoteRepositories(
+    /**
+     * Fetches the given file from every eligible mirror without storing it, e.g. to merge metadata files.
+     * Remote hosts are queried concurrently, also if the repository mirrors other local repositories.
+     */
+    fun fetchFromAllRemoteHosts(
         repository: Repository,
         gav: Location,
-        accessToken: AccessTokenIdentifier?,
-        hosts: List<MirrorHost>,
-        parallel: Boolean = false,
-        fetch: (MirrorHost) -> Result<V, ErrorResponse>,
-    ): MirrorResolution<V> {
-        val eligibleHosts = hosts
+        accessToken: AccessTokenIdentifier? = null,
+    ): List<Pair<MirrorHost, Result<ByteArray, ErrorResponse>>> {
+        val eligibleHosts = findEligibleHosts(repository, gav, accessToken, repository.mirrorHosts)
+        val tasks = eligibleHosts.map { host -> FutureTask { fetchBytes(repository, gav, host) } }
+
+        if (eligibleHosts.size > 1) {
+            // Local repositories are read by the caller: their own lookups may depend on ioService as well
+            eligibleHosts.zip(tasks)
+                .filter { (host, _) -> host.client !is RepositoryLoopbackClient }
+                .forEach { (_, task) ->
+                    try {
+                        ioService.execute(task)
+                    } catch (_: RejectedExecutionException) {
+                        // Left to the caller below
+                    }
+                }
+        }
+
+        return try {
+            // The caller runs every task that has not been started yet, so a saturated ioService slows the merge down, but cannot block it
+            eligibleHosts.zip(tasks.map { task -> task.run().let { task.get() } })
+        } catch (exception: ExecutionException) {
+            // Unexpected errors should reach the caller like the ones of a lookup on its own thread
+            throw exception.cause ?: exception
+        } finally {
+            tasks.forEach { it.cancel(true) }
+        }
+    }
+
+    private fun fetchBytes(repository: Repository, gav: Location, mirrorHost: MirrorHost): Result<ByteArray, ErrorResponse> {
+        val (host, config, client) = mirrorHost
+        return try {
+            client
+                .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+                .map { data -> data.use { it.readBytes() } }
+                .mapErr { error -> error.updateMessage { "$host: $it" } }
+        } catch (exception: Exception) {
+            failureFacade.throwException("Mirror lookup ${repository.name}/$gav", exception)
+            error(internalServer("Mirror lookup failed: ${exception.message}"))
+        }
+    }
+
+    private fun findEligibleHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): List<MirrorHost> =
+        hosts
             .filter { !it.configuration.authenticatedFetchingOnly || accessToken != null }
             .filter { (_, config) ->
                 isAllowed(config, gav).fold(
@@ -187,6 +231,16 @@ internal class MirrorService(
                     }
                 )
             }
+
+    private fun <V> searchInRemoteRepositories(
+        repository: Repository,
+        gav: Location,
+        accessToken: AccessTokenIdentifier?,
+        hosts: List<MirrorHost>,
+        parallel: Boolean = false,
+        fetch: (MirrorHost) -> Result<V, ErrorResponse>,
+    ): MirrorResolution<V> {
+        val eligibleHosts = findEligibleHosts(repository, gav, accessToken, hosts)
         if (eligibleHosts.isEmpty()) {
             return MirrorResolution.NoEligibleHosts
         }

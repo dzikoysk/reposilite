@@ -44,6 +44,42 @@ You can configure the storage policy of proxied artifacts.
 
 **Note**: This property can be only set for a whole repository.
 
+#### Merge metadata
+By default, Reposilite serves the first `maven-metadata.xml` file it finds - in the repository itself or in one of its mirrors.
+If a repository aggregates several repositories, e.g. `releases`, `snapshots` and Maven Central,
+versions that are only listed by the other repositories are not visible to Maven and Gradle.
+
+Similar to repository groups in Nexus or virtual repositories in Artifactory,
+you can enable `Merge metadata` to combine the metadata files of the repository and all of its mirrors:
+
+- versions of all repositories are combined without duplicates and sorted by the [Maven version order](https://maven.apache.org/pom.html#Version_Order_Specification)
+- plugins of all repositories are combined without duplicate prefix/artifact ID pairs
+- `latest` is the highest listed version and `release` the highest listed non-snapshot version
+- `lastUpdated` is the most recent timestamp of all repositories
+- snapshot metadata points to the highest build of each classifier and extension, regardless of the repository that provides it
+- checksums (`.md5`, `.sha1`, `.sha256`, `.sha512`) are generated for the merged file
+
+Remote mirrors are queried concurrently. Mirrors that cannot be reached are skipped, so the merged file contains the versions of all available repositories.
+Other files, like artifacts and POMs, are still served from the first repository that provides them.
+Signatures and other companion files of metadata (e.g. `maven-metadata.xml.asc`) are not served, because they would not match the merged file.
+
+The merged file is never stored. By default, it is created for each request - this also applies to files that do not exist in any repository -
+so use `Max age of metadata file` to keep the result in memory for the given number of seconds.
+If the only response is malformed XML, the next request retries the lookup.
+Deploying or deleting files invalidates cached metadata in their ancestor directories, including in repositories that mirror the modified repository by ID.
+Deleting a directory also invalidates metadata below it.
+
+The metadata file stored in the repository itself only contributes entries that are backed by its own storage:
+versions and plugins with a non-empty directory next to the metadata file, and snapshot builds with a file of that build.
+Maven and Gradle update metadata by downloading the merged file and uploading it with their own version,
+so the stored file may list versions of mirrors as well. The same applies to metadata files that were downloaded
+with `Store` enabled before merging was enabled. Such entries are ignored, the current state is fetched from the mirrors instead.
+
+Upstream XML is only accepted when its root element is `metadata`; HTML login pages and other
+XML responses are skipped in the same way as malformed XML.
+
+**Note**: This property can be only set for a whole repository and requires at least one mirrored repository.
+
 #### Allowed groups
 You can limit the scope of proxied artifacts by specifying list of allowed groups, e.g.:
 

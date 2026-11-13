@@ -99,6 +99,14 @@ data class RepositorySettings(
         If set to "0" then misses are kept until eviction or invalidation. (Default: 0 seconds)
     """)
     val resolutionCacheMissTtl: Long = 0L,
+    @get:Doc(title = "Merge metadata", description = """
+        Merge maven-metadata.xml files from this repository and all of its mirrored repositories instead of serving the first match.<br/>
+        Release and snapshot versions of all repositories are listed, snapshot builds point to the newest build per classifier, 
+        latest/release/lastUpdated are recalculated and checksums are generated for the merged file.<br/>
+        The metadata file of this repository only contributes versions that are stored in this repository.<br/>
+        Merged metadata is never stored locally. Use "Max age of metadata file" to keep the merged result (or the fact that the file is missing) in memory for a while.
+    """)
+    val mergeMetadata: Boolean = false,
 ) : SharedSettings
 
 @Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")

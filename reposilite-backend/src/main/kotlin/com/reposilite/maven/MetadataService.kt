@@ -16,13 +16,7 @@
 
 package com.reposilite.maven
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
-import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.reposilite.maven.api.GeneratePomRequest
 import com.reposilite.maven.api.LatestVersionResponse
@@ -31,6 +25,7 @@ import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.FilterType.HAS
 import com.reposilite.maven.api.FilterType.NONE
+import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionSequence
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.api.VersionsResponse
@@ -49,18 +44,13 @@ import panda.std.mapToUnit
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-internal class MetadataService(private val repositoryFacade: RepositoryFacade) {
+internal class MetadataService(
+    private val repositoryFacade: RepositoryFacade,
+    private val mergedMetadataService: MergedMetadataService,
+) {
 
-    private val xml by lazy {
-        XmlMapper.xmlBuilder()
-            .addModules(JacksonXmlModule(), kotlinModule())
-            .configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
-            .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .defaultUseWrapper(false)
-            .enable(INDENT_OUTPUT)
-            .build()
-    }
+    private val xml: XmlMapper
+        get() = metadataXmlMapper
 
     private val timestampFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
@@ -69,6 +59,7 @@ internal class MetadataService(private val repositoryFacade: RepositoryFacade) {
             supplyThrowing { xml.writeValueAsBytes(metadata) }
                 .mapErr { internalServer("Cannot parse metadata file") }
                 .flatMap { repository.storageProvider.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
+                .peek { mergedMetadataService.invalidate(gav.resolveMetadataFile()) }
                 .flatMap { repository.writeFileChecksums(gav.resolveMetadataFile(), it) }
                 .peek { repository.resolutionCache?.invalidate(gav.resolveMetadataFile()) }
                 .map { metadata }
@@ -133,19 +124,30 @@ internal class MetadataService(private val repositoryFacade: RepositoryFacade) {
         repository.storageProvider.getFile(gav.resolveMetadataFile())
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
 
-    fun findVersions(repository: Repository, gav: Location, filter: String?, sorted: Boolean = true): Result<VersionsResponse, ErrorResponse> =
-        repository.storageProvider.getFile(gav.resolveMetadataFile())
-            .map { it.use { data -> xml.readValue<Metadata>(data) } }
+    private fun readVersionMetadata(request: VersionLookupRequest): Result<Metadata, ErrorResponse> =
+        if (request.repository.mergeMetadataEnabled)
+            mergedMetadataService.findInputStream(request.repository, request.gav.resolveMetadataFile(), request.accessToken)
+                .map { it.use { data -> xml.readValue<Metadata>(data) } }
+        else findMetadata(request.repository, request.gav)
+
+    fun findVersions(request: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
+        readVersionMetadata(request)
             .map { extractVersions(it) }
             .map { (isSnapshot, versions) ->
-                val matchedFilter = when (filter) {
+                val matchedFilter = when (val filter = request.filter) {
                     null -> ({ true })
                     else -> parseVersionFilter(filter)
                 }
 
                 versions
                     .filter(matchedFilter)
-                    .let { if (sorted) VersionComparator.sortStrings(it) else it }
+                    .let {
+                        when {
+                            !request.sorted -> it
+                            request.repository.mergeMetadataEnabled -> it.sortedWith(MetadataMerger.versionOrder)
+                            else -> VersionComparator.sortStrings(it)
+                        }
+                    }
                     .let { VersionsResponse(isSnapshot, it.toList()) }
             }
 
@@ -156,8 +158,8 @@ internal class MetadataService(private val repositoryFacade: RepositoryFacade) {
             else -> ({ it.startsWith(filter) })
         }
 
-    fun findLatestVersion(repository: Repository, gav: Location, filter: String?, sorted: Boolean = true): Result<LatestVersionResponse, ErrorResponse> =
-        findVersions(repository, gav, filter, sorted)
+    fun findLatestVersion(request: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
+        findVersions(request)
             .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
             .map { (isSnapshot, versions) -> LatestVersionResponse(isSnapshot, versions.last()) }
 
