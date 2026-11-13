@@ -27,6 +27,7 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.SaveMetadataRequest
+import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
@@ -40,10 +41,13 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.status.application.FailureComponents
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.toLocation
+import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
 import io.javalin.Javalin
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.BAD_GATEWAY
+import io.javalin.http.HttpStatus.SERVICE_UNAVAILABLE
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -76,6 +80,7 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
     private companion object {
         const val CENTRAL = "https://central.example/maven2"
         const val BROKEN = "https://broken.example/maven2"
+        const val OTHER = "https://other.example/maven2"
         const val GAV = "foo/bar"
         const val METADATA = "$GAV/$METADATA_FILE"
 
@@ -132,6 +137,7 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
 
     private val remoteFiles = ConcurrentHashMap<String, String>()
     private val remoteRequests = ConcurrentHashMap<String, AtomicInteger>()
+    private val remoteFailures = ConcurrentHashMap<String, HttpStatus>()
     private var afterRemoteGet: (String) -> Unit = {}
     @Volatile private var beforeClockRead: () -> Unit = {}
     private var now = Instant.parse("2026-10-30T10:00:00Z")
@@ -154,6 +160,7 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
             remoteRequests.computeIfAbsent(uri) { AtomicInteger() }.incrementAndGet()
             when {
                 uri.startsWith(BROKEN) -> errorResponse(BAD_GATEWAY, "Simulated upstream failure")
+                remoteFailures.keys.any { uri.startsWith(it) } -> errorResponse(remoteFailures.entries.first { uri.startsWith(it.key) }.value, "Simulated upstream failure")
                 else -> {
                     val content = remoteFiles[uri]
                     afterRemoteGet(uri)
@@ -208,6 +215,28 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
             proxied = listOf(MirroredRepositorySettings(reference = CENTRAL)),
         ),
         RepositorySettings(
+            id = "remote-stored",
+            visibility = PUBLIC,
+            proxied = listOf(MirroredRepositorySettings(reference = CENTRAL, store = true)),
+        ),
+        RepositorySettings(
+            id = "central-cached",
+            visibility = PUBLIC,
+            mergeMetadata = true,
+            metadataMaxAge = 60,
+            proxied = listOf(MirroredRepositorySettings(reference = CENTRAL)),
+        ),
+        RepositorySettings(
+            id = "mixed",
+            visibility = PUBLIC,
+            mergeMetadata = true,
+            proxied = listOf(
+                MirroredRepositorySettings(reference = "foo-releases"),
+                MirroredRepositorySettings(reference = CENTRAL),
+                MirroredRepositorySettings(reference = OTHER),
+            ),
+        ),
+        RepositorySettings(
             id = "remote-broken",
             visibility = PUBLIC,
             mergeMetadata = true,
@@ -220,6 +249,11 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
         addFileToRepository(FileSpec("foo-snapshots", METADATA, SNAPSHOTS_METADATA))
     }
 
+    /** The local metadata file only contributes versions that are stored in the repository. */
+    private fun storeVersions(repository: String, vararg versions: String) {
+        versions.forEach { addFileToRepository(FileSpec(repository, "$GAV/$it/bar-$it.pom", "pom")) }
+    }
+
     private fun readMetadata(repository: String, gav: String = METADATA): Metadata =
         assertOk(mavenFacade.findData(LookupRequest(UNAUTHORIZED, repository, gav.toLocation())))
             .use { metadataXmlMapper.readValue(it) }
@@ -228,9 +262,11 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
     fun `should reject well formed HTML instead of returning empty metadata`() {
         remoteFiles["$CENTRAL/$METADATA"] = "<html><head><title>Sign in</title></head><body>Authentication required</body></html>"
 
-        val error = assertError(mavenFacade.findData(LookupRequest(null, "remote-uncached", METADATA.toLocation())))
+        val error = assertError(mavenFacade.findData(LookupRequest(null, "central-cached", METADATA.toLocation())))
 
         assertThat(error.status).isEqualTo(404)
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        assertThat(readMetadata("central-cached").versioning?.versions).containsExactly("1.0.0")
     }
 
     @Test
@@ -251,6 +287,64 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
 
         assertThat(readMetadata("foo-all").versioning?.versions)
             .containsExactly("3.0.0-SNAPSHOT", "3.0.0", "4.0.0-SNAPSHOT", "4.0.0", "4.1.0-SNAPSHOT")
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["<groupId>other</groupId>", "<groupId>foo.bar</groupId>", "<artifactId>baz</artifactId>", "<version>2.0-SNAPSHOT</version>"])
+    fun `should skip mirrors that declare different coordinates`(coordinate: String) {
+        remoteFiles["$CENTRAL/$METADATA"] =
+            "<metadata>$coordinate<versioning><versions><version>9.0.0</version></versions></versioning></metadata>"
+        remoteFiles["$OTHER/$METADATA"] = CENTRAL_METADATA
+
+        val metadata = readMetadata("mixed")
+        assertThat(metadata.groupId).isEqualTo("foo")
+        assertThat(metadata.artifactId).isEqualTo("bar")
+        assertThat(metadata.versioning?.versions).containsExactly("1.0.0")
+    }
+
+    @Test
+    fun `should accept artifact metadata that declares a version`() {
+        // given: metadata of an artifact directory as written by older clients and for Gradle plugin markers
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA.replace("</artifactId>", "</artifactId><version>1.0.0</version>")
+        remoteFiles["$OTHER/$METADATA"] = CENTRAL_METADATA.replace("1.0.0", "2.0.0").replace("</artifactId>", "</artifactId><version>2.0.0</version>")
+
+        // then: the declared version does not turn it into metadata of a version directory
+        assertThat(readMetadata("mixed").versioning?.versions).containsExactly("1.0.0", "2.0.0")
+    }
+
+    @Test
+    fun `should match plugin metadata at the group path`() {
+        val path = "org/example/$METADATA_FILE"
+        val plugins = "<plugins><plugin><prefix>a</prefix><artifactId>a-plugin</artifactId></plugin></plugins>"
+        remoteFiles["$CENTRAL/$path"] = "<metadata><groupId>org.example</groupId>$plugins</metadata>"
+        remoteFiles["$OTHER/$path"] = "<metadata><groupId>org</groupId>${plugins.replace("a-plugin", "wrong-plugin")}</metadata>"
+        assertThat(readMetadata("mixed", path).plugins?.map { it.artifactId }).containsExactly("a-plugin")
+    }
+
+    @Test
+    fun `should serve explicit local and mirrored versions through the versions API`() {
+        mavenSettings.update(mavenSettings.get().copy(repositories = repositories().map {
+            if (it.id == "central-cached") it.copy(proxied = listOf(MirroredRepositorySettings(reference = CENTRAL, authenticatedFetchingOnly = true))) else it
+        }))
+        val repository = mavenFacade.getRepository("central-cached")!!
+        storeVersions(repository.name, "2.0.0", "2.1.0-SNAPSHOT")
+        addFileToRepository(FileSpec(repository.name, METADATA, """
+            <metadata><groupId>foo</groupId><artifactId>bar</artifactId>
+            <versioning><release>2.0.0</release><latest>2.1.0-SNAPSHOT</latest></versioning></metadata>
+        """.trimIndent()))
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        val token = createAccessToken("reader", "secret", repository.name, GAV, READ)
+        val request = VersionLookupRequest(token, repository, GAV.toLocation())
+
+        val merged = assertOk(mavenFacade.findData(LookupRequest(token, repository.name, METADATA.toLocation())))
+            .use { metadataXmlMapper.readValue<Metadata>(it) }
+        assertThat(merged.versioning?.versions).containsExactly("1.0.0", "2.0.0", "2.1.0-SNAPSHOT")
+        assertThat(merged.versioning?.latest).isEqualTo("2.1.0-SNAPSHOT")
+        assertThat(merged.versioning?.release).isEqualTo("2.0.0")
+        assertThat(assertOk(mavenFacade.findVersions(request)).versions).isEqualTo(merged.versioning?.versions)
+        assertThat(assertOk(mavenFacade.findLatestVersion(request)).version).isEqualTo(merged.versioning?.latest)
+        assertThat(assertOk(mavenFacade.findLatestVersion(request.copy(filter = "1."))).version).isEqualTo("1.0.0")
+        assertThat(assertOk(mavenFacade.findVersions(request.copy(accessToken = null))).versions).containsExactly("2.0.0", "2.1.0-SNAPSHOT")
     }
 
     @Test
@@ -314,6 +408,7 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
     @Test
     fun `should invalidate cached metadata saved through metadata service`() {
         remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        storeVersions("remote-cached", "3.0.0")
         readMetadata("remote-cached")
 
         assertOk(mavenFacade.saveMetadata(SaveMetadataRequest(
@@ -379,6 +474,7 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
     fun `should not cache merges that overlap with an invalidation`() {
         // given: metadata that is saved locally while a merge is still fetching remote sources
         remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        storeVersions("remote-cached", "3.0.0")
         val saved = AtomicBoolean()
         afterRemoteGet = {
             if (saved.compareAndSet(false, true)) {
@@ -425,6 +521,7 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
     @Test
     fun `should refresh cached checksums after metadata is redeployed`() {
         remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        storeVersions("remote-cached", "3.0.0", "4.0.0")
         val request = LookupRequest(UNAUTHORIZED, "remote-cached", METADATA.toLocation())
         fun read(file: String): ByteArray =
             assertOk(mavenFacade.findData(request.copy(gav = file.toLocation()))).use { it.readBytes() }
@@ -513,15 +610,15 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
         // given: cached metadata of one artifact and the merge of another one that blocks while it holds the cache lock
         val other = "foo/baz/$METADATA_FILE"
         remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
-        remoteFiles["$CENTRAL/$other"] = CENTRAL_METADATA
+        remoteFiles["$CENTRAL/$other"] = CENTRAL_METADATA.replace("<artifactId>bar", "<artifactId>baz")
         val publicationStarted = CountDownLatch(1)
         val releasePublication = CountDownLatch(1)
         val publishing = CompletableFuture<Thread>()
         afterRemoteGet = { uri ->
             if (uri.endsWith(other)) {
                 beforeClockRead = {
-                    // Caffeine reads its ticker inside put, which runs under the cache lock
-                    if (publishing.getNow(null) == Thread.currentThread()) {
+                    // Caffeine reads its ticker inside put, which runs under the cache lock when the merge is published
+                    if (publishing.getNow(null) == Thread.currentThread() && Thread.currentThread().stackTrace.any { it.methodName == "publish" }) {
                         beforeClockRead = {}
                         publicationStarted.countDown()
                         check(releasePublication.await(10, TimeUnit.SECONDS))
@@ -732,6 +829,9 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
             .isEqualTo(mapOf("" to "5.0.0-20260302.100000-7", "sources" to "5.0.0-20260301.100000-1"))
 
         // then: every referenced build can be resolved through the aggregating repository
+        val versions = assertOk(mavenFacade.findVersions(VersionLookupRequest(null, mavenFacade.getRepository("foo-all")!!, snapshotGav.toLocation())))
+        assertThat(versions.isSnapshot).isTrue()
+        assertThat(versions.versions).containsExactly("5.0.0-20260301.100000-1", "5.0.0-20260302.100000-7")
         assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "foo-all", "$snapshotGav/bar-5.0.0-20260302.100000-7.jar".toLocation())))
         assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "foo-all", "$snapshotGav/bar-5.0.0-20260301.100000-1-sources.jar".toLocation())))
         val remoteJar = assertOk(mavenFacade.findData(LookupRequest(UNAUTHORIZED, "foo-all", "$snapshotGav/bar-5.0.0-20260302.100000-7.jar".toLocation())))
@@ -757,6 +857,7 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
         // given: metadata in mirrors and a version deployed directly to the aggregating repository
         publishReleasesAndSnapshots()
         addFileToRepository(FileSpec("foo-all", METADATA, RELEASES_METADATA.replace("4.0.0", "5.0.0")))
+        storeVersions("foo-all", "5.0.0")
 
         // when: the metadata file is requested
         val metadata = readMetadata("foo-all")
@@ -847,6 +948,7 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
     fun `should reuse merged metadata within max age until it is redeployed`() {
         // given: a repository that keeps merged metadata for 60 seconds
         remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        storeVersions("remote-cached", "3.0.0", "4.0.0")
         val request = LookupRequest(UNAUTHORIZED, "remote-cached", METADATA.toLocation())
 
         // when: the metadata file, its details and checksum are requested
@@ -869,6 +971,278 @@ internal class MergedMetadataIntegrationTest : MavenSpecification() {
         // then: the merged file is recalculated
         assertThat(readMetadata("remote-cached").versioning?.versions).containsExactly("1.0.0", "3.0.0", "4.0.0")
         assertThat(remoteRequests["$CENTRAL/$METADATA"]?.get()).isEqualTo(2)
+    }
+
+    @Test
+    fun `should not keep versions of mirrors that a client uploaded with its own version`() {
+        // given: a client that deploys a version like Maven does - by extending the metadata served by the repository
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA.replace("<version>1.0.0</version>", "<version>1.0.0</version><version>1.1.0</version>")
+        val repository = mavenFacade.getRepository("foo-all")!!
+        val served = readMetadata("foo-all")
+        assertThat(served.versioning?.versions).containsExactly("1.0.0", "1.1.0")
+        storeVersions("foo-all", "5.0.0")
+        val uploaded = served.copy(versioning = served.versioning!!.copy(latest = "5.0.0", release = "5.0.0", _versions = served.versioning.versions!! + "5.0.0"))
+        assertOk(mavenFacade.deployFile(DeployRequest(repository, METADATA.toLocation(), "test", metadataXmlMapper.writeValueAsBytes(uploaded).inputStream(), false)))
+        assertThat(readMetadata("foo-all").versioning?.versions).containsExactly("1.0.0", "1.1.0", "5.0.0")
+
+        // when: the mirror retracts a version
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+
+        // then: the version is gone, although the uploaded file still lists it
+        val metadata = readMetadata("foo-all")
+        assertThat(metadata.versioning?.versions).containsExactly("1.0.0", "5.0.0")
+        assertThat(metadata.versioning?.release).isEqualTo("5.0.0")
+
+        // when: the mirror does not provide the artifact anymore
+        remoteFiles.remove("$CENTRAL/$METADATA")
+
+        // then: only the deployed version is left
+        assertThat(readMetadata("foo-all").versioning?.versions).containsExactly("5.0.0")
+    }
+
+    @Test
+    fun `should ignore mirrored metadata that was stored before merging was enabled`() {
+        // given: a copy of mirrored metadata in the storage of the repository and an artifact cached from that mirror
+        addFileToRepository(FileSpec("foo-all", METADATA, CENTRAL_METADATA.replace("<version>1.0.0</version>", "<version>0.9.0</version><version>1.0.0</version><version>1.1.0</version>")))
+        storeVersions("foo-all", "0.9.0")
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+
+        // when: the metadata file is requested
+        val versions = readMetadata("foo-all").versioning?.versions
+
+        // then: outdated versions are only listed if the repository can still serve them
+        assertThat(versions).containsExactly("0.9.0", "1.0.0")
+    }
+
+    @Test
+    fun `should report missing metadata if the stored file only lists unavailable versions`() {
+        // given: a stored metadata file whose versions are neither stored nor provided by a mirror
+        addFileToRepository(FileSpec("foo-all", METADATA, CENTRAL_METADATA))
+
+        // when: the metadata file is requested
+        val error = assertError(mavenFacade.findData(LookupRequest(UNAUTHORIZED, "foo-all", METADATA.toLocation())))
+
+        // then: it is not found
+        assertThat(error.status).isEqualTo(404)
+    }
+
+    @Test
+    fun `should only merge stored snapshot builds of the repository`() {
+        // given: snapshot metadata that lists a build of a mirror next to a build stored in the repository
+        val snapshotGav = "$GAV/5.0.0-SNAPSHOT"
+        addFileToRepository(FileSpec("foo-all", "$snapshotGav/$METADATA_FILE", """
+            <metadata>
+              <groupId>foo</groupId>
+              <artifactId>bar</artifactId>
+              <version>5.0.0-SNAPSHOT</version>
+              <versioning>
+                <snapshot><timestamp>20260301.100000</timestamp><buildNumber>1</buildNumber></snapshot>
+                <lastUpdated>20260301100000</lastUpdated>
+                <snapshotVersions>
+                  <snapshotVersion><extension>jar</extension><value>5.0.0-20260301.100000-1</value><updated>20260301100000</updated></snapshotVersion>
+                  <snapshotVersion><classifier>sources</classifier><extension>jar</extension><value>5.0.0-20260201.100000-9</value><updated>20260201100000</updated></snapshotVersion>
+                </snapshotVersions>
+              </versioning>
+            </metadata>
+        """.trimIndent()))
+        addFileToRepository(FileSpec("foo-all", "$snapshotGav/bar-5.0.0-20260301.100000-1.jar", "local jar"))
+
+        // when: the snapshot metadata is requested
+        val versioning = readMetadata("foo-all", "$snapshotGav/$METADATA_FILE").versioning
+
+        // then: only the stored build is served
+        assertThat(versioning?.snapshot?.buildNumber).isEqualTo(1)
+        assertThat(versioning?.snapshotVersions?.map { it.classifier.orEmpty() to it.value }).containsExactly("" to "5.0.0-20260301.100000-1")
+    }
+
+    @Test
+    fun `should not add files to repositories that store mirrored metadata`() {
+        // given: a repository without merging that stores mirrored files
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+
+        // when: the metadata file is requested
+        readMetadata("remote-stored")
+
+        // then: only the mirrored file is stored
+        val files = assertOk(mavenFacade.getRepository("remote-stored")!!.storageProvider.getFiles(GAV.toLocation()))
+        assertThat(files.map { it.getSimpleName() }).containsExactly(METADATA_FILE)
+    }
+
+    @Test
+    fun `should query remote mirrors concurrently next to mirrored local repositories`() {
+        // given: a repository that mirrors a local repository and two remote repositories that wait for each other
+        publishReleasesAndSnapshots()
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        remoteFiles["$OTHER/$METADATA"] = CENTRAL_METADATA.replace("1.0.0", "2.0.0")
+        val requested = CountDownLatch(2)
+        val concurrent = AtomicBoolean(true)
+        afterRemoteGet = {
+            requested.countDown()
+            if (!requested.await(10, TimeUnit.SECONDS)) concurrent.set(false)
+        }
+
+        // when: the metadata file is requested
+        val metadata = readMetadata("mixed")
+
+        // then: both remote repositories have been requested at the same time and all sources are merged
+        assertThat(concurrent).isTrue()
+        assertThat(metadata.versioning?.versions).containsExactly("1.0.0", "2.0.0", "3.0.0", "4.0.0")
+    }
+
+    @Test
+    fun `should merge on the calling thread if the io pool is saturated`() {
+        // given: an io pool whose only thread is busy
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        remoteFiles["$OTHER/$METADATA"] = CENTRAL_METADATA.replace("1.0.0", "2.0.0")
+        val executor = Executors.newFixedThreadPool(1)
+        val releasePool = CountDownLatch(1)
+        executor.submit { releasePool.await() }
+        val journalist = InMemoryLogger()
+        val service = MergedMetadataService(
+            journalist,
+            MirrorService(journalist, FailureComponents(journalist).failureFacade(), clock, executor),
+            clock,
+        )
+
+        try {
+            // when: the metadata file is requested from a repository with several remote mirrors
+            val merged = CompletableFuture.supplyAsync {
+                assertOk(service.findInputStream(mavenFacade.getRepository("mixed")!!, METADATA.toLocation(), null))
+                    .use { metadataXmlMapper.readValue<Metadata>(it) }
+            }
+
+            // then: the request does not wait for the pool
+            assertThat(merged.get(10, TimeUnit.SECONDS).versioning?.versions).containsExactly("1.0.0", "2.0.0")
+        } finally {
+            releasePool.countDown()
+            executor.shutdownNow()
+        }
+    }
+
+    @Test
+    fun `should remember missing metadata within max age`() {
+        // given: metadata that does not exist in any repository
+        val request = LookupRequest(UNAUTHORIZED, "central-cached", METADATA.toLocation())
+        repeat(3) { assertThat(assertError(mavenFacade.findData(request)).status).isEqualTo(404) }
+        assertThat(assertError(mavenFacade.findData(request.copy(gav = "$METADATA.sha1".toLocation()))).status).isEqualTo(404)
+
+        // then: mirrors are requested only once
+        assertThat(remoteRequests["$CENTRAL/$METADATA"]?.get()).isEqualTo(1)
+
+        // when: the file appears upstream and max age has passed
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        assertThat(assertError(mavenFacade.findData(request)).status).isEqualTo(404)
+        now = now.plusSeconds(61)
+
+        // then: it is served
+        assertThat(readMetadata("central-cached").versioning?.versions).containsExactly("1.0.0")
+        assertThat(remoteRequests["$CENTRAL/$METADATA"]?.get()).isEqualTo(2)
+    }
+
+    @Test
+    fun `should forget missing metadata when it is deployed`() {
+        // given: missing metadata that is remembered
+        val request = LookupRequest(UNAUTHORIZED, "central-cached", METADATA.toLocation())
+        assertThat(assertError(mavenFacade.findData(request)).status).isEqualTo(404)
+
+        // when: the artifact is deployed
+        storeVersions("central-cached", "3.0.0", "4.0.0")
+        assertOk(mavenFacade.deployFile(DeployRequest(mavenFacade.getRepository("central-cached")!!, METADATA.toLocation(), "test", RELEASES_METADATA.byteInputStream(), false)))
+
+        // then: its metadata is served immediately
+        assertThat(readMetadata("central-cached").versioning?.versions).containsExactly("3.0.0", "4.0.0")
+    }
+
+    @Test
+    fun `should skip previously available mirrors when they fail`() {
+        // given: two remote mirrors that have been merged before
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        remoteFiles["$OTHER/$METADATA"] = CENTRAL_METADATA.replace("1.0.0", "2.0.0")
+        assertThat(readMetadata("mixed").versioning?.versions).containsExactly("1.0.0", "2.0.0")
+
+        // when: one of them is unavailable and the other one publishes a new version
+        remoteFailures[OTHER] = SERVICE_UNAVAILABLE
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA.replace("1.0.0", "1.5.0")
+
+        // then: only the current versions of the available mirror are listed
+        assertThat(readMetadata("mixed").versioning?.versions).containsExactly("1.5.0")
+    }
+
+    @Test
+    fun `should invalidate parent metadata when backing artifacts appear or are removed`() {
+        val repository = mavenFacade.getRepository("central-cached")!!
+        val request = LookupRequest(null, repository.name, METADATA.toLocation())
+        addFileToRepository(FileSpec(repository.name, METADATA, CENTRAL_METADATA))
+        assertThat(assertError(mavenFacade.findData(request)).status).isEqualTo(404)
+
+        assertOk(mavenFacade.deployFile(DeployRequest(repository, "$GAV/1.0.0/bar-1.0.0.pom".toLocation(), "test", "pom".byteInputStream(), false)))
+        assertThat(readMetadata(repository.name).versioning?.versions).containsExactly("1.0.0")
+
+        val token = createAccessToken("delete", "secret", repository.name, "foo", WRITE)
+        assertOk(mavenFacade.deleteFile(DeleteRequest(token, repository, "$GAV/1.0.0".toLocation(), "test")))
+        assertThat(assertError(mavenFacade.findData(request)).status).isEqualTo(404)
+    }
+
+    @Test
+    fun `should report missing metadata if generated metadata only lists unavailable versions`() {
+        // given: metadata written by Reposilite itself, which contains empty elements, without the listed version
+        val repository = mavenFacade.getRepository("central-cached")!!
+        assertOk(mavenFacade.saveMetadata(SaveMetadataRequest(repository, GAV.toLocation(), Metadata(groupId = "foo", artifactId = "bar", versioning = Versioning(_versions = listOf("3.0.0"))))))
+        val request = LookupRequest(null, repository.name, METADATA.toLocation())
+
+        // then: it is not found until the version is stored
+        assertThat(assertError(mavenFacade.findData(request)).status).isEqualTo(404)
+        storeVersions(repository.name, "3.0.0")
+        mavenFacade.deployFile(DeployRequest(repository, "$GAV/3.0.0/bar-3.0.0.jar".toLocation(), "test", "jar".byteInputStream(), false))
+        assertThat(readMetadata(repository.name).versioning?.versions).containsExactly("3.0.0")
+    }
+
+    @Test
+    fun `should not list versions and plugins whose directory is empty`() {
+        // given: a version and a plugin that are stored in the repository
+        val repository = mavenFacade.getRepository("central-cached")!!
+        val token = createAccessToken("delete", "secret", repository.name, "foo", WRITE)
+        fun deploy(file: String, content: String) = assertOk(mavenFacade.deployFile(DeployRequest(repository, file.toLocation(), "test", content.byteInputStream(), false)))
+        deploy("$GAV/1.0.0/bar-1.0.0.pom", "pom")
+        deploy("$GAV/1.0.0/bar-1.0.0.jar", "jar")
+        deploy("$GAV/2.0.0/bar-2.0.0.pom", "pom")
+        deploy(METADATA, CENTRAL_METADATA.replace("<version>1.0.0</version>", "<version>1.0.0</version><version>2.0.0</version>").replace("<release>1.0.0", "<release>2.0.0").replace("<latest>1.0.0", "<latest>2.0.0"))
+        deploy("foo/a-maven-plugin/1.0/a-maven-plugin-1.0.pom", "pom")
+        deploy("foo/$METADATA_FILE", "<metadata><plugins><plugin><name>A</name><prefix>a</prefix><artifactId>a-maven-plugin</artifactId></plugin></plugins></metadata>")
+        assertThat(readMetadata(repository.name).versioning?.versions).containsExactly("1.0.0", "2.0.0")
+        assertThat(readMetadata(repository.name, "foo/$METADATA_FILE").plugins?.map { it.artifactId }).containsExactly("a-maven-plugin")
+
+        // when: the files of a version are deleted one by one, which leaves its directory behind
+        assertOk(mavenFacade.deleteFile(DeleteRequest(token, repository, "$GAV/2.0.0/bar-2.0.0.pom".toLocation(), "test")))
+        assertOk(mavenFacade.deleteFile(DeleteRequest(token, repository, "$GAV/1.0.0/bar-1.0.0.pom".toLocation(), "test")))
+
+        // then: only the version that still has a file is listed
+        assertThat(repository.storageProvider.exists("$GAV/2.0.0".toLocation())).isTrue()
+        val metadata = readMetadata(repository.name)
+        assertThat(metadata.versioning?.versions).containsExactly("1.0.0")
+        assertThat(metadata.versioning?.release).isEqualTo("1.0.0")
+        assertThat(metadata.versioning?.latest).isEqualTo("1.0.0")
+
+        // when: the last files of the remaining version and of the plugin are deleted
+        assertOk(mavenFacade.deleteFile(DeleteRequest(token, repository, "$GAV/1.0.0/bar-1.0.0.jar".toLocation(), "test")))
+        assertOk(mavenFacade.deleteFile(DeleteRequest(token, repository, "foo/a-maven-plugin/1.0".toLocation(), "test")))
+
+        // then: neither the artifact nor the plugin are found anymore
+        assertThat(assertError(mavenFacade.findData(LookupRequest(null, repository.name, METADATA.toLocation()))).status).isEqualTo(404)
+        assertThat(assertError(mavenFacade.findData(LookupRequest(null, repository.name, "foo/$METADATA_FILE".toLocation()))).status).isEqualTo(404)
+    }
+
+    @Test
+    fun `should not serve signatures of mirrored metadata`() {
+        // given: a mirror that provides a signature of its metadata file
+        remoteFiles["$CENTRAL/$METADATA"] = CENTRAL_METADATA
+        remoteFiles["$CENTRAL/$METADATA.asc"] = "signature of the mirrored file"
+
+        // then: it is only served by repositories that do not merge metadata
+        assertOk(mavenFacade.findData(LookupRequest(UNAUTHORIZED, "remote-stored", "$METADATA.asc".toLocation()))).close()
+        assertThat(assertError(mavenFacade.findData(LookupRequest(UNAUTHORIZED, "foo-all", "$METADATA.asc".toLocation()))).status).isEqualTo(404)
+        assertThat(assertError(mavenFacade.findDetails(LookupRequest(UNAUTHORIZED, "foo-all", "$METADATA.asc.sha1".toLocation()))).status).isEqualTo(404)
+        assertThat(remoteRequests["$CENTRAL/$METADATA.asc"]?.get()).isEqualTo(1)
     }
 
 }

@@ -29,10 +29,12 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
+import com.reposilite.storage.filesystem.FileSystemStorageProvider
 import com.reposilite.token.AccessTokenIdentifier
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.TEXT_XML
+import io.javalin.http.HttpStatus.NOT_FOUND
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
@@ -51,6 +53,11 @@ private const val MAX_MERGED_ENTRIES = 1024
 /**
  * Serves maven-metadata.xml files (and their checksums) of repositories with enabled metadata merging
  * as a combination of the local file and the files provided by all mirrored repositories.
+ *
+ * The local file only contributes entries that are backed by files stored in the repository itself.
+ * Clients update metadata by downloading the (merged) file and uploading it with their own entries,
+ * and repositories may still hold copies of mirrored metadata that were stored before merging was enabled.
+ * Both would otherwise keep entries of mirrors alive after they have been removed upstream.
  */
 internal class MergedMetadataService(
     private val journalist: Journalist,
@@ -82,17 +89,18 @@ internal class MergedMetadataService(
     )
 
     private val timestampFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-    private val merged: Cache<MergeKey, MergedMetadata> = Caffeine.newBuilder()
+    // Missing files are remembered like merged ones, so repeated lookups of unknown artifacts do not query all mirrors again
+    private val merged: Cache<MergeKey, Result<MergedMetadata, ErrorResponse>> = Caffeine.newBuilder()
         .maximumSize(MAX_MERGED_ENTRIES.toLong())
         .ticker { TimeUnit.MILLISECONDS.toNanos(clock.millis()) }
-        .expireAfter(object : Expiry<MergeKey, MergedMetadata> {
-            override fun expireAfterCreate(key: MergeKey, value: MergedMetadata, currentTime: Long): Long =
+        .expireAfter(object : Expiry<MergeKey, Result<MergedMetadata, ErrorResponse>> {
+            override fun expireAfterCreate(key: MergeKey, value: Result<MergedMetadata, ErrorResponse>, currentTime: Long): Long =
                 TimeUnit.SECONDS.toNanos(key.repository.metadataMaxAgeInSeconds.coerceAtLeast(0))
 
-            override fun expireAfterUpdate(key: MergeKey, value: MergedMetadata, currentTime: Long, currentDuration: Long): Long =
+            override fun expireAfterUpdate(key: MergeKey, value: Result<MergedMetadata, ErrorResponse>, currentTime: Long, currentDuration: Long): Long =
                 expireAfterCreate(key, value, currentTime)
 
-            override fun expireAfterRead(key: MergeKey, value: MergedMetadata, currentTime: Long, currentDuration: Long): Long =
+            override fun expireAfterRead(key: MergeKey, value: Result<MergedMetadata, ErrorResponse>, currentTime: Long, currentDuration: Long): Long =
                 currentDuration
         })
         .build()
@@ -102,7 +110,7 @@ internal class MergedMetadataService(
     private val inFlightMerges = HashMap<MergeKey, InFlightMerge>()
 
     fun handles(repository: Repository, gav: Location): Boolean =
-        repository.mergeMetadataEnabled && gav.toMetadataFile() != null
+        repository.mergeMetadataEnabled && gav.isMetadataFileOrCompanion()
 
     fun findDetails(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<FileDetails, ErrorResponse> =
         findContent(repository, gav, accessToken).map { (content, lastModifiedTime) ->
@@ -127,10 +135,12 @@ internal class MergedMetadataService(
 
     fun invalidate(gav: Location, recursive: Boolean = false) {
         // Other repositories may mirror the modified one through a loopback link, so their merged files are outdated as well
-        val metadataFile = gav.toMetadataFile()
-        if (metadataFile == null && !recursive) return
-
-        val affected = { key: MergeKey -> key.gav == metadataFile || (recursive && key.gav.toString().startsWith("$gav/")) }
+        // Creating or deleting an artifact can change which local versions, plugins or snapshot builds are backed by storage.
+        val ancestors = generateSequence(gav.getParent()) { if (it == Location.empty()) null else it.getParent() }
+            .map { it.resolve(METADATA_FILE) }
+            .toHashSet()
+        val subtree = if (gav == Location.empty()) "" else "$gav/"
+        val affected = { key: MergeKey -> key.gav in ancestors || (recursive && key.gav.toString().startsWith(subtree)) }
         synchronized(cacheLock) {
             // Running merges may have read the outdated state already, so later requests must start a new one
             inFlightMerges.keys.removeIf(affected)
@@ -146,7 +156,8 @@ internal class MergedMetadataService(
     }
 
     private fun findContent(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<Pair<ByteArray, Instant?>, ErrorResponse> {
-        val metadataFile = gav.toMetadataFile() ?: return notFoundError("Cannot merge '$gav'")
+        // Signatures and other companions served by a mirror would not match the merged content
+        val metadataFile = gav.toMetadataFile() ?: return notFoundError("Merged metadata does not provide '${gav.getSimpleName()}'")
 
         return findMergedMetadata(repository, metadataFile, accessToken).map { metadata ->
             when (val checksum = gav.toChecksum()) {
@@ -161,17 +172,17 @@ internal class MergedMetadataService(
         val key = MergeKey(repository, metadataFile, accessToken != null)
 
         // Cache hits do not need the lock: a hit that races with an invalidation is equivalent to a read just before it.
-        merged.getIfPresent(key)?.let { return it.asSuccess() }
+        merged.getIfPresent(key)?.let { return it }
 
         return when (val reservation = reserveMerge(key)) {
-            is MergeReservation.Cached -> reservation.metadata.asSuccess()
+            is MergeReservation.Cached -> reservation.result
             is MergeReservation.Join -> awaitMerge(reservation.running)
             is MergeReservation.Run -> runMerge(key, reservation, accessToken)
         }
     }
 
     private sealed interface MergeReservation {
-        data class Cached(val metadata: MergedMetadata) : MergeReservation
+        data class Cached(val result: Result<MergedMetadata, ErrorResponse>) : MergeReservation
         data class Join(val running: InFlightMerge) : MergeReservation
         data class Run(val merge: InFlightMerge) : MergeReservation
     }
@@ -209,10 +220,15 @@ internal class MergedMetadataService(
         val merge = reservation.merge
 
         return try {
-            mergeMetadata(key.repository, key.gav, accessToken)
-                .map { metadata -> serialize(metadata) }
-                .peek { publish(key, it, merge) }
-                .also { merge.result.complete(it) }
+            val sources = findSources(key, accessToken)
+            val result = sources.flatMap {
+                if (it.isEmpty()) notFoundError("Cannot find '${key.gav}' in local or remote repositories")
+                else serialize(MetadataMerger.merge(it)).asSuccess()
+            }
+            // A successful empty lookup is a confirmed miss. Parse and upstream errors must be retried.
+            if (sources.isOk) publish(key, result, merge)
+            merge.result.complete(result)
+            result
         } catch (throwable: Throwable) {
             merge.result.completeExceptionally(throwable)
             throw throwable
@@ -227,57 +243,119 @@ internal class MergedMetadataService(
             lastModifiedTime = metadata.versioning?.lastUpdated?.toInstant(),
         )
 
-    private fun publish(key: MergeKey, metadata: MergedMetadata, merge: InFlightMerge) {
+    private fun publish(key: MergeKey, result: Result<MergedMetadata, ErrorResponse>, merge: InFlightMerge) {
         synchronized(cacheLock) {
             // Invalidation removes affected reservations; unrelated writes must not prevent this merge from being cached.
             if (key.repository.metadataMaxAgeInSeconds > 0 && inFlightMerges[key] === merge) {
-                merged.put(key, metadata)
+                merged.put(key, result)
             }
         }
     }
 
-    private fun mergeMetadata(repository: Repository, metadataFile: Location, accessToken: AccessTokenIdentifier?): Result<Metadata, ErrorResponse> {
+    private fun findSources(key: MergeKey, accessToken: AccessTokenIdentifier?): Result<List<Metadata>, ErrorResponse> {
+        val repository = key.repository
+        val metadataFile = key.gav
         val sources = mutableListOf<Metadata>()
         val failures = mutableListOf<ErrorResponse>()
 
-        for ((source, result) in readLocalMetadata(repository, metadataFile) + fetchRemoteMetadata(repository, metadataFile, accessToken)) {
-            result
-                .onError { error -> if (error.status != 404) failures.add(error) }
-                .peek { content -> parse(source, metadataFile, content)?.let { sources.add(it) } }
-        }
+        readLocalMetadata(repository, metadataFile)
+            .onError { failures.add(it) }
+            .peek { sources.addAll(it) }
 
-        if (sources.isEmpty()) {
-            return selectFailure(metadataFile, failures)
+        for ((mirror, result) in mirrorService.fetchFromAllRemoteHosts(repository, metadataFile, accessToken)) {
+            if (result.isErr && result.error.status == NOT_FOUND.code) continue
+            result.flatMap { parse(mirror.host, metadataFile, it) }
+                .onError { failures.add(it) }
+                .peek { sources.add(it) }
         }
 
         if (failures.isNotEmpty()) {
-            logger.warn("MergedMetadata | Merged '$metadataFile' in ${repository.name} without ${failures.size} unavailable source(s): ${failures.joinToString { "${it.status}: ${it.message}" }}")
+            if (sources.isEmpty()) {
+                val failure = failures.firstOrNull { it.status == 429 }
+                    ?: failures.lastOrNull { it.status != NOT_FOUND.code }
+                    ?: failures.last()
+                return Result.error(failure)
+            }
+            logger.warn("MergedMetadata | Merged '$metadataFile' in ${repository.name} without ${failures.size} source(s): ${failures.joinToString { "${it.status}: ${it.message}" }}")
         }
 
-        return MetadataMerger.merge(sources).asSuccess()
+        return sources.asSuccess()
     }
 
-    private fun readLocalMetadata(repository: Repository, metadataFile: Location): List<Pair<String, Result<ByteArray, ErrorResponse>>> =
-        repository.metadataStorage.readLocalMetadata(metadataFile).fold(
-            { contents -> contents.map { "local" to it.asSuccess() } },
-            { error -> listOf("local" to Result.error(error)) },
+    private fun readLocalMetadata(repository: Repository, metadataFile: Location): Result<List<Metadata>, ErrorResponse> {
+        val storage = repository.storageProvider
+
+        if (!storage.exists(metadataFile)) {
+            return Result.ok(emptyList())
+        }
+
+        return storage.getFile(metadataFile)
+            .map { data -> data.use { it.readBytes() } }
+            .flatMap { content -> parse("local", metadataFile, content) }
+            .map { metadata -> listOfNotNull(retainStoredEntries(repository, metadataFile, metadata)) }
+    }
+
+    private fun retainStoredEntries(repository: Repository, metadataFile: Location, metadata: Metadata): Metadata? =
+        repository.storageProvider.getFiles(metadataFile.getParent()).fold(
+            { files -> MetadataMerger.retainStoredEntries(metadata, findStoredFiles(repository, metadata, files)) },
+            { error ->
+                logger.warn("MergedMetadata | Cannot verify entries of local '$metadataFile' in ${repository.name}: ${error.status}: ${error.message}")
+                metadata
+            }
         )
 
-    private fun fetchRemoteMetadata(repository: Repository, metadataFile: Location, accessToken: AccessTokenIdentifier?): List<Pair<String, Result<ByteArray, ErrorResponse>>> =
-        mirrorService
-            .fetchFromAllRemoteHosts(repository, metadataFile, accessToken)
-            .map { (host, result) -> host.host to result }
+    /**
+     * File systems keep the directory of a version after its last file has been deleted, so the directories of listed entries must not be empty.
+     * Other storage providers do not have empty directories, which saves them a lookup per entry.
+     */
+    private fun findStoredFiles(repository: Repository, metadata: Metadata, files: List<Location>): Set<String> {
+        val storage = repository.storageProvider
+        val storedFiles = files.associateByTo(HashMap()) { it.getSimpleName() }
 
-    /** Rate limits are preserved, so clients can distinguish them from missing files, as in the regular lookup. */
-    private fun selectFailure(metadataFile: Location, failures: List<ErrorResponse>): Result<Metadata, ErrorResponse> =
-        failures.firstOrNull { it.status == 429 }?.let { Result.error(it) }
-            ?: failures.lastOrNull()?.let { Result.error(it) }
-            ?: notFoundError("Cannot find '$metadataFile' in local or remote repositories")
+        if (storage is FileSystemStorageProvider) {
+            val listed = metadata.versioning?.let { it.versions.orEmpty() + listOfNotNull(it.latest, it.release) }.orEmpty() +
+                metadata.plugins.orEmpty().mapNotNull { it.artifactId }
 
-    private fun parse(source: String, metadataFile: Location, content: ByteArray): Metadata? =
-        runCatching { readMetadataXml(content) }
-            .onFailure { logger.warn("MergedMetadata | Skipping malformed '$metadataFile' from $source: ${it.message}") }
-            .getOrNull()
+            listed.toSet()
+                .mapNotNull { name -> storedFiles[name]?.let { name to it } }
+                .filter { (_, directory) -> runCatching { storage.getFiles(directory).fold({ it.isEmpty() }, { false }) }.getOrDefault(false) }
+                .forEach { (name, _) -> storedFiles.remove(name) }
+        }
+
+        return storedFiles.keys
+    }
+
+    private fun parse(source: String, metadataFile: Location, content: ByteArray): Result<Metadata, ErrorResponse> =
+        runCatching {
+            readMetadataXml(content).also {
+                require(it.matchesDirectory(metadataFile.getParent())) { "Declared coordinates do not match the requested path" }
+            }
+        }
+            .fold({ it.asSuccess() }, {
+                logger.warn("MergedMetadata | Skipping malformed '$metadataFile' from $source: ${it.message}")
+                notFoundError("No valid metadata for '$metadataFile'")
+            })
+
+    private fun Metadata.matchesDirectory(directory: Location): Boolean {
+        val group = groupId?.takeIf { it.isNotBlank() }?.replace('.', '/')
+        fun matchesArtifact(path: Location): Boolean =
+            (artifactId.isNullOrBlank() || artifactId == path.getSimpleName()) &&
+                (group == null || group == path.getParent().toString())
+
+        // Older clients and plugin markers also declare a version in the metadata of the artifact directory.
+        if (!version.isNullOrBlank()) {
+            return (version == directory.getSimpleName() && matchesArtifact(directory.getParent())) ||
+                (!artifactId.isNullOrBlank() && matchesArtifact(directory))
+        }
+        if (artifactId.isNullOrBlank() && !plugins.isNullOrEmpty()) return group == null || group == directory.toString()
+        // Release lists describe the artifact directory even when the artifactId is omitted.
+        if (!versioning?.versions.isNullOrEmpty() || !versioning?.latest.isNullOrBlank() || !versioning?.release.isNullOrBlank()) {
+            return matchesArtifact(directory)
+        }
+        if (!versioning?.snapshotVersions.isNullOrEmpty()) return directory.endsWith("-SNAPSHOT") && matchesArtifact(directory.getParent())
+        if (artifactId.isNullOrBlank() && group == directory.toString()) return true
+        return matchesArtifact(directory) || (directory.endsWith("-SNAPSHOT") && matchesArtifact(directory.getParent()))
+    }
 
     private fun Location.toMetadataFile(): Location? =
         when (getSimpleName()) {
@@ -285,6 +363,9 @@ internal class MergedMetadataService(
             in checksumFileNames -> resolveSibling(METADATA_FILE)
             else -> null
         }
+
+    private fun Location.isMetadataFileOrCompanion(): Boolean =
+        getSimpleName().let { it == METADATA_FILE || it.startsWith("$METADATA_FILE.") }
 
     private fun Location.toChecksum(): Checksum? =
         Checksum.entries.firstOrNull { getSimpleName() == "$METADATA_FILE.${it.extension}" }

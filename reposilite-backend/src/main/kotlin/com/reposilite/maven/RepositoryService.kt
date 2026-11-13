@@ -80,7 +80,7 @@ internal class RepositoryService(
         with(deployRequest) {
             when {
                 repository.acceptsDeploymentOf(gav) ->
-                    repository.metadataStorage
+                    repository.storageProvider
                         .putFile(gav, deployRequest.content)
                         .peek { logger.info("DEPLOY | Artifact $gav successfully deployed to ${repository.name} by ${deployRequest.by}") }
                         .peek { resolutionProvider.invalidate(repository, gav) }
@@ -107,7 +107,7 @@ internal class RepositoryService(
         with(deleteRequest) {
             when {
                 repositoryFacade.canModifyResource(accessToken, repository, gav) ->
-                    repository.metadataStorage
+                    repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
                         .peek { resolutionProvider.invalidate(repository, gav) }

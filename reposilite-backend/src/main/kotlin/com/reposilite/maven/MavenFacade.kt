@@ -80,11 +80,11 @@ class MavenFacade internal constructor(
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
         repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
-            .flatMap { metadataService.findVersions(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
+            .flatMap { metadataService.findVersions(lookupRequest) }
 
     fun findLatestVersion(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
         repositoryFacade.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
-            .flatMap { metadataService.findLatestVersion(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter, lookupRequest.sorted) }
+            .flatMap { metadataService.findLatestVersion(lookupRequest) }
 
     fun <T> findLatestVersionFile(latestArtifactQueryRequest: LatestArtifactQueryRequest, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
         latestService.queryLatestArtifact(

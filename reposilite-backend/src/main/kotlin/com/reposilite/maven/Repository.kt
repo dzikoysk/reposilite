@@ -52,8 +52,6 @@ class Repository internal constructor(
 
     override val name: String = identity.name
 
-    internal val metadataStorage = MetadataStorage(storageProvider)
-
     init {
         check(name.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters" }
     }
@@ -107,7 +105,7 @@ class Repository internal constructor(
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
-        metadataStorage.putFile(location, inputStream)
+        storageProvider.putFile(location, inputStream)
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun getFile(location: Location): Result<InputStream, ErrorResponse> =
@@ -119,7 +117,7 @@ class Repository internal constructor(
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun removeFile(location: Location): Result<Unit, ErrorResponse> =
-        metadataStorage.removeFile(location)
+        storageProvider.removeFile(location)
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun getFiles(directoryLocation: Location): Result<List<Location>, ErrorResponse> =

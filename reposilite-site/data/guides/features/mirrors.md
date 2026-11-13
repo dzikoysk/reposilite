@@ -59,27 +59,21 @@ you can enable `Merge metadata` to combine the metadata files of the repository 
 - snapshot metadata points to the highest build of each classifier and extension, regardless of the repository that provides it
 - checksums (`.md5`, `.sha1`, `.sha256`, `.sha512`) are generated for the merged file
 
-Mirrors that cannot be reached are skipped, so the merged file contains the versions of all available repositories.
+Remote mirrors are queried concurrently. Mirrors that cannot be reached are skipped, so the merged file contains the versions of all available repositories.
 Other files, like artifacts and POMs, are still served from the first repository that provides them.
+Signatures and other companion files of metadata (e.g. `maven-metadata.xml.asc`) are not served, because they would not match the merged file.
 
-The merged file is never stored. By default, it is created for each request,
-so use `Max age of metadata file` to keep it in memory for the given number of seconds.
-Deploying, updating or deleting metadata files, or deleting directories containing them, invalidates the cached result immediately -
-also in repositories that mirror the modified one by its ID.
+The merged file is never stored. By default, it is created for each request - this also applies to files that do not exist in any repository -
+so use `Max age of metadata file` to keep the result in memory for the given number of seconds.
+If the only response is malformed XML, the next request retries the lookup.
+Deploying or deleting files invalidates cached metadata in their ancestor directories, including in repositories that mirror the modified repository by ID.
+Deleting a directory also invalidates metadata below it.
 
-Metadata files downloaded with `Store` enabled are tracked by a
-`maven-metadata.xml.reposilite-origin` sidecar containing the SHA-256 fingerprint of the downloaded file.
-When merging is enabled later, these cached copies are excluded from the local contribution;
-the current metadata is fetched from the mirrors instead. The sidecar is stored with the metadata
-(including on S3), so the distinction survives restarts. Direct deployments and generated metadata
-remove the sidecar and are included as local publications. The downloaded XML bytes remain unchanged.
-
-**Upgrading an existing proxy:** Older versions did not record the origin of stored metadata.
-Unmarked files are preserved as local metadata to avoid hiding genuine local publications.
-Before enabling merging, remove any `maven-metadata.xml` files known to be old mirror caches
-(and their checksum files) from the aggregating repository, or use a new aggregating repository
-that mirrors the existing hosted repositories. Do not remove metadata belonging to locally published artifacts.
-Back up and restore origin sidecars together with their metadata files.
+The metadata file stored in the repository itself only contributes entries that are backed by its own storage:
+versions and plugins with a non-empty directory next to the metadata file, and snapshot builds with a file of that build.
+Maven and Gradle update metadata by downloading the merged file and uploading it with their own version,
+so the stored file may list versions of mirrors as well. The same applies to metadata files that were downloaded
+with `Store` enabled before merging was enabled. Such entries are ignored, the current state is fetched from the mirrors instead.
 
 Upstream XML is only accepted when its root element is `metadata`; HTML login pages and other
 XML responses are skipped in the same way as malformed XML.

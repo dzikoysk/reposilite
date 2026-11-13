@@ -38,7 +38,9 @@ import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorCompletionService
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.FutureTask
 import java.util.concurrent.RejectedExecutionException
 
 internal const val NO_EXTENSION_MARKER = "<none>"
@@ -158,19 +160,19 @@ internal class MirrorService(
         searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
             client
                 .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-                .flatMap { data -> repository.metadataStorage.putFile(gav, data, mirrored = true) }
+                .flatMap { data -> repository.storageProvider.putFile(gav, data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
     private fun storeFile(repository: Repository, gav: Location, data: InputStream): Result<InputStream, ErrorResponse> =
         repository
-            .metadataStorage
-            .putFile(gav, data, mirrored = true)
+            .storageProvider
+            .putFile(gav, data)
             .flatMap { repository.storageProvider.getFile(gav) }
 
     /**
      * Fetches the given file from every eligible mirror without storing it, e.g. to merge metadata files.
-     * Remote hosts are queried concurrently unless the repository mirrors other local repositories.
+     * Remote hosts are queried concurrently, also if the repository mirrors other local repositories.
      */
     fun fetchFromAllRemoteHosts(
         repository: Repository,
@@ -178,13 +180,29 @@ internal class MirrorService(
         accessToken: AccessTokenIdentifier? = null,
     ): List<Pair<MirrorHost, Result<ByteArray, ErrorResponse>>> {
         val eligibleHosts = findEligibleHosts(repository, gav, accessToken, repository.mirrorHosts)
-        val fetch = { host: MirrorHost -> fetchBytes(repository, gav, host) }
+        val tasks = eligibleHosts.map { host -> FutureTask { fetchBytes(repository, gav, host) } }
 
-        return when {
-            eligibleHosts.size > 1 && eligibleHosts.none { it.client is RepositoryLoopbackClient } ->
-                fetchConcurrently(eligibleHosts, fetch)
-            else ->
-                eligibleHosts.map { it to fetch(it) }
+        if (eligibleHosts.size > 1) {
+            // Local repositories are read by the caller: their own lookups may depend on ioService as well
+            eligibleHosts.zip(tasks)
+                .filter { (host, _) -> host.client !is RepositoryLoopbackClient }
+                .forEach { (_, task) ->
+                    try {
+                        ioService.execute(task)
+                    } catch (_: RejectedExecutionException) {
+                        // Left to the caller below
+                    }
+                }
+        }
+
+        return try {
+            // The caller runs every task that has not been started yet, so a saturated ioService slows the merge down, but cannot block it
+            eligibleHosts.zip(tasks.map { task -> task.run().let { task.get() } })
+        } catch (exception: ExecutionException) {
+            // Unexpected errors should reach the caller like the ones of a lookup on its own thread
+            throw exception.cause ?: exception
+        } finally {
+            tasks.forEach { it.cancel(true) }
         }
     }
 
@@ -198,18 +216,6 @@ internal class MirrorService(
         } catch (exception: Exception) {
             failureFacade.throwException("Mirror lookup ${repository.name}/$gav", exception)
             error(internalServer("Mirror lookup failed: ${exception.message}"))
-        }
-    }
-
-    private fun <V> fetchConcurrently(
-        hosts: List<MirrorHost>,
-        fetch: (MirrorHost) -> Result<V, ErrorResponse>,
-    ): List<Pair<MirrorHost, Result<V, ErrorResponse>>> {
-        val tasks = hosts.map { host -> ioService.submit<Result<V, ErrorResponse>> { fetch(host) } }
-        return try {
-            hosts.zip(tasks.map { it.get() })
-        } finally {
-            tasks.forEach { it.cancel(true) }
         }
     }
 

@@ -16,6 +16,7 @@
 
 package com.reposilite.maven
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Plugin
 import com.reposilite.maven.api.Snapshot
@@ -140,6 +141,9 @@ internal class MetadataMergerTest {
     @Test
     fun `should retain explicit versioning fields when no version list is available`() {
         val source = Metadata(versioning = Versioning(latest = "2.0-SNAPSHOT", release = "1.0"))
+        val local = MetadataMerger.retainStoredEntries(source, setOf("1.0", "2.0-SNAPSHOT"))
+        assertThat(local?.versioning?.latest).isEqualTo("2.0-SNAPSHOT")
+        assertThat(local?.versioning?.release).isEqualTo("1.0")
 
         val merged = MetadataMerger.merge(listOf(source))
 
@@ -210,6 +214,83 @@ internal class MetadataMergerTest {
         // then: plugins are combined without duplicates
         assertThat(merged.plugins).containsExactly(Plugin("A", "a", "a-maven-plugin"), Plugin("B", "b", "b-maven-plugin"))
         assertThat(merged.versioning).isNull()
+    }
+
+    @Test
+    fun `should retain versions and plugins with a stored directory`() {
+        // given: metadata that lists more versions and plugins than the repository stores
+        val metadata = Metadata(
+            groupId = "foo",
+            artifactId = "bar",
+            versioning = Versioning(release = "2.0.0", latest = "3.0.0-SNAPSHOT", _versions = listOf("1.0.0", "2.0.0", "3.0.0-SNAPSHOT"), lastUpdated = "20260101120000")
+        ).also { it.plugins = listOf(Plugin("A", "a", "a-maven-plugin"), Plugin("B", "b", "b-maven-plugin")) }
+
+        // when: it is reduced to the stored entries
+        val retained = MetadataMerger.retainStoredEntries(metadata, setOf("1.0.0", "3.0.0-SNAPSHOT", "b-maven-plugin", "maven-metadata.xml"))
+
+        // then: entries without a directory are removed
+        assertThat(retained?.groupId).isEqualTo("foo")
+        assertThat(retained?.versioning?.versions).containsExactly("1.0.0", "3.0.0-SNAPSHOT")
+        assertThat(retained?.versioning?.release).isNull()
+        assertThat(retained?.versioning?.latest).isEqualTo("3.0.0-SNAPSHOT")
+        assertThat(retained?.versioning?.lastUpdated).isEqualTo("20260101120000")
+        assertThat(retained?.plugins).containsExactly(Plugin("B", "b", "b-maven-plugin"))
+    }
+
+    @Test
+    fun `should retain snapshot builds with a stored file`() {
+        // given: snapshot metadata that lists builds of two repositories
+        val stored = SnapshotVersion(extension = "jar", value = "1.0.0-20260202.120000-2", updated = "20260202120000")
+        val storedSources = SnapshotVersion(classifier = "sources", extension = "jar", value = "1.0.0-20260202.120000-2", updated = "20260202120000")
+        val metadata = Metadata(
+            version = "1.0.0-SNAPSHOT",
+            versioning = Versioning(
+                snapshot = Snapshot(timestamp = "20260202.120000", buildNumber = 2),
+                _snapshotVersions = listOf(
+                    stored,
+                    storedSources,
+                    SnapshotVersion(extension = "pom", value = "1.0.0-20260202.120000-2", updated = "20260202120000"),
+                    SnapshotVersion(classifier = "javadoc", extension = "jar", value = "1.0.0-20260101.120000-1", updated = "20260101120000"),
+                ),
+            )
+        )
+
+        // when: it is reduced to the stored entries
+        val files = setOf("bar-1.0.0-20260202.120000-2.jar", "bar-1.0.0-20260202.120000-2-sources.jar", "bar-1.0.0-20260202.120000-2.jar.sha1", "maven-metadata.xml")
+        val retained = MetadataMerger.retainStoredEntries(metadata, files)
+
+        // then: builds without a file are removed
+        assertThat(retained?.versioning?.snapshot).isEqualTo(metadata.versioning?.snapshot)
+        assertThat(retained?.versioning?.snapshotVersions).containsExactly(stored, storedSources)
+
+        // and: the snapshot is removed with its last file
+        assertThat(MetadataMerger.retainStoredEntries(metadata, setOf("bar-1.0.0-20260101.120000-1-javadoc.jar"))?.versioning?.snapshot).isNull()
+        assertThat(MetadataMerger.retainStoredEntries(metadata, setOf("bar-1.0.0-20260202.120000-20.jar"))?.versioning?.snapshot).isNull()
+    }
+
+    @Test
+    fun `should not retain metadata without stored entries`() {
+        // given: metadata of versions that are not stored
+        val metadata = Metadata(versioning = Versioning(release = "1.0.0", latest = "1.0.0", _versions = listOf("1.0.0"), lastUpdated = "20260101120000"))
+
+        // then: nothing is left
+        assertThat(MetadataMerger.retainStoredEntries(metadata, setOf("maven-metadata.xml"))).isNull()
+        assertThat(MetadataMerger.retainStoredEntries(Metadata(), emptySet())).isNull()
+    }
+
+    @Test
+    fun `should only retain snapshots without a timestamp if they declare a value`() {
+        // given: metadata as written by Reposilite, which contains an empty snapshot element, and non-unique snapshots
+        val written = metadataXmlMapper.readValue<Metadata>(metadataXmlMapper.writeValueAsString(Metadata(versioning = Versioning(_versions = listOf("1.0.0")))))
+        val localCopy = Metadata(versioning = Versioning(snapshot = Snapshot(localCopy = true)))
+        val buildNumber = Metadata(versioning = Versioning(snapshot = Snapshot(buildNumber = 3)))
+
+        // then: the empty element is not an entry on its own
+        assertThat(written.versioning?.snapshot).isNotNull
+        assertThat(MetadataMerger.retainStoredEntries(written, setOf("maven-metadata.xml"))).isNull()
+        assertThat(MetadataMerger.retainStoredEntries(written, setOf("1.0.0"))?.versioning?.snapshot).isNull()
+        assertThat(MetadataMerger.retainStoredEntries(localCopy, emptySet())?.versioning?.snapshot).isEqualTo(Snapshot(localCopy = true))
+        assertThat(MetadataMerger.retainStoredEntries(buildNumber, emptySet())?.versioning?.snapshot).isEqualTo(Snapshot(buildNumber = 3))
     }
 
 }
