@@ -48,7 +48,6 @@ const failures = [
     path: '/api/maven/releases/com/example/app/1.0.0/app-1.0.0.jar',
     type: 'NullPointerException',
     message: 'Cannot invoke "Repository.getName()" because "repository" is null',
-    messages: ['Cannot invoke "Repository.getName()" because "repository" is null'],
     trace: [
       'failure /api/maven/releases/com/example/app/1.0.0/app-1.0.0.jar',
       '  by NullPointerException: Cannot invoke "Repository.getName()" because "repository" is null',
@@ -62,7 +61,6 @@ const failures = [
     path: '/api/badge/latest/releases/com/example/lib',
     type: 'IllegalStateException',
     message: 'No versions found for the requested artifact',
-    messages: ['No versions found for the requested artifact'],
     trace: [
       'failure /api/badge/latest/releases/com/example/lib',
       '  by IllegalStateException: No versions found for the requested artifact',

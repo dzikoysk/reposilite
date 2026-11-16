@@ -24,8 +24,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
+import software.amazon.awssdk.core.ResponseInputStream
 import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
@@ -35,14 +38,16 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.S3Exception
 import software.amazon.awssdk.services.s3.model.S3Object
+import java.io.IOException
 
-internal class S3StorageProviderErrorHandlingTest {
+internal class S3StorageProviderTest {
 
     private val logger = InMemoryLogger()
     private val failureFacade = FailureComponents(journalist = logger).failureFacade()
 
     private class FakeS3Client(
         private val onHeadObject: (HeadObjectRequest) -> HeadObjectResponse,
+        private val onGetObject: (GetObjectRequest) -> ResponseInputStream<GetObjectResponse> = { throw UnsupportedOperationException() },
         private val keys: List<String> = emptyList(),
     ) : S3Client {
 
@@ -51,6 +56,9 @@ internal class S3StorageProviderErrorHandlingTest {
 
         override fun headObject(request: HeadObjectRequest): HeadObjectResponse =
             onHeadObject(request)
+
+        override fun getObject(request: GetObjectRequest): ResponseInputStream<GetObjectResponse> =
+            onGetObject(request)
 
         override fun listObjectsV2(request: ListObjectsV2Request): ListObjectsV2Response =
             ListObjectsV2Response.builder()
@@ -96,6 +104,22 @@ internal class S3StorageProviderErrorHandlingTest {
 
         // then: a server error is returned
         assertThat(assertError(result).status).isEqualTo(500)
+    }
+
+    @Test
+    fun `should not report a file as missing when GET fails`() {
+        // given: an S3 client that fails while reading an object
+        val provider = createProvider(FakeS3Client(
+            onHeadObject = { HeadObjectResponse.builder().build() },
+            onGetObject = { throw IOException("Connection reset") },
+        ))
+
+        // when: the object is requested
+        val result = provider.getFile("com/example/lib/1.0.0/lib-1.0.0.jar".toLocation())
+
+        // then: a server error is returned and the original exception is recorded
+        assertThat(assertError(result).status).isEqualTo(500)
+        assertThat(failureFacade.getRecordedFailures()).anyMatch { it.type == "IOException" }
     }
 
     @Test

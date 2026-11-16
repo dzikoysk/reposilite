@@ -19,8 +19,11 @@ package com.reposilite.maven
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClient
+import com.reposilite.shared.internalServerError
 import com.reposilite.shared.notFoundError
+import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.api.Location
+import io.javalin.http.HttpStatus.BAD_GATEWAY
 import panda.std.Result
 
 data class MirrorHost(
@@ -37,13 +40,26 @@ enum class StoragePolicy {
 internal sealed interface MirrorResolution<out T> {
     data object NoEligibleHosts : MirrorResolution<Nothing>
     data object NotFound : MirrorResolution<Nothing>
-    data class Failed(val error: ErrorResponse) : MirrorResolution<Nothing>
+    data class Failed(
+        val error: ErrorResponse,
+        val source: MirrorFailureSource = MirrorFailureSource.UPSTREAM,
+    ) : MirrorResolution<Nothing>
     data class Resolved<T>(val value: T, val mirror: MirrorHost) : MirrorResolution<T>
+}
+
+internal enum class MirrorFailureSource {
+    LOCAL,
+    UPSTREAM,
 }
 
 internal fun <T : Any> MirrorResolution<T>.toResult(gav: Location): Result<T, ErrorResponse> =
     when (this) {
         is MirrorResolution.Resolved -> Result.ok(value)
-        is MirrorResolution.Failed -> Result.error(error)
+        is MirrorResolution.Failed -> when {
+            source == MirrorFailureSource.LOCAL && error.status == 404 -> internalServerError("Local storage failed")
+            source == MirrorFailureSource.LOCAL -> Result.error(error)
+            error.status == 429 -> Result.error(error)
+            else -> BAD_GATEWAY.toErrorResult("Upstream repository failed")
+        }
         MirrorResolution.NoEligibleHosts, MirrorResolution.NotFound -> notFoundError("Cannot find '$gav' in local or remote repositories")
     }

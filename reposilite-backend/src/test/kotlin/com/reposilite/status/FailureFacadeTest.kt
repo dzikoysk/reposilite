@@ -37,7 +37,6 @@ internal class FailureFacadeTest : FailureSpecification() {
             path = "PATH /com/reposilite",
             type = "RuntimeException",
             message = message,
-            messages = listOf(message),
             trace = trace(message),
             occurrences = 1
         )
@@ -58,7 +57,6 @@ internal class FailureFacadeTest : FailureSpecification() {
             path = "PATH /com/reposilite",
             type = "RuntimeException",
             message = "Unlucky",
-            messages = listOf("Unlucky", "Still unlucky"),
             trace = trace("Unlucky"),
             occurrences = 2
         )
@@ -85,7 +83,6 @@ internal class FailureFacadeTest : FailureSpecification() {
                 path = "PATH /com/reposilite",
                 type = "RuntimeException",
                 message = "Wrapped failure",
-                messages = listOf("Wrapped failure"),
                 trace = trace("Wrapped failure", "IllegalArgumentException: invalid"),
                 occurrences = 1
             ),
@@ -93,7 +90,6 @@ internal class FailureFacadeTest : FailureSpecification() {
                 path = "PATH /com/reposilite",
                 type = "RuntimeException",
                 message = "Wrapped failure",
-                messages = listOf("Wrapped failure"),
                 trace = trace("Wrapped failure", "IllegalStateException: unavailable"),
                 occurrences = 1
             )

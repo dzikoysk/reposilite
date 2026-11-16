@@ -91,11 +91,12 @@ internal class ResolutionProvider(
         tryLocal().let { local ->
             when {
                 local.isOk -> ResolutionAttempt(result = local, remote = null)
+                local.error.status != 404 -> ResolutionAttempt(result = local, remote = null)
                 else -> {
                     val remote = tryRemote(hosts)
-                    val result = when {
-                        remote is MirrorResolution.Failed && (remote.error.status == 429 || remote.error.status >= 500) -> Result.error(remote.error)
-                        else -> remote.toResult(gav).flatMapErr { local }
+                    val result: Result<T, ErrorResponse> = when (remote) {
+                        is MirrorResolution.Resolved, is MirrorResolution.Failed -> remote.toResult<T>(gav)
+                        MirrorResolution.NoEligibleHosts, MirrorResolution.NotFound -> local
                     }
                     ResolutionAttempt(result = result, remote = remote)
                 }
@@ -110,14 +111,29 @@ internal class ResolutionProvider(
     ): ResolutionAttempt<T> =
         when (val remote = tryRemote(hosts)) {
             is MirrorResolution.Resolved -> ResolutionAttempt(result = Result.ok(remote.value), remote = remote)
-            else -> ResolutionAttempt(tryLocal().flatMapErr { remote.toResult(gav) }, remote)
+            is MirrorResolution.Failed -> when {
+                remote.source == MirrorFailureSource.LOCAL ->
+                    ResolutionAttempt(result = remote.toResult<T>(gav), remote = remote)
+                else -> {
+                    val local = tryLocal()
+                    val result: Result<T, ErrorResponse> = when {
+                        local.isOk || local.error.status != 404 -> local
+                        else -> remote.toResult<T>(gav)
+                    }
+                    ResolutionAttempt(result = result, remote = remote)
+                }
+            }
+            MirrorResolution.NoEligibleHosts, MirrorResolution.NotFound -> {
+                val local = tryLocal()
+                ResolutionAttempt(result = local, remote = remote)
+            }
         }
 
     private fun <T> ResolutionAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean, parallelMetadataLookup: Boolean) {
         when {
-            remote is MirrorResolution.NotFound ->
+            remote is MirrorResolution.NotFound && !result.isOk && result.error.status == 404 ->
                 cache.recordMirrorsMissing(gav = gav, authenticated = authenticated)
-            result.isOk && remote is MirrorResolution.Failed ->
+            result.isOk && remote is MirrorResolution.Failed && remote.source == MirrorFailureSource.UPSTREAM ->
                 logger.warn("Resolution | Upstream failed (${remote.error.status}: ${remote.error.message}) - served '$gav' from local fallback")
             result.isOk && remote is MirrorResolution.Resolved && (parallelMetadataLookup || !remote.mirror.configuration.store) ->
                 cache.recordPinnedMirror(gav = gav, authenticated = authenticated, host = remote.mirror.host)

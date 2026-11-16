@@ -116,14 +116,13 @@ internal class MirrorService(
                     try {
                         fetchAndStoreFromRemoteHosts(repository, gav, accessToken, hosts)
                     } catch (throwable: Throwable) {
-                        failureFacade.throwException("Mirror fetch ${repository.name}/$gav", throwable)
-                        MirrorResolution.Failed(internalServer("Mirror fetch failed: ${throwable.message}"))
+                        failureFacade.throwException("Mirror fetch ${repository.name}", throwable)
+                        MirrorResolution.Failed(internalServer("Mirror fetch failed"), MirrorFailureSource.LOCAL)
                     }
                 }, ioService)
             } catch (rejected: RejectedExecutionException) {
-                // ioService refused the task (typically: shutdown is in progress). Surface as a normal
-                // ErrorResponse rather than letting the runtime exception escape into Javalin.
-                CompletableFuture.completedFuture(MirrorResolution.Failed(internalServer("Mirror fetch rejected: ${rejected.message}")))
+                failureFacade.throwException("Mirror fetch ${repository.name}", rejected)
+                CompletableFuture.completedFuture(MirrorResolution.Failed(internalServer("Mirror fetch rejected"), MirrorFailureSource.LOCAL))
             }
         }
 
@@ -135,7 +134,10 @@ internal class MirrorService(
 
     private fun MirrorResolution<Unit>.openLocal(repository: Repository, gav: Location): MirrorResolution<InputStream> =
         when (this) {
-            is MirrorResolution.Resolved -> repository.storageProvider.getFile(gav).fold({ MirrorResolution.Resolved(it, mirror) }, { MirrorResolution.Failed(it) })
+            is MirrorResolution.Resolved -> repository.storageProvider.getFile(gav).fold(
+                { MirrorResolution.Resolved(it, mirror) },
+                { MirrorResolution.Failed(it, MirrorFailureSource.LOCAL) },
+            )
             is MirrorResolution.Failed -> this
             MirrorResolution.NotFound -> MirrorResolution.NotFound
             MirrorResolution.NoEligibleHosts -> MirrorResolution.NoEligibleHosts
@@ -145,21 +147,33 @@ internal class MirrorService(
         searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
             client
                 .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-                .flatMap { data ->
-                    when {
-                        config.store -> storeFile(repository, gav, data)
-                        else -> ok(data)
-                    }
-                }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
+        }.let { remote ->
+            when {
+                remote is MirrorResolution.Resolved && remote.mirror.configuration.store ->
+                    storeFile(repository, gav, remote.value).fold(
+                        { MirrorResolution.Resolved(it, remote.mirror) },
+                        { MirrorResolution.Failed(it, MirrorFailureSource.LOCAL) },
+                    )
+                else -> remote
+            }
         }
 
     private fun fetchAndStoreFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<Unit> =
         searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
             client
                 .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-                .flatMap { data -> repository.storageProvider.putFile(gav, data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
+        }.let { remote ->
+            when (remote) {
+                is MirrorResolution.Resolved -> repository.storageProvider.putFile(gav, remote.value).fold(
+                    { MirrorResolution.Resolved(Unit, remote.mirror) },
+                    { MirrorResolution.Failed(it, MirrorFailureSource.LOCAL) },
+                )
+                is MirrorResolution.Failed -> remote
+                MirrorResolution.NotFound -> MirrorResolution.NotFound
+                MirrorResolution.NoEligibleHosts -> MirrorResolution.NoEligibleHosts
+            }
         }
 
     private fun storeFile(repository: Repository, gav: Location, data: InputStream): Result<InputStream, ErrorResponse> =
@@ -174,7 +188,7 @@ internal class MirrorService(
         accessToken: AccessTokenIdentifier?,
         hosts: List<MirrorHost>,
         parallel: Boolean = false,
-        fetch: (MirrorHost) -> Result<V, ErrorResponse>,
+        request: (MirrorHost) -> Result<V, ErrorResponse>,
     ): MirrorResolution<V> {
         val eligibleHosts = hosts
             .filter { !it.configuration.authenticatedFetchingOnly || accessToken != null }
@@ -191,19 +205,19 @@ internal class MirrorService(
             return MirrorResolution.NoEligibleHosts
         }
 
+        fun fetch(host: MirrorHost): Pair<MirrorHost, Result<V, ErrorResponse>> {
+            val result = try {
+                request(host)
+            } catch (exception: Exception) {
+                failureFacade.throwException("Mirror lookup ${repository.name}/${host.host}", exception)
+                error(internalServer("Mirror lookup failed"))
+            }
+            return host to result
+        }
+
         if (parallel && eligibleHosts.size > 1 && eligibleHosts.none { it.client is RepositoryLoopbackClient }) {
             val completionService = ExecutorCompletionService<Pair<MirrorHost, Result<V, ErrorResponse>>>(ioService)
-            val tasks = eligibleHosts.map { host ->
-                completionService.submit {
-                    val result = try {
-                        fetch(host)
-                    } catch (exception: Exception) {
-                        failureFacade.throwException("Mirror lookup ${repository.name}/$gav", exception)
-                        error(internalServer("Mirror lookup failed: ${exception.message}"))
-                    }
-                    host to result
-                }
-            }
+            val tasks = eligibleHosts.map { host -> completionService.submit { fetch(host) } }
             return try {
                 resolve((1..tasks.size).asSequence().map { completionService.take().get() })
             } finally {
@@ -211,7 +225,7 @@ internal class MirrorService(
             }
         }
 
-        return resolve(eligibleHosts.asSequence().map { it to fetch(it) })
+        return resolve(eligibleHosts.asSequence().map(::fetch))
     }
 
     private fun <V> resolve(results: Sequence<Pair<MirrorHost, Result<V, ErrorResponse>>>): MirrorResolution<V> {

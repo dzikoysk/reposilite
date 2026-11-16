@@ -128,7 +128,6 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
                         path = "GET /broken",
                         type = "IllegalStateException",
                         message = "Broken route",
-                        messages = listOf("Broken route"),
                         trace = listOf(
                             "failure GET /broken",
                             "  by IllegalStateException: Broken route",

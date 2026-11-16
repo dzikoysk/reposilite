@@ -138,8 +138,13 @@ class S3StorageProvider(
             // response.read(bytes)
         } catch (_: NoSuchKeyException) {
             notFoundError("File not found: $location")
-        } catch (_: IOException) {
-            notFoundError("File not found: $location")
+        } catch (exception: S3Exception) {
+            when (exception.statusCode()) {
+                NOT_FOUND.code -> notFoundError("File not found: $location")
+                else -> storageFailure("GET object", exception)
+            }
+        } catch (exception: Exception) {
+            storageFailure("GET object", exception)
         }
 
     override fun getFileDetails(location: Location): Result<FileDetails, ErrorResponse> =
@@ -277,7 +282,7 @@ class S3StorageProvider(
                 else -> entries.asSuccess()
             }
         } catch (exception: Exception) {
-            internalServerError(exception.localizedMessage)
+            storageFailure("LIST objects", exception)
         }
 
     override fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse> =
@@ -300,15 +305,15 @@ class S3StorageProvider(
             // HEAD has no error body, so a missing key may come back as a bare 404
             when (exception.statusCode()) {
                 NOT_FOUND.code -> notFoundError(exception.message ?: "File not found")
-                else -> headFailure(location, exception)
+                else -> storageFailure("HEAD object", exception)
             }
         } catch (exception: Exception) {
-            headFailure(location, exception)
+            storageFailure("HEAD object", exception)
         }
 
-    private fun headFailure(location: Location, exception: Exception): Result<HeadObjectResponse, ErrorResponse> {
-        failureFacade.throwException("S3 Storage Provider failed to HEAD ${location.toBucketKey()}", exception)
-        return internalServerError(exception.message ?: "Generic exception")
+    private fun <T> storageFailure(operation: String, exception: Exception): Result<T, ErrorResponse> {
+        failureFacade.throwException("S3 Storage Provider failed to $operation", exception)
+        return internalServerError("S3 storage operation failed")
     }
 
     override fun exists(location: Location): Boolean =

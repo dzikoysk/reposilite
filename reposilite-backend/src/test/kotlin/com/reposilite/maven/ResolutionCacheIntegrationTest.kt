@@ -28,10 +28,16 @@ import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.repository.api.RepositoryVisibility.PUBLIC
+import com.reposilite.shared.internalServer
+import com.reposilite.shared.internalServerError
+import com.reposilite.shared.notFound
+import com.reposilite.shared.notFoundError
 import com.reposilite.status.application.FailureComponents
 import com.reposilite.storage.api.toLocation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 import java.time.Clock
@@ -39,6 +45,7 @@ import java.time.Duration
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 internal class ResolutionCacheIntegrationTest : MavenSpecification() {
@@ -185,6 +192,79 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
     }
 
     @Test
+    fun `local failure stops local-first resolution without caching a mirror miss`() {
+        // given: a local storage failure for metadata with an enabled negative cache
+        val metadata = "com/failing/local-first/$METADATA_FILE".toLocation()
+        val repository = mavenFacade.getRepository("NEGATIVE_CACHE")!!
+        val remoteRequests = AtomicInteger()
+
+        // when: local-first resolution is attempted
+        val result = ResolutionProvider(logger).resolve(
+            repository = repository,
+            gav = metadata,
+            accessToken = UNAUTHORIZED,
+            mirrorFirst = false,
+            tryLocal = { internalServerError("Local storage failed") },
+            tryRemote = {
+                remoteRequests.incrementAndGet()
+                MirrorResolution.NotFound
+            },
+        )
+
+        // then: the local failure is returned without contacting or caching mirrors
+        assertThat(assertError(result).status).isEqualTo(500)
+        assertThat(remoteRequests).hasValue(0)
+        assertThat(repository.resolutionCache!!.lookup(metadata, false)).isNull()
+    }
+
+    @Test
+    fun `local failure wins during remote-first resolution without caching a mirror miss`() {
+        // given: a remote miss followed by a local storage failure
+        val metadata = "com/failing/remote-first/$METADATA_FILE".toLocation()
+        val repository = mavenFacade.getRepository("NEGATIVE_CACHE")!!
+
+        // when: remote-first resolution is attempted
+        val result = ResolutionProvider(logger).resolve(
+            repository = repository,
+            gav = metadata,
+            accessToken = UNAUTHORIZED,
+            mirrorFirst = true,
+            tryLocal = { internalServerError("Local storage failed") },
+            tryRemote = { MirrorResolution.NotFound },
+        )
+
+        // then: the local failure is returned and the remote miss is not cached
+        assertThat(assertError(result).status).isEqualTo(500)
+        assertThat(repository.resolutionCache!!.lookup(metadata, false)).isNull()
+    }
+
+    @Test
+    fun `local mirror miss is exposed as a storage failure`() {
+        // given: a mirror fetch that resolved the artifact but failed to reopen it locally
+        val metadata = "com/failing/mirror-storage/$METADATA_FILE".toLocation()
+        val repository = mavenFacade.getRepository("NEGATIVE_CACHE")!!
+        val localRequests = AtomicInteger()
+
+        // when: the mirror returns the local storage failure
+        val result = ResolutionProvider(logger).resolve(
+            repository = repository,
+            gav = metadata,
+            accessToken = UNAUTHORIZED,
+            mirrorFirst = true,
+            tryLocal = {
+                localRequests.incrementAndGet()
+                notFoundError("Missing locally")
+            },
+            tryRemote = { MirrorResolution.Failed(notFound("Missing after store"), MirrorFailureSource.LOCAL) },
+        )
+
+        // then: the local server error is returned immediately and not cached
+        assertThat(assertError(result).status).isEqualTo(500)
+        assertThat(localRequests).hasValue(0)
+        assertThat(repository.resolutionCache!!.lookup(metadata, false)).isNull()
+    }
+
+    @Test
     fun `cached mirror miss does not hide locally deployed metadata`() {
         // given: metadata deployed after an exact mirror miss was cached
         val metadata = "com/deployed/foo/$METADATA_FILE".toLocation()
@@ -290,9 +370,10 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         assertThat(remoteRequestsByUri["$REMOTE_REPOSITORY_WITH_WHITELIST/$artifact"]).isNull()
     }
 
-    @Test
-    fun `parallel metadata lookup continues after a mirror throws`() {
-        // given: the first mirror throws before the second mirror resolves the metadata
+    @ParameterizedTest
+    @ValueSource(strings = ["MULTI_MIRROR", "PARALLEL"])
+    fun `metadata lookup continues after a mirror throws`(repository: String) {
+        // given: the first mirror throws before the second mirror resolves metadata
         val metadata = "com/parallel/exception/$METADATA_FILE"
         beforeRemoteHead = { uri ->
             if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.endsWith(metadata)) {
@@ -308,9 +389,9 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
             ioService = ioService,
         )
 
-        // when: metadata is resolved through the parallel coordinator
+        // when: metadata is resolved through the mirror coordinator
         val result = try {
-            mirrorService.findRemoteDetails(mavenFacade.getRepository("PARALLEL")!!, metadata.toLocation())
+            mirrorService.findRemoteDetails(mavenFacade.getRepository(repository)!!, metadata.toLocation())
         } finally {
             ioService.shutdownNow()
         }
