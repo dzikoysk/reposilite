@@ -58,7 +58,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 workingDirectory = parameters().workingDirectory,
                 journalist = this,
                 extensions = extensions(),
-                remoteClientProvider = HttpRemoteClientProvider(failureFacade),
+                remoteClientProvider = HttpRemoteClientProvider(journalist = this, failureFacade = failureFacade),
                 failureFacade = failureFacade,
                 storageFacade = facade(),
                 authenticationFacade = facade(),

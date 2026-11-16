@@ -55,18 +55,25 @@ interface RemoteClientProvider {
 
 }
 
-class HttpRemoteClientProvider(private val journalist: Journalist) : RemoteClientProvider {
+class HttpRemoteClientProvider @JvmOverloads constructor(
+    private val journalist: Journalist,
+    private val failureFacade: FailureFacade? = null,
+) : RemoteClientProvider {
 
     override val defaultClient: RemoteClient by lazy {
-        HttpRemoteClient(journalist, null)
+        HttpRemoteClient(journalist, null, failureFacade)
     }
 
     override fun createClient(proxy: Proxy): RemoteClient =
-        HttpRemoteClient(journalist, proxy)
+        HttpRemoteClient(journalist, proxy, failureFacade)
 
 }
 
-class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : RemoteClient, Journalist {
+class HttpRemoteClient @JvmOverloads constructor(
+    private val journalist: Journalist,
+    proxy: Proxy?,
+    private val failureFacade: FailureFacade? = null,
+) : RemoteClient, Journalist {
 
     private val httpClient = HttpClient(USER_AGENT, proxy)
 
@@ -182,7 +189,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
     }
 
     private fun recordFailure(uri: String, exception: Exception): Boolean =
-        when (val failureFacade = journalist as? FailureFacade) {
+        when (failureFacade) {
             null -> false
             else -> {
                 val host = runCatching { URI(uri).host }.getOrNull() ?: "invalid URI"

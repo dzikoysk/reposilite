@@ -146,7 +146,10 @@ class HttpRemoteClientTest {
     fun `should record the original transport exception`() {
         // given: a client backed by the failure facade and an unavailable endpoint
         val failureFacade = FailureFacade(InMemoryLogger())
-        val failureAwareClient = HttpRemoteClientProvider(failureFacade).defaultClient
+        val failureAwareClient = HttpRemoteClientProvider(
+            journalist = InMemoryLogger(),
+            failureFacade = failureFacade,
+        ).defaultClient
         val unavailableUrl = url("/unavailable")
         server.stop(0)
 
