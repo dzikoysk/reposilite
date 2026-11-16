@@ -29,6 +29,7 @@ import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.SERVICE_UNAVAILABLE
 import io.javalin.http.HttpStatus.TOO_MANY_REQUESTS
+import io.javalin.http.HttpStatus.UNAUTHORIZED as HTTP_UNAUTHORIZED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -62,6 +63,9 @@ internal class HttpRemoteMavenFacadeTest : MavenSpecification() {
                 config.routes.head("/unavailable/$gav") { ctx ->
                     ctx.contentType("text/html").status(SERVICE_UNAVAILABLE)
                 }
+                config.routes.head("/unauthorized/$gav") { ctx ->
+                    ctx.contentType("text/html").status(HTTP_UNAUTHORIZED)
+                }
             }
             config.routes.head("/html/$POM") { ctx ->
                 ctx.contentType("text/html").status(OK)
@@ -82,7 +86,11 @@ internal class HttpRemoteMavenFacadeTest : MavenSpecification() {
         repository("RATE_LIMITED", "rate-limited"),
         repository("MISSING", "missing"),
         repository("HTML", "html"),
+        repository("UNAVAILABLE", "unavailable"),
+        repository("UNAUTHORIZED", "unauthorized"),
         repository("MULTI", "rate-limited", "missing"),
+        repository("FAILURE_FIRST", "unavailable", "missing"),
+        repository("FAILURE_LAST", "missing", "unavailable"),
         repository("RATE_LIMIT_FIRST", "rate-limited", "unavailable"),
         repository("RATE_LIMIT_LAST", "unavailable", "rate-limited"),
     )
@@ -137,6 +145,28 @@ internal class HttpRemoteMavenFacadeTest : MavenSpecification() {
         // then: the actionable upstream status is preserved regardless of mirror order
         assertError(result)
         assertThat(result.error.status).isEqualTo(429)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["UNAVAILABLE", "UNAUTHORIZED"])
+    fun `should expose upstream failures as bad gateway`(repository: String) {
+        // when: the upstream cannot serve the artifact
+        val result = findFile(repository, JAR)
+
+        // then: the failure is not reported as a missing artifact
+        assertError(result)
+        assertThat(result.error.status).isEqualTo(502)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["FAILURE_FIRST", "FAILURE_LAST"])
+    fun `should expose a mirror failure after checking all mirrors`(repository: String) {
+        // when: one mirror fails and the other does not contain the artifact
+        val result = findFile(repository, JAR)
+
+        // then: the failure wins over the mirror miss regardless of mirror order
+        assertError(result)
+        assertThat(result.error.status).isEqualTo(502)
     }
 
     private fun repository(name: String, vararg paths: String): RepositorySettings =

@@ -19,6 +19,7 @@ package com.reposilite.shared.http
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.shared.http.AuthenticationMethod.BASIC
 import com.reposilite.shared.http.AuthenticationMethod.CUSTOM_HEADER
+import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.DocumentInfo
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
@@ -139,6 +140,26 @@ class HttpRemoteClientTest {
 
         assertThat(result.error.status).isEqualTo(400)
         assertThat(result.error.message).isEqualTo("Invalid remote URI: not a valid URI")
+    }
+
+    @Test
+    fun `should record the original transport exception`() {
+        // given: a client backed by the failure facade and an unavailable endpoint
+        val failureFacade = FailureFacade(InMemoryLogger())
+        val failureAwareClient = HttpRemoteClientProvider(
+            journalist = InMemoryLogger(),
+            failureFacade = failureFacade,
+        ).defaultClient
+        val unavailableUrl = url("/unavailable")
+        server.stop(0)
+
+        // when: the remote request cannot connect
+        val result = failureAwareClient.get(unavailableUrl, null, 3, 15)
+
+        // then: the response is an error and the original exception is retained
+        assertThat(result.error.status).isEqualTo(400)
+        assertThat(failureFacade.getRecordedFailures().single().type).isEqualTo("ConnectException")
+        assertThat(failureFacade.getFailures().single()).contains("ConnectException")
     }
 
     private fun url(path: String): String =

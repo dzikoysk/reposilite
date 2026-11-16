@@ -29,6 +29,7 @@ import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.UNKNOWN_LENGTH
 import com.reposilite.storage.getExtension
+import com.reposilite.status.FailureFacade
 import io.javalin.http.ContentType
 import io.javalin.http.HttpStatus.NOT_ACCEPTABLE
 import panda.std.Result
@@ -54,18 +55,25 @@ interface RemoteClientProvider {
 
 }
 
-class HttpRemoteClientProvider(private val journalist: Journalist) : RemoteClientProvider {
+class HttpRemoteClientProvider @JvmOverloads constructor(
+    private val journalist: Journalist,
+    private val failureFacade: FailureFacade? = null,
+) : RemoteClientProvider {
 
     override val defaultClient: RemoteClient by lazy {
-        HttpRemoteClient(journalist, null)
+        HttpRemoteClient(journalist, null, failureFacade)
     }
 
     override fun createClient(proxy: Proxy): RemoteClient =
-        HttpRemoteClient(journalist, proxy)
+        HttpRemoteClient(journalist, proxy, failureFacade)
 
 }
 
-class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : RemoteClient, Journalist {
+class HttpRemoteClient @JvmOverloads constructor(
+    private val journalist: Journalist,
+    proxy: Proxy?,
+    private val failureFacade: FailureFacade? = null,
+) : RemoteClient, Journalist {
 
     private val httpClient = HttpClient(USER_AGENT, proxy)
 
@@ -119,7 +127,8 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
     ): Result<R, ErrorResponse> {
         val url = try {
             URI(uri).toURL()
-        } catch (_: Exception) {
+        } catch (exception: Exception) {
+            recordFailure(uri, exception)
             return badRequestError("Invalid remote URI: $uri")
         }
         val response = try {
@@ -142,9 +151,15 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
             when {
                 response.statusCode !in 200..299 -> when (response.statusCode) {
                     404, 429 -> Result.error(ErrorResponse(response.statusCode, "Unsuccessful request (${response.statusCode})"))
-                    else -> NOT_ACCEPTABLE.toErrorResult("Unsuccessful request (${response.statusCode})")
+                    else -> {
+                        recordFailure(response.url.toString(), IllegalStateException("Remote repository responded with ${response.statusCode}"))
+                        NOT_ACCEPTABLE.toErrorResult("Unsuccessful request (${response.statusCode})")
+                    }
                 }
-                response.contentType == ContentType.HTML -> NOT_ACCEPTABLE.toErrorResult("Illegal file type (${response.contentType})")
+                response.contentType == ContentType.HTML -> {
+                    recordFailure(response.url.toString(), IllegalStateException("Remote repository responded with ${response.contentType}"))
+                    NOT_ACCEPTABLE.toErrorResult("Illegal file type (${response.contentType})")
+                }
                 else -> consumer(response)
             }.onError {
                 response.close()
@@ -166,10 +181,22 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
         }
 
     private fun <V> createExceptionResponse(uri: String, exception: Exception): Result<V, ErrorResponse> {
-        logger.debug("HttpRemoteClient | Cannot get $uri")
-        logger.exception(Channel.DEBUG, exception)
+        if (!recordFailure(uri, exception)) {
+            logger.debug("HttpRemoteClient | Cannot get $uri")
+            logger.exception(Channel.DEBUG, exception)
+        }
         return badRequestError("An error of type ${exception.javaClass} happened: ${exception.message}")
     }
+
+    private fun recordFailure(uri: String, exception: Exception): Boolean =
+        when (failureFacade) {
+            null -> false
+            else -> {
+                val host = runCatching { URI(uri).host }.getOrNull() ?: "invalid URI"
+                failureFacade.throwException("Remote repository $host failed", exception)
+                true
+            }
+        }
 
     override fun getLogger(): Logger =
         journalist.logger

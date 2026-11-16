@@ -41,7 +41,6 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
 
         exceptions.compute(failureSignature(identifier, throwable)) { _, cachedFailure ->
             cachedFailure?.copy(
-                messages = if (message.isBlank()) cachedFailure.messages else cachedFailure.messages + message,
                 occurrences = cachedFailure.occurrences + 1
             )
                 ?: CachedFailure(
@@ -92,7 +91,6 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
         val type: String,
         val message: String,
         val trace: String,
-        val messages: Set<String> = if (message.isBlank()) emptySet() else setOf(message),
         val occurrences: Int = 1
     ) {
 
@@ -101,7 +99,6 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
                 path = path,
                 type = type,
                 message = message,
-                messages = messages.toList(),
                 trace = trace,
                 occurrences = occurrences
             )

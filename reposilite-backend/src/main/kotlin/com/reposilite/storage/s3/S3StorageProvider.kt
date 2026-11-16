@@ -33,7 +33,9 @@ import com.reposilite.storage.api.UNKNOWN_LENGTH
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
+import io.javalin.http.HttpStatus.NOT_FOUND
 import panda.std.Result
+import panda.std.Result.error
 import panda.std.Result.ok
 import panda.std.asSuccess
 import panda.std.letIf
@@ -51,6 +53,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.S3Exception
 import software.amazon.awssdk.services.s3.model.S3Object
 import java.io.File
 import java.io.IOException
@@ -135,8 +138,13 @@ class S3StorageProvider(
             // response.read(bytes)
         } catch (_: NoSuchKeyException) {
             notFoundError("File not found: $location")
-        } catch (_: IOException) {
-            notFoundError("File not found: $location")
+        } catch (exception: S3Exception) {
+            when (exception.statusCode()) {
+                NOT_FOUND.code -> notFoundError("File not found: $location")
+                else -> storageFailure("GET object", exception)
+            }
+        } catch (exception: Exception) {
+            storageFailure("GET object", exception)
         }
 
     override fun getFileDetails(location: Location): Result<FileDetails, ErrorResponse> =
@@ -144,7 +152,12 @@ class S3StorageProvider(
             Location.empty() -> listDirectoryDetails(location)
             else -> head(location)
                 .map { toDocumentInfo(location, it) }
-                .flatMapErr { listDirectoryDetails(location) }
+                .flatMapErr { headError ->
+                    when (headError.status) {
+                        NOT_FOUND.code -> listDirectoryDetails(location)
+                        else -> error(headError)
+                    }
+                }
         }
 
     private fun listDirectoryDetails(location: Location): Result<FileDetails, ErrorResponse> =
@@ -269,7 +282,7 @@ class S3StorageProvider(
                 else -> entries.asSuccess()
             }
         } catch (exception: Exception) {
-            internalServerError(exception.localizedMessage)
+            storageFailure("LIST objects", exception)
         }
 
     override fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse> =
@@ -288,9 +301,20 @@ class S3StorageProvider(
             s3.headObject(request.build()).asSuccess()
         } catch (ignored: NoSuchKeyException) {
             notFoundError(ignored.message ?: "File not found")
+        } catch (exception: S3Exception) {
+            // HEAD has no error body, so a missing key may come back as a bare 404
+            when (exception.statusCode()) {
+                NOT_FOUND.code -> notFoundError(exception.message ?: "File not found")
+                else -> storageFailure("HEAD object", exception)
+            }
         } catch (exception: Exception) {
-            internalServerError(exception.message ?: "Generic exception")
+            storageFailure("HEAD object", exception)
         }
+
+    private fun <T> storageFailure(operation: String, exception: Exception): Result<T, ErrorResponse> {
+        failureFacade.throwException("S3 Storage Provider failed to $operation", exception)
+        return internalServerError("S3 storage operation failed")
+    }
 
     override fun exists(location: Location): Boolean =
         head(location)

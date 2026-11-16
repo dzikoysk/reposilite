@@ -110,10 +110,6 @@ const copyTrace = (failure) => {
             v-if="entry.occurrences > 1"
             class="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300 whitespace-nowrap"
           ><b class="font-semibold text-gray-800 dark:text-gray-100 tabular-nums">{{ entry.occurrences }}</b> occurrences</span>
-          <span
-            v-if="entry.messages.length > 1"
-            class="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300 whitespace-nowrap"
-          ><b class="font-semibold text-gray-800 dark:text-gray-100 tabular-nums">{{ entry.messages.length }}</b> messages</span>
         </div>
         <div class="min-w-0 flex-1 <sm:col-start-3 <sm:row-start-2">
           <div class="font-mono text-sm truncate <sm:text-xs">
@@ -149,17 +145,6 @@ const copyTrace = (failure) => {
         role="region"
         :aria-label="`${entry.type} failure details`"
       >
-        <div
-          v-if="entry.messages.length > 1"
-          class="mb-3 space-y-1 rounded-lg bg-white dark:bg-gray-900 px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-300"
-        >
-          <div
-            v-for="message in entry.messages"
-            :key="message"
-          >
-            {{ message }}
-          </div>
-        </div>
         <div class="relative">
           <button
             type="button"

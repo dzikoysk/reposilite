@@ -121,7 +121,7 @@ const poolUsage = (pool) =>
   Math.min(100, Math.round(pool.active / pool.capacity * 100))
 
 const failureText = (failure) =>
-  [failure.path, failure.type, failure.message, ...failure.messages, failure.trace].join(' ')
+  [failure.path, failure.type, failure.message, failure.trace].join(' ')
 
 const totalFailures = computed(() =>
   failures.value.reduce((total, failure) => total + failure.occurrences, 0))
