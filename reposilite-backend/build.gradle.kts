@@ -45,7 +45,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "7.2.4"
+    val javalin = "7.3.0"
     api("io.javalin:javalin:$javalin") {
         exclude(group = "org.eclipse.jetty", module = "jetty-server")
         exclude(group = "org.eclipse.jetty", module = "jetty-http")
@@ -57,7 +57,7 @@ dependencies {
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
     constraints {
-        kapt("ch.qos.logback:logback-classic:1.6.6") {
+        kapt("ch.qos.logback:logback-classic:1.6.8") {
             because("The OpenAPI processor pulls Logback versions affected by deserialization advisories")
         }
         kapt("org.mozilla:rhino:1.9.2") {
@@ -87,7 +87,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.57.11"
+    val awssdk = "2.59.7"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     // Reposilite only uses synchronous S3/STS operations, so prefer the lightweight JDK transport.
     implementation("software.amazon.awssdk:s3:$awssdk") {

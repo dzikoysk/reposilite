@@ -40,6 +40,8 @@ If you want to learn more about it, visit some great dedicated articles, like e.
 
 ### Running 
 
+The Gradle build downloads Node.js 26. Linux builds need `libatomic` (`libatomic1` on Debian/Ubuntu).
+
 You can run Reposilite in various ways, it depends on what you expect:
 
 * Run classes that end with `*Test.kt` to launch simple unit tests without launching Reposilite
