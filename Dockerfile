@@ -1,7 +1,7 @@
 # syntax=docker.io/docker/dockerfile:1
 
 # Build stage
-FROM eclipse-temurin:21-jdk-noble@sha256:a09e64f4976df9c4f2029c6abe64fc26f069a342ec9a7f147dce7b1933ebda16 AS build
+FROM eclipse-temurin:21-jdk-noble AS build
 RUN apt-get --error-on=any -o Acquire::Retries=0 update \
     && apt-get -o Acquire::Retries=0 install -y --no-install-recommends libatomic1 \
     && rm -rf /var/lib/apt/lists/*
@@ -29,7 +29,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Run stage
-FROM eclipse-temurin:21-jre-noble@sha256:ac595159aa2209f07a2331efa8a8ce4278b77a7b76a9365a0f173786d5067a9e AS run
+FROM eclipse-temurin:21-jre-noble AS run
 
 # Disable download retries while updating the APT client affected by CVE-2026-109518.
 RUN apt-get --error-on=any -o Acquire::Retries=0 update \
