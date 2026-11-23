@@ -24,6 +24,7 @@ jobs:
           license-check: true
           fail-on-scopes: runtime
           allow-licenses: >-
+            0BSD,
             Apache-2.0,
             BSD-2-Clause,
             BSD-3-Clause,

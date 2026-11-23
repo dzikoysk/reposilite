@@ -21,7 +21,7 @@ plugins {
 }
 
 node {
-    version.set("24.22.2")
+    version.set("26.13.1")
     download.set(true)
 }
 

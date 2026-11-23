@@ -27,7 +27,10 @@ application {
 
 dependencies {
     compileOnly(project(":reposilite-backend"))
-    implementation("org.apache.groovy:groovy:5.1.3")
+    val groovy = "6.0.0"
+    implementation("org.apache.groovy:groovy:$groovy")
+    runtimeOnly("org.apache.groovy:groovy-grape-ivy:$groovy")
+    runtimeOnly("org.apache.groovy:groovy-callsite:$groovy")
 }
 
 tasks.withType<ShadowJar> {
