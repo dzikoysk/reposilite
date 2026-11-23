@@ -2,6 +2,8 @@
 
 # Build stage
 FROM eclipse-temurin:21-jdk-noble AS build
+# Temporary mitigation for CVE-2026-114938.
+ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
 RUN apt-get --error-on=any -o Acquire::Retries=0 update \
     && apt-get -o Acquire::Retries=0 install -y --no-install-recommends libatomic1 \
     && rm -rf /var/lib/apt/lists/*
@@ -30,6 +32,8 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 # Run stage
 FROM eclipse-temurin:21-jre-noble AS run
+# Temporary mitigation for CVE-2026-114938.
+ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
 
 # Disable download retries while updating the APT client affected by CVE-2026-109518.
 RUN apt-get --error-on=any -o Acquire::Retries=0 update \
