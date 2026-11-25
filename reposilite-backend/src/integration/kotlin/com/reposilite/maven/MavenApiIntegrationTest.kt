@@ -23,6 +23,7 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpStatus.UNAUTHORIZED
+import kong.unirest.core.HeaderNames.CACHE_CONTROL
 import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -106,7 +107,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
     @Test
     fun `should resolve latest version of snapshot`() {
         val versionIdentifier = "1.0-20211230.200052-3"
-        val (repository, gav, _, content) = useDocument("private", "group/artifact/version-SNAPSHOT", "artifact-$versionIdentifier.jar", "content", true)
+        val (repository, gav, _, content) = useDocument("private-immutable", "group/artifact/version-SNAPSHOT", "artifact-$versionIdentifier.jar", "content", true)
         val (_) = useDocument(repository, gav, "maven-metadata.xml", """
            <metadata modelVersion="1.1.0">
              <version>1.0-SNAPSHOT</version>
@@ -132,9 +133,9 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
         assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: valid credentials
-        val (name, secret) = useAuth("name", "secret", routes = mapOf("/private" to READ))
+        val (name, secret) = useAuth("name", "secret", routes = mapOf("/$repository" to READ))
 
-        // when: user requests the latest version with invalid credentials
+        // when: the reader downloads the latest snapshot
         val response = get(apiUrl)
             .basicAuth(name, secret)
             .asString()
@@ -142,6 +143,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
         // then: the request should succeed
         assertThat(response.isSuccess).isTrue
         assertThat(response.body).isEqualTo(content)
+        assertThat(response.headers.getFirst(CACHE_CONTROL)).isEqualTo("no-cache, no-store, max-age=0")
     }
 
 }

@@ -73,7 +73,8 @@ class Repository internal constructor(
         redeployment || location.getSimpleName().contains(METADATA_FILE) || !storageProvider.exists(location)
 
     fun acceptsCachingOf(gav: Location): Boolean =
-        !redeployment && !gav.getSimpleName().contains(METADATA_FILE)
+        visibility != RepositoryVisibility.PRIVATE &&
+            !redeployment && !gav.getSimpleName().contains(METADATA_FILE)
 
     fun writeFileChecksums(location: Location, bytes: ByteArray): Result<Unit, ErrorResponse> =
         writeFileChecksums(location, bytes.inputStream())

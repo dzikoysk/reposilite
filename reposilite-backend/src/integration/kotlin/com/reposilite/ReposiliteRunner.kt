@@ -25,6 +25,7 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.repository.api.RepositoryVisibility.PRIVATE
 import com.reposilite.storage.StorageProviderSettings
 import io.javalin.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
@@ -130,7 +131,15 @@ internal abstract class ReposiliteRunner {
                         )
                     }
                     .toMutableMap()
-                    .also { it["immutable"] = RepositorySettings(id = "immutable", redeployment = false) }
+                    .also {
+                        it["immutable"] = RepositorySettings(id = "immutable", redeployment = false)
+                        it["private-immutable"] = RepositorySettings(
+                            id = "private-immutable",
+                            visibility = PRIVATE,
+                            redeployment = false,
+                            storageProvider = useTargetStorageSettings(),
+                        )
+                    }
                     .values
                     .toList()
             )

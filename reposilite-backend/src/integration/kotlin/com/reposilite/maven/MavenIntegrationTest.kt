@@ -30,6 +30,7 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.maxAge
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.s3.S3StorageProviderSettings
+import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import java.util.concurrent.CompletableFuture
@@ -149,6 +150,25 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         assertThat(response.isSuccess).isTrue
         assertThat(response.headers.getFirst(CONTENT_LENGTH).toInt()).isEqualTo(content.length)
         assertThat(response.headers.getFirst(CACHE_CONTROL)).isEqualTo("public, max-age=$maxAge")
+    }
+
+    @Test
+    fun `should prevent shared caching of private artifact downloads`() {
+        // given: an immutable private artifact and a token with read access
+        val (repository, gav, file, content) = useDocument("private-immutable", "gav", "artifact.jar", store = true)
+        val (name, secret) = useAuth("reader", "secret", routes = mapOf("/$repository" to READ))
+        val url = "$base/$repository/$gav/$file"
+
+        // when: the reader requests the artifact and its headers
+        val download = get(url).basicAuth(name, secret).asString()
+        val headers = head(url).basicAuth(name, secret).asEmpty()
+
+        // then: both successful responses forbid storage
+        assertThat(download.isSuccess).isTrue
+        assertThat(download.body).isEqualTo(content)
+        assertThat(headers.isSuccess).isTrue
+        assertThat(download.headers.getFirst(CACHE_CONTROL)).isEqualTo("no-cache, no-store, max-age=0")
+        assertThat(headers.headers.getFirst(CACHE_CONTROL)).isEqualTo("no-cache, no-store, max-age=0")
     }
 
     @Test

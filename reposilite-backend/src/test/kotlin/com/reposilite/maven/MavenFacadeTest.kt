@@ -630,4 +630,18 @@ internal class MavenFacadeTest : MavenSpecification() {
 
     }
 
+    @Nested
+    inner class Caching {
+
+        @ParameterizedTest
+        @EnumSource(value = RepositoryVisibility::class, names = [ "PUBLIC", "HIDDEN" ])
+        fun `should allow shared caching of artifacts in anonymously readable repositories`(visibility: RepositoryVisibility) {
+            val repository = mavenFacade.getRepository(visibility.name)!!
+
+            assertThat(repository.acceptsCachingOf("gav/artifact.jar".toLocation())).isTrue()
+            assertThat(repository.acceptsCachingOf("gav/$METADATA_FILE".toLocation())).isFalse()
+        }
+
+    }
+
 }
