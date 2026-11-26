@@ -136,7 +136,8 @@ internal class MavenEndpoints(
         }
         .onError {
             ctx.status(it.status).html(
-                frontendFacade.createNotFoundPage(
+                frontendFacade.createErrorPage(
+                    status = it.status,
                     originUri = ctx.uri(),
                     details = it.message,
                     forwardedPrefix = ctx.header(frontendFacade.forwardedPrefixHeader.get()),

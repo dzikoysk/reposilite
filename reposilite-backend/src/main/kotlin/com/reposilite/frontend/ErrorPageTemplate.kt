@@ -16,14 +16,18 @@
 
 package com.reposilite.frontend
 
+import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.NOT_FOUND
 import org.intellij.lang.annotations.Language
 
-object NotFoundTemplate {
+internal object ErrorPageTemplate {
 
     private val uriFormatter = Regex("/+") // exclude common typos from URI
     private val regexAntiXss = Regex("[^A-Za-z0-9/.\\-_ ]") // exclude custom non-standard characters from template
 
-    fun createNotFoundPage(basePath: String, originUri: String, details: String): String {
+    fun createErrorPage(status: Int, basePath: String, originUri: String, details: String): String {
+        val reason = HttpStatus.forStatus(status).message
+        val heading = if (status == NOT_FOUND.code) "Resource not found" else reason
         val uri = originUri.replace(uriFormatter, "/")
         val dashboardUrl = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
 
@@ -32,7 +36,7 @@ object NotFoundTemplate {
         <html lang="en">
             <head>
               <meta charset="UTF-8" />
-              <title>Reposilite - 404 Not Found</title>
+              <title>Reposilite - $status $reason</title>
             </head>
             <style>
               body {
@@ -63,7 +67,7 @@ object NotFoundTemplate {
             <body>
               <div class='error-view'>
                 <h1 style="font-size: 1.5rem">
-                  <span style="color: gray;">404︱</span>Resource not found
+                  <span style="color: gray;">$status︱</span>$heading
                 </h1>
                 ${if (details.isEmpty()) "" else "<p><i>${regexAntiXss.replace(details, "")}</i></p>" }
                 <p>Looking for a dashboard?</p>

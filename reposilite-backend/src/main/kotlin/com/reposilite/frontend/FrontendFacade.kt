@@ -18,6 +18,7 @@ package com.reposilite.frontend
 import com.reposilite.frontend.BasePathFormatter.formatAsViteBasePath
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.plugin.api.Facade
+import io.javalin.http.HttpStatus.NOT_FOUND
 import panda.std.reactive.Reference
 import panda.std.reactive.computed
 import java.net.URLEncoder
@@ -82,7 +83,10 @@ class FrontendFacade internal constructor(
         }
 
     fun createNotFoundPage(originUri: String, details: String, forwardedPrefix: String?): String =
-        NotFoundTemplate.createNotFoundPage(resolveBasePath(forwardedPrefix), originUri, details)
+        createErrorPage(NOT_FOUND.code, originUri, details, forwardedPrefix)
+
+    fun createErrorPage(status: Int, originUri: String, details: String, forwardedPrefix: String?): String =
+        ErrorPageTemplate.createErrorPage(status, resolveBasePath(forwardedPrefix), originUri, details)
 
     fun resolveBasePath(forwardedPrefix: String?): String =
         when {
