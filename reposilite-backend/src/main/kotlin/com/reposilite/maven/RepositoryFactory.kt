@@ -89,7 +89,7 @@ internal class RepositoryFactory(
                 failureFacade.logger.warn("Empty reference value of mirrored repository found, skipping configuration entry.")
                 return null
             }
-            name.endsWith("/") -> name.substring(0, name.length - 1)
+            name.endsWith("/") && '?' !in name && '#' !in name -> name.dropLast(1)
             else -> name
         }
 

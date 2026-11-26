@@ -22,7 +22,7 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.encoding
 import com.reposilite.shared.notFoundError
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.api.toLocation
+import com.reposilite.storage.api.Location
 import com.reposilite.storage.getExtension
 import com.reposilite.storage.inputStream
 import com.reposilite.web.api.ReposiliteRoute
@@ -88,7 +88,8 @@ internal class ResourcesFrontendHandler(
     }
 
     private val assetsHandler = ReposiliteRoute<InputStream>("/assets/<path>", GET) {
-        response = respondWithBundledResource(ctx, "assets/${ctx.pathParam("path")}")
+        response = Location.ofRequest(requireParameter("path"))
+            .flatMap { path -> respondWithBundledResource(ctx, "assets/$path") }
     }
 
     private fun respondWithBundledResource(ctx: Context, uri: String): Result<InputStream, ErrorResponse> =
@@ -113,15 +114,10 @@ internal class CustomFrontendHandler(
     }
 
     private fun directoryHandler(directory: Path) = ReposiliteRoute("/${directory.fileName}/<path>", GET) {
-        val path = parameter("path")
-
-        response = respondWithResource(ctx, "${directory.name}/$path") {
-            path
-                .toLocation()
-                .toPath()
-                .let { directory.resolve(it) }
-                .inputStream()
-                .orNull()
+        response = Location.ofRequest(requireParameter("path")).flatMap { path ->
+            respondWithResource(ctx, "${directory.name}/$path") {
+                directory.resolve(path.toPath()).inputStream().orNull()
+            }
         }
     }
 

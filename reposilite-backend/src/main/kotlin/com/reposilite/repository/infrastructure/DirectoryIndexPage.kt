@@ -18,11 +18,11 @@ package com.reposilite.repository.infrastructure
 
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import com.reposilite.storage.api.encodePathSegment
+import org.eclipse.jetty.util.StringUtil.sanitizeXmlString
 
 internal fun createDirectoryIndexPage(basePath: String, uri: String, visibleFiles: List<FileDetails>): String {
-    val formattedUri = basePath + uri.removePrefix("/")
+    val formattedUri = sanitizeXmlString(basePath + uri.removePrefix("/"))
     val parentUri = formattedUri.removeSuffix("/").substringBeforeLast("/").ifEmpty { "/" }
 
     // language=html
@@ -56,11 +56,11 @@ internal fun createDirectoryIndexPage(basePath: String, uri: String, visibleFile
                     </li>
                     ${visibleFiles.flatMap {
                         val fileSeparator = if (it.type == FileType.DIRECTORY) "/" else ""
-                        val encodedName = URLEncoder.encode(it.name, StandardCharsets.UTF_8).replace("+", "%20")
+                        val encodedName = encodePathSegment(it.name)
 
                         listOf(
                             """<li class="${it.type.name.lowercase()}">""",
-                            """<a href="./$encodedName$fileSeparator">${it.name}$fileSeparator</a>""",
+                            """<a href="./$encodedName$fileSeparator">${sanitizeXmlString(it.name)}$fileSeparator</a>""",
                             """</li>"""
                         )
                     }.joinToString(separator = "")}

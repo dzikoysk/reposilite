@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.storage.api.encodePathSegment
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.HEAD
@@ -31,7 +32,6 @@ import io.javalin.http.HttpStatus
 import java.io.Closeable
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.URLEncoder
 import java.nio.charset.Charset
 import kotlin.time.Duration.Companion.hours
 import org.eclipse.jetty.ee10.servlet.HttpOutput
@@ -125,7 +125,7 @@ internal fun Context.attachmentHeaders(
     header(CONTENT_SECURITY_POLICY, "sandbox")
 
     if (!contentType.isHumanReadable) {
-        contentDisposition("""attachment; filename="$name"; filename*=utf-8''${URLEncoder.encode(name, "utf-8")}""")
+        contentDisposition("""attachment; filename="$name"; filename*=utf-8''${encodePathSegment(name)}""")
     }
 
     if (compressionStrategy == "none" && contentLength > 0) {

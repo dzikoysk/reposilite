@@ -16,7 +16,7 @@
 
 <script setup>
 import prettyBytes from 'pretty-bytes'
-import {createURL} from "../../store/client"
+import {createURL, encodeArtifactPath} from "../../store/client"
 import {useSession} from '../../store/session'
 import usePlaceholders from '../../store/placeholders'
 import EyeIcon from '../icons/EyeIcon.vue'
@@ -51,7 +51,7 @@ const getJavaDocsUrl = () => {
       return null
   }
 
-  return createURL(`/javadoc/${qualifier}`)
+  return createURL(`/javadoc/${encodeArtifactPath(qualifier)}`)
 }
 
 const defaultMode = computed(() => !props.compactMode)

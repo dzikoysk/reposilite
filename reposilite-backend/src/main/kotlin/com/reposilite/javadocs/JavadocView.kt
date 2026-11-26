@@ -17,6 +17,7 @@
 package com.reposilite.javadocs
 
 import com.reposilite.storage.api.FileDetails
+import org.eclipse.jetty.util.StringUtil.sanitizeXmlString
 import org.intellij.lang.annotations.Language
 
 internal object JavadocView {
@@ -28,7 +29,7 @@ internal object JavadocView {
      */
     fun index(unpackedIndexPath: String, javadocList: List<FileDetails>): String {
         val dropdownOptions = javadocList.joinToString("\n") {
-            val version = it.name
+            val version = sanitizeXmlString(it.name)
             val label = "Version $version"
             """<option value="$version">$label</option>"""
         }
@@ -113,13 +114,12 @@ internal object JavadocView {
                 </div>
                 <iframe id="javadoc" class="doc" src="$unpackedIndexPath" sandbox="allow-scripts"></iframe>
                 <script>
-                    if (!window.location.href.endsWith("/")) {
-                        document.getElementById("javadoc").src = window.location.href + '$unpackedIndexPath';
-                    }
-                    document.getElementById('raw').href = window.location.href + '/raw/index.html';
+                    const versionPath = window.location.pathname.replace(/\/$/, '');
+                    document.getElementById('javadoc').src = versionPath + '$unpackedIndexPath';
+                    document.getElementById('raw').href = versionPath + '/raw/index.html';
                     
-                    const pathParts = window.location.pathname.split('/');
-                    const currentVersion = pathParts[pathParts.length - 1];
+                    const pathParts = versionPath.split('/');
+                    const currentVersion = decodeURIComponent(pathParts[pathParts.length - 1]);
                     const options = document.getElementById('javadoc-selector').options;
                     for (let i = 0; i < options.length; i++) {
                         options[i].removeAttribute('selected');
@@ -131,9 +131,7 @@ internal object JavadocView {
                     
                     document.getElementById('javadoc-selector').addEventListener('change', function() {
                         const version = this.value;
-                        const parts = window.location.href.split('/');
-                        parts.pop(); // Remove current version
-                        window.location.href = parts.join('/') + '/' + version;
+                        window.location.pathname = pathParts.slice(0, -1).concat(encodeURIComponent(version)).join('/');
                     });
                 </script>
             </body>

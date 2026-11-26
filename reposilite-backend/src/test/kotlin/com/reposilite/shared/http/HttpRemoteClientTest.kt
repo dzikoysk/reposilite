@@ -16,6 +16,9 @@
 
 package com.reposilite.shared.http
 
+import com.reposilite.maven.MirrorHost
+import com.reposilite.maven.application.MirroredRepositorySettings
+import com.reposilite.storage.api.toLocation
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.shared.http.AuthenticationMethod.BASIC
 import com.reposilite.shared.http.AuthenticationMethod.CUSTOM_HEADER
@@ -58,6 +61,30 @@ class HttpRemoteClientTest {
         val provider = HttpRemoteClientProvider(InMemoryLogger())
 
         assertThat(provider.defaultClient).isSameAs(provider.defaultClient)
+    }
+
+    @Test
+    fun `should preserve artifact names and the configured base path on HTTP mirrors`() {
+        // given: a mirror with its own base path and a file with URL-sensitive characters
+        val reference = url("/upstream/releases")
+        val mirror = MirrorHost(reference, MirroredRepositorySettings(reference = reference), client)
+        val artifact = "group/release #1+100%.jar".toLocation()
+        server.createContext("/upstream/releases/$artifact") { exchange ->
+            if (exchange.requestMethod == "HEAD") {
+                exchange.sendResponseHeaders(200, -1)
+                exchange.close()
+            } else {
+                exchange.respond(200, REMOTE_CONTENT)
+            }
+        }
+
+        // when: the mirror requests the metadata and content of the same location
+        val details = mirror.head(artifact).get()
+        val content = mirror.get(artifact).get().use { it.readAllBytes() }
+
+        // then: both requests address the original file
+        assertThat(details.name).isEqualTo(artifact.getSimpleName())
+        assertThat(content).isEqualTo(REMOTE_CONTENT)
     }
 
     @Test

@@ -85,9 +85,10 @@ class HttpRemoteClient @JvmOverloads constructor(
                 .takeUnless { "gzip" == response.contentEncoding } // remove content-length header
                 ?: UNKNOWN_LENGTH
 
+            val name = URI(uri).path.substringAfterLast('/')
             val contentType = response.contentType
                 ?.let { ContentType.contentType(it) }
-                ?: ContentType.contentTypeByExtension(uri.getExtension())
+                ?: ContentType.contentTypeByExtension(name.getExtension())
                 ?: ContentType.APPLICATION_OCTET_STREAM
 
             val lastModified = response
@@ -104,7 +105,7 @@ class HttpRemoteClient @JvmOverloads constructor(
 
             response.close()
             DocumentInfo(
-                name = uri.substringAfterLast('/'),
+                name = name,
                 contentType = contentType,
                 contentLength = contentLength,
                 lastModifiedTime = lastModified,

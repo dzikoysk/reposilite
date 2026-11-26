@@ -31,6 +31,8 @@ import com.reposilite.shared.extensions.maxAge
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.s3.S3StorageProviderSettings
 import com.reposilite.token.RoutePermission.READ
+import com.reposilite.token.RoutePermission.WRITE
+import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import java.util.concurrent.CompletableFuture
@@ -87,6 +89,39 @@ internal class RemoteMavenIntegrationTest : MavenIntegrationTest() {
 }
 
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
+
+    @Test
+    fun `should authorize artifact writes using the logical filename`() {
+        // given: a token scoped to one file with URL-sensitive characters
+        val (name, secret) = useAuth("writer", "secret", routes = mapOf("/releases/build #1.jar" to WRITE))
+        val url = "$base/releases/build%20%231.jar"
+
+        // when: the writer deploys and deletes that artifact
+        val deployment = put(url).basicAuth(name, secret).body("content").asEmpty()
+        val download = get(url).asString()
+        val deletion = delete(url).basicAuth(name, secret).asEmpty()
+
+        // then: the permission and both operations identify the same artifact
+        assertThat(deployment.isSuccess).isTrue
+        assertThat(download.body).isEqualTo("content")
+        assertThat(deletion.isSuccess).isTrue
+    }
+
+    @Test
+    fun `should check write permission before looking up the repository`() {
+        // given: a token with write permission for one unconfigured repository
+        val (name, secret) = useAuth("writer", "secret", routes = mapOf("/planned/" to WRITE))
+
+        // when: the token requests the same operation in each repository
+        val existing = delete("$base/releases/file.jar").basicAuth(name, secret).asEmpty()
+        val unknown = delete("$base/unknown/file.jar").basicAuth(name, secret).asEmpty()
+        val permitted = delete("$base/planned/file.jar").basicAuth(name, secret).asEmpty()
+
+        // then: only the permitted request reaches repository lookup
+        assertThat(existing.status).isEqualTo(FORBIDDEN.code)
+        assertThat(unknown.status).isEqualTo(FORBIDDEN.code)
+        assertThat(permitted.status).isEqualTo(NOT_FOUND.code)
+    }
 
     @Test
     fun `should preserve stored files across repository reloads`() {

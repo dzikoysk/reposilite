@@ -18,10 +18,12 @@ package com.reposilite.maven.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.Repository
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.repository.infrastructure.createDirectoryIndexPage
+import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.attachmentHeaders
 import com.reposilite.shared.extensions.uri
@@ -29,6 +31,7 @@ import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
 import io.javalin.community.routing.Route.DELETE
 import io.javalin.community.routing.Route.GET
@@ -167,15 +170,10 @@ internal class MavenEndpoints(
         ]
     )
     private val deployFile = ReposiliteRoute<Unit>("/{repository}/<gav>", POST, PUT) {
-        authorized {
-            requireGav { gav ->
-                requireRepository { repository ->
-                    response = DeployRequest(repository, gav, getSessionIdentifier(), ctx.bodyInputStream(), ctx.header(X_GENERATE_CHECKSUMS) == "true")
-                        .let { request -> mavenFacade.deployFile(request) }
-                        .onError { error -> logger.debug("Cannot deploy artifact due to: ${error.message}") }
-                }
-            }
-
+        authorizedArtifact { repository, gav ->
+            response = DeployRequest(repository, gav, getSessionIdentifier(), ctx.bodyInputStream(), ctx.header(X_GENERATE_CHECKSUMS) == "true")
+                .let { request -> mavenFacade.deployFile(request) }
+                .onError { error -> logger.debug("Cannot deploy artifact due to: ${error.message}") }
         }
     }
 
@@ -190,10 +188,16 @@ internal class MavenEndpoints(
         ]
     )
     private val deleteFile = ReposiliteRoute<Unit>("/{repository}/<gav>", DELETE) {
-        authorized {
+        authorizedArtifact { repository, gav ->
+            response = mavenFacade.deleteFile(DeleteRequest(identifier, repository, gav, getSessionIdentifier()))
+        }
+    }
+
+    private fun ContextDsl<Unit>.authorizedArtifact(action: AccessTokenDto.(Repository, Location) -> Unit) {
+        authenticated {
             requireGav { gav ->
-                requireRepository { repository ->
-                    response = mavenFacade.deleteFile(DeleteRequest(this.identifier, repository, gav, getSessionIdentifier()))
+                authorized(requireParameter("repository"), gav) {
+                    requireRepository { repository -> action(repository, gav) }
                 }
             }
         }

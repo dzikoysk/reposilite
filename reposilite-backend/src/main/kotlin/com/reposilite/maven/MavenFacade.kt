@@ -93,11 +93,9 @@ class MavenFacade internal constructor(
     fun getAvailableFiles(request: LookupRequest, directoryInfo: DirectoryInfo): List<FileDetails> =
         getRepository(request.repository)!!.let { repository ->
             directoryInfo.files.filter {
-                repositoryFacade.canBrowseResource(
-                    accessToken = request.accessToken,
-                    repository = repository,
-                    resourcePath = request.gav.resolve(it.name)
-                ).isOk
+                request.gav.resolveChild(it.name)
+                    .flatMap { child -> repositoryFacade.canBrowseResource(request.accessToken, repository, child) }
+                    .isOk
             }
         }
 

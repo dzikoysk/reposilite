@@ -31,7 +31,7 @@ const useQualifier = createSharedComposable(() => {
     qualifier.watchable++
 
   const getParentPath = () =>
-    `/${(qualifier.path.endsWith('/') ? qualifier.path.slice(0, -1) : qualifier.path)}`
+    route.path.replace(/\/$/, '')
       .split("/")
       .slice(0, -1)
       .join('/') || '/'

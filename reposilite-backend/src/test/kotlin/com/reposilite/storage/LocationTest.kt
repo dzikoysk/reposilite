@@ -44,6 +44,17 @@ class LocationTest {
     }
 
     @Test
+    fun `should resolve one literal child name`() {
+        val group = Location.of("group")
+        val child = group.resolveChild("build #1+100%.jar").get()
+
+        assertThat(child.getSimpleName()).isEqualTo("build #1+100%.jar")
+        assertThat(child.toUrlPath()).isEqualTo("group/build%20%231%2B100%25.jar")
+        assertThat(group.resolveChild("other/name.jar").isErr).isTrue()
+        assertThat(group.resolveChild("").isErr).isTrue()
+    }
+
+    @Test
     fun `should canonicalize trusted file-system paths`() {
         assertThat(Location.of(Path.of("group/artifact")).toString()).isEqualTo("group/artifact")
         assertThat(Location.of(Path.of("group"), Path.of("group/artifact/file.jar")).toString()).isEqualTo("artifact/file.jar")
@@ -70,6 +81,7 @@ class LocationTest {
 
     @Test
     fun `should reject untrusted requests with illegal characters or operators`() {
+        assertThat(Location.ofRequest("group/./artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/c:/artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/../../artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/<artifact").isErr).isTrue()
