@@ -23,6 +23,8 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.storage.api.toLocation
+import io.javalin.http.HttpStatus.BAD_GATEWAY
+import io.javalin.http.HttpStatus.NOT_FOUND
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -52,7 +54,10 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
             val notFoundResponse = get("$base/proxied/not/found.jar").asString()
 
             // then: service responds with 404 status page
-            assertThat(notFoundResponse.isSuccess).isFalse
+            assertThat(notFoundResponse.status).isEqualTo(NOT_FOUND.code)
+            assertThat(notFoundResponse.body)
+                .contains("<title>Reposilite - 404 Not Found</title>")
+                .contains("404︱</span>Resource not found")
 
             // when: file that exists in remote repository is requested
             val response = get("$base/proxied/$gav").asString()
@@ -75,7 +80,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
     }
 
     @Test
-    fun `should not respond with 200 and empty body when upstream HEAD succeeds but GET fails`() {
+    fun `should render bad gateway when upstream HEAD succeeds but GET fails`() {
         // given: an upstream where HEAD reports the artifact exists but GET fails (network blip / 5xx mid-fetch)
         val gav = "com/reposilite/broken.jar"
         val upstream = startProxiedHost { config ->
@@ -87,8 +92,11 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
             // when: client requests the artifact through the proxy
             val response = get("$base/proxied/$gav").asString()
 
-            // then: response must not be 200-with-empty-body — Aether interprets that as "no checksums available" for .sha1 lookups
-            assertThat(response.status == 200 && response.body.isNullOrEmpty()).isFalse
+            // then: the status page reflects the upstream failure
+            assertThat(response.status).isEqualTo(BAD_GATEWAY.code)
+            assertThat(response.body)
+                .contains("<title>Reposilite - 502 Bad Gateway</title>")
+                .contains("502︱</span>Bad Gateway")
             assertThat(response.headers.getFirst(CONTENT_LENGTH)).isNotEqualTo("100")
             assertThat(response.headers.getFirst(CONTENT_TYPE)).startsWith("text/html")
         } finally {
