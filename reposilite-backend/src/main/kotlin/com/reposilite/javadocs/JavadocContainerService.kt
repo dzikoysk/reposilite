@@ -168,16 +168,13 @@ internal class JavadocContainerService(
                         .getAvailableFiles(request, directoryInfo)
                         .filter { it.type == FileType.DIRECTORY }
 
-                val dirsWithJavadoc = versionDirs.filter { versionDir ->
-                    val versionGav = request.gav.resolveChild(versionDir.name).orNull() ?: return@filter false
-                    val versionRequest = request.copy(gav = versionGav)
-
-                    val versionDetails = mavenFacade.findDetails(versionRequest).orNull()
-                    val versionFiles = (versionDetails as? DirectoryInfo)?.files ?: return@filter false
-
-                    versionFiles.any { file -> suffixes.get().any { file.name.endsWith(it) } }
+                versionDirs.filter { versionDir ->
+                    request.gav.resolveChild(versionDir.name)
+                        .flatMap { gav -> mavenFacade.findDetails(request.copy(gav = gav)) }
+                        .matches { details ->
+                            details is DirectoryInfo && details.files.any { isJavadocJar(it.name) }
+                        }
                 }
-                dirsWithJavadoc
             }
 
     internal fun createContainer(javadocFolder: Path, repository: Repository, jarLocation: Location): JavadocContainer {
