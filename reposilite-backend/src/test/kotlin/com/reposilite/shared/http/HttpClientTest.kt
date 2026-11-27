@@ -19,10 +19,12 @@ package com.reposilite.shared.http
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
+import java.io.EOFException
 import java.io.InputStream
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -85,6 +87,25 @@ class HttpClientTest {
         val response = client.execute(requestForPath("/artifact.jar"))
 
         response.openBody().use { assertThat(it.readAllBytes()).isEqualTo(CONTENT) }
+    }
+
+    @Test
+    fun `should reject an incomplete encoded response even when gzip reaches its trailer`() {
+        val compressed = ByteArrayOutputStream().use { output ->
+            GZIPOutputStream(output).use { it.write(CONTENT) }
+            output.toByteArray()
+        }
+        server.createContext("/artifact.jar") { exchange ->
+            exchange.responseHeaders.set("Content-Encoding", "gzip")
+            exchange.responseHeaders.set("Connection", "close")
+            exchange.sendResponseHeaders(200, compressed.size + 1L)
+            exchange.responseBody.write(compressed)
+            exchange.close()
+        }
+
+        client.execute(requestForPath("/artifact.jar")).openBody().use { body ->
+            assertThatThrownBy { body.readAllBytes() }.isInstanceOf(EOFException::class.java)
+        }
     }
 
     @Test

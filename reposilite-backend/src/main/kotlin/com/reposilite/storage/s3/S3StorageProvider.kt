@@ -108,11 +108,11 @@ class S3StorageProvider(
             // ~ https://github.com/aws/aws-sdk-java-v2/issues/37
             val temporary = File.createTempFile("reposilite-", "-s3-put")
 
-            temporary.outputStream().use { destination ->
-                data.copyTo(destination)
-            }
-
             try {
+                temporary.outputStream().use { destination ->
+                    data.copyTo(destination)
+                }
+
                 val builder = PutObjectRequest.builder()
                 builder.bucket(bucket)
                 builder.key(location.toBucketKey())

@@ -16,6 +16,7 @@
 
 package com.reposilite.shared.http
 
+import java.io.EOFException
 import java.io.FilterInputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -97,12 +98,17 @@ internal class HttpResponse(private val connection: HttpURLConnection) : AutoClo
 
     fun openBody(): InputStream {
         return try {
+            val raw = connection.inputStream
+            val fixedLength = if (contentLength >= 0 && getHeader("Transfer-Encoding") == null) {
+                FixedLengthBody(raw, contentLength)
+            } else null
+            val body = fixedLength ?: raw
             val content = when (contentEncoding?.trim()?.lowercase(ENGLISH)) {
-                "gzip", "x-gzip" -> GZIPInputStream(connection.inputStream)
-                else -> connection.inputStream
+                "gzip", "x-gzip" -> GZIPInputStream(body)
+                else -> body
             }
 
-            DisconnectingInputStream(content, this)
+            DisconnectingInputStream(content, this, fixedLength)
         } catch (exception: Exception) {
             close()
             throw exception
@@ -122,7 +128,42 @@ internal class HttpResponse(private val connection: HttpURLConnection) : AutoClo
 
 }
 
-private class DisconnectingInputStream(delegate: InputStream, private val response: HttpResponse) : FilterInputStream(delegate) {
+/** Counts the encoded response bytes, including bytes consumed by the gzip decoder. */
+private class FixedLengthBody(private val source: InputStream, private val expected: Long) : InputStream() {
+
+    private var received = 0L
+
+    override fun read(): Int =
+        source.read().also { if (it >= 0) received++ }
+
+    override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
+        source.read(buffer, offset, length).also { if (it > 0) received += it }
+
+    override fun available(): Int =
+        source.available()
+
+    override fun close() =
+        source.close()
+
+    fun verifyComplete() {
+        if (received != expected) {
+            throw EOFException("Expected $expected bytes from upstream, received $received")
+        }
+    }
+
+}
+
+private class DisconnectingInputStream(
+    delegate: InputStream,
+    private val response: HttpResponse,
+    private val fixedLength: FixedLengthBody?,
+) : FilterInputStream(delegate) {
+
+    override fun read(): Int =
+        super.read().also { if (it == -1) fixedLength?.verifyComplete() }
+
+    override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
+        super.read(buffer, offset, length).also { if (it == -1) fixedLength?.verifyComplete() }
 
     override fun close() {
         response.use { _ ->

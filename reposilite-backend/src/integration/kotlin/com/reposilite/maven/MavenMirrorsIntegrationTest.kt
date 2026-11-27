@@ -28,6 +28,7 @@ import io.javalin.http.HttpStatus.NOT_FOUND
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kong.unirest.core.HeaderNames.CONTENT_LENGTH
 import kong.unirest.core.HeaderNames.CONTENT_TYPE
@@ -99,6 +100,38 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
                 .contains("502︱</span>Bad Gateway")
             assertThat(response.headers.getFirst(CONTENT_LENGTH)).isNotEqualTo("100")
             assertThat(response.headers.getFirst(CONTENT_TYPE)).startsWith("text/html")
+        } finally {
+            upstream.stop()
+        }
+    }
+
+    @Test
+    fun `should retry an incomplete mirror download without caching the partial file`() {
+        val gav = "com/reposilite/incomplete.jar"
+        val content = "complete artifact".toByteArray()
+        val first = AtomicBoolean(true)
+        val upstream = startProxiedHost { config ->
+            config.routes.head("/releases/$gav") { ctx -> ctx.header(CONTENT_LENGTH, content.size.toString()) }
+            config.routes.get("/releases/$gav") { ctx ->
+                if (first.getAndSet(false)) {
+                    ctx.res().setContentLength(content.size)
+                    ctx.res().setHeader("Connection", "close")
+                    ctx.res().outputStream.write(content, 0, 1)
+                    ctx.res().flushBuffer()
+                } else {
+                    ctx.result(content)
+                }
+            }
+        }
+
+        try {
+            val url = "$base/proxied-stored/$gav"
+            assertThat(get(url).asEmpty().isSuccess).isFalse()
+            assertThat(mavenFacade.getRepository("proxied-stored")!!.storageProvider.exists(gav.toLocation())).isFalse()
+
+            val retry = get(url).asBytes()
+            assertThat(retry.status).isEqualTo(200)
+            assertThat(retry.body).isEqualTo(content)
         } finally {
             upstream.stop()
         }
