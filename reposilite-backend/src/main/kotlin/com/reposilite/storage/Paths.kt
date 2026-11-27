@@ -26,21 +26,29 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NO_CONTENT
 import panda.std.Result
 import java.io.InputStream
+import java.nio.channels.SeekableByteChannel
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.exists
-import kotlin.io.path.isDirectory
 import kotlin.io.path.inputStream as newInputStream
+import kotlin.io.path.isDirectory
 
 fun Path.type(): FileType =
     if (this.isDirectory()) DIRECTORY else FILE
 
 fun Path.inputStream(): Result<InputStream, ErrorResponse> =
+    openFile { it.newInputStream() }
+
+internal fun Path.openReadChannel(): Result<SeekableByteChannel, ErrorResponse> =
+    openFile { Files.newByteChannel(it) }
+
+private fun <T> Path.openFile(open: (Path) -> T): Result<T, ErrorResponse> =
     Result.`when`(this.exists(), this, notFound("File not found"))
         .filter({ !it.isDirectory() }, { NO_CONTENT.toErrorResponse("Requested file is a directory") })
         .flatMap {
-            Result.supplyThrowing { it.newInputStream() }
+            Result.supplyThrowing { open(it) }
                 .onError { it.printStackTrace() }
                 .mapErr { INTERNAL_SERVER_ERROR.toErrorResponse("Cannot read file") }
         }

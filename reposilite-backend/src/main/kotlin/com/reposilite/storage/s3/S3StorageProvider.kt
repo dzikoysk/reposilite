@@ -22,6 +22,7 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
 import com.reposilite.shared.internalServerError
 import com.reposilite.shared.notFoundError
+import com.reposilite.shared.stream.SizedInputStream
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.DirectoryInfo
@@ -133,9 +134,12 @@ class S3StorageProvider(
             val request = GetObjectRequest.builder()
             request.bucket(bucket)
             request.key(location.toBucketKey())
-            s3.getObject(request.build()).asSuccess()
-            // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
-            // response.read(bytes)
+            val body = s3.getObject(request.build())
+            val length = body.response().contentLength()
+            when (length) {
+                null -> body
+                else -> SizedInputStream(body, length)
+            }.asSuccess()
         } catch (_: NoSuchKeyException) {
             notFoundError("File not found: $location")
         } catch (exception: S3Exception) {

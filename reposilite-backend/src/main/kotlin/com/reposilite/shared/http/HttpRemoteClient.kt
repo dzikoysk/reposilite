@@ -24,6 +24,7 @@ import com.reposilite.shared.badRequestError
 import com.reposilite.shared.http.AuthenticationMethod.BASIC
 import com.reposilite.shared.http.AuthenticationMethod.CUSTOM_HEADER
 import com.reposilite.shared.http.AuthenticationMethod.LOOPBACK_LINK
+import com.reposilite.shared.stream.SizedInputStream
 import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
@@ -42,6 +43,14 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Base64
+
+private val HttpResponse.bodyLength: Long
+    get() = when {
+        // Some mirrors send a Content-Length even on chunked responses (#549).
+        getHeader("Transfer-Encoding") != null -> UNKNOWN_LENGTH
+        contentEncoding.isNullOrBlank() || contentEncoding.equals("identity", ignoreCase = true) -> contentLength
+        else -> UNKNOWN_LENGTH
+    }
 
 private const val HTTP_GET = "GET"
 private const val HTTP_HEAD = "HEAD"
@@ -79,12 +88,6 @@ class HttpRemoteClient @JvmOverloads constructor(
 
     override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse> =
         execute(HTTP_HEAD, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds) { response ->
-            // Nexus can send misleading for client content-length of chunked responses
-            // ~ https://github.com/dzikoysk/reposilite/issues/549
-            val contentLength = response.contentLength
-                .takeUnless { "gzip" == response.contentEncoding } // remove content-length header
-                ?: UNKNOWN_LENGTH
-
             val contentType = response.contentType
                 ?.let { ContentType.contentType(it) }
                 ?: ContentType.contentTypeByExtension(uri.getExtension())
@@ -102,6 +105,7 @@ class HttpRemoteClient @JvmOverloads constructor(
                     }
                 }
 
+            val contentLength = response.bodyLength
             response.close()
             DocumentInfo(
                 name = uri.substringAfterLast('/'),
@@ -113,7 +117,12 @@ class HttpRemoteClient @JvmOverloads constructor(
 
     override fun get(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<InputStream, ErrorResponse> {
         return execute(HTTP_GET, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds) { response ->
-            response.openBody().asSuccess()
+            val body = response.openBody()
+            val length = response.bodyLength
+            when {
+                length >= 0 -> SizedInputStream(body, length)
+                else -> body
+            }.asSuccess()
         }
     }
 

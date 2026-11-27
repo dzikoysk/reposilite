@@ -25,6 +25,7 @@ import com.reposilite.repository.infrastructure.createDirectoryIndexPage
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.attachmentHeaders
 import com.reposilite.shared.extensions.uri
+import com.reposilite.shared.stream.contentLength
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
@@ -105,16 +106,16 @@ internal class MavenEndpoints(
             when (details) {
                 is DocumentInfo ->
                     when (ctx.method()) {
-                        HEAD_METHOD -> Unit.asSuccess()
+                        HEAD_METHOD -> details.contentLength.asSuccess()
                         else -> mavenFacade.findData(request).map { data ->
                             ctx.result(data)
-                            Unit
+                            data.contentLength
                         }
-                    }.map {
+                    }.map { contentLength ->
                         ctx.attachmentHeaders(
                             name = details.name,
                             contentType = details.contentType,
-                            contentLength = details.contentLength,
+                            contentLength = contentLength,
                             lastTimeModified = details.lastModifiedTime,
                             compressionStrategy = compressionStrategy,
                             cache = mavenFacade.acceptsCachingOf(request),

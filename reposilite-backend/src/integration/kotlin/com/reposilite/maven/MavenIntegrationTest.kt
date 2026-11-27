@@ -23,18 +23,21 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.maven.api.PreResolveEvent
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.maxAge
 import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.s3.S3StorageProviderSettings
 import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
 import kong.unirest.core.HeaderNames.CACHE_CONTROL
 import kong.unirest.core.HeaderNames.CONTENT_LENGTH
 import kong.unirest.core.Unirest.delete
@@ -87,6 +90,27 @@ internal class RemoteMavenIntegrationTest : MavenIntegrationTest() {
 }
 
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
+
+    @Test
+    fun `should serve a complete artifact when it is replaced during GET`() {
+        val (repository, gav, file, original) = useDocument("releases", "test", "artifact.jar", "old", true)
+        val location = "$gav/$file".toLocation()
+        val replacement = "new-content"
+        val lookups = AtomicInteger()
+
+        // Publish the replacement after the details lookup, just before the body lookup.
+        reposilite.extensions.registerEvent { event: PreResolveEvent ->
+            if (event.repository.name == repository && event.gav == location && lookups.incrementAndGet() == 2) {
+                event.repository.storageProvider.putFile(location, replacement.byteInputStream()).get()
+            }
+        }
+
+        val response = get("$base/$repository/$location").asString()
+
+        assertThat(response.status).isEqualTo(200)
+        assertThat(response.body).isIn(original, replacement)
+        assertThat(response.headers.getFirst(CONTENT_LENGTH).toLong()).isEqualTo(response.body.toByteArray().size.toLong())
+    }
 
     @Test
     fun `should preserve stored files across repository reloads`() {
