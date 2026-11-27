@@ -36,6 +36,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME
 import java.util.Base64
+import java.util.concurrent.ConcurrentLinkedQueue
 
 private val REMOTE_CONTENT = "reposilite".toByteArray()
 
@@ -113,12 +114,14 @@ class HttpRemoteClientTest {
     }
 
     @Test
-    fun `should preserve artifact names and the configured base path on HTTP mirrors`() {
-        // given: a mirror with its own base path and a file with URL-sensitive characters
-        val reference = url("/upstream/releases")
+    fun `should preserve artifact names and the configured base path and query on HTTP mirrors`() {
+        // given: a mirror with a base path and query, and a file with URL-sensitive characters
+        val reference = url("/upstream/releases?channel=stable")
         val mirror = MirrorHost(reference, MirroredRepositorySettings(reference = reference), client)
         val artifact = "group/release #1+100%.jar".toLocation()
+        val queries = ConcurrentLinkedQueue<Pair<String, String?>>()
         server.createContext("/upstream/releases/$artifact") { exchange ->
+            queries.add(exchange.requestMethod to exchange.requestURI.rawQuery)
             if (exchange.requestMethod == "HEAD") {
                 exchange.sendResponseHeaders(200, -1)
                 exchange.close()
@@ -131,7 +134,8 @@ class HttpRemoteClientTest {
         val details = mirror.head(artifact).get()
         val content = mirror.get(artifact).get().use { it.readAllBytes() }
 
-        // then: both requests address the original file
+        // then: both requests address the original file with the configured query
+        assertThat(queries).containsExactly("HEAD" to "channel=stable", "GET" to "channel=stable")
         assertThat(details.name).isEqualTo(artifact.getSimpleName())
         assertThat(content).isEqualTo(REMOTE_CONTENT)
     }
