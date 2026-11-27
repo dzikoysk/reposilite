@@ -64,6 +64,28 @@ internal abstract class JavadocsIntegrationTest : JavadocsIntegrationSpecificati
     }
 
     @Test
+    fun `should serve the extracted index for each root level javadoc jar`() {
+        // given: two archives at the repository root
+        val jars = listOf("alpha-javadoc.jar", "beta-javadoc.jar")
+        val storage = mavenFacade.getRepository("releases")!!.storageProvider
+        for (jar in jars) {
+            storage.putFile(Location.of(jar), javaClass.getResourceAsStream("/reposilite-javadoc.jar")!!)
+        }
+
+        for (jar in jars) {
+            // when: the viewer loads the archive and requests its iframe
+            val url = "$base/javadoc/releases/$jar"
+            val wrapper = get(url).asString()
+            val index = get("$url/.cache/unpack/index.html").asString()
+
+            // then: the archive has its own readable index
+            assertThat(wrapper.body).contains("iframe")
+            assertThat(index.isSuccess).isTrue
+            assertThat(index.body).containsIgnoringCase("<html")
+        }
+    }
+
+    @Test
     fun `should serve a non-javadoc suffix through the viewer`() {
         // given: an artifact published only with a groovydoc suffix (served by default)
         val (repository, metadata) = useMetadata(

@@ -41,7 +41,10 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         }
     }
 
-    protected fun startProxiedHost(configure: (JavalinConfig) -> Unit): Javalin {
+    protected fun startProxiedHost(
+        blockedGroups: List<String>? = null,
+        configure: (JavalinConfig) -> Unit,
+    ): Javalin {
         val application = Javalin.create { config -> configure(config) }.start(0)
 
         try {
@@ -53,7 +56,9 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
                         repositories = settings.repositories.map { repository ->
                             if (repository.id == "proxied" || repository.id == "proxied-stored") {
                                 repository.copy(
-                                    proxied = repository.proxied.map { mirror -> mirror.copy(reference = reference) }
+                                    proxied = repository.proxied.map { mirror ->
+                                        mirror.copy(reference = reference, blockedGroups = blockedGroups ?: mirror.blockedGroups)
+                                    }
                                 )
                             } else {
                                 repository

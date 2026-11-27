@@ -84,21 +84,18 @@ internal class RepositoryFactory(
     private fun createMirroredHostConfiguration(configurationSource: MirroredRepositorySettings): MirrorHost? {
         val name = configurationSource.reference.trim()
 
-        val host = when {
-            name.isEmpty() -> {
-                failureFacade.logger.warn("Empty reference value of mirrored repository found, skipping configuration entry.")
-                return null
-            }
-            name.endsWith("/") && '?' !in name && '#' !in name -> name.dropLast(1)
-            else -> name
+        if (name.isEmpty()) {
+            failureFacade.logger.warn("Empty reference value of mirrored repository found, skipping configuration entry.")
+            return null
         }
 
+        val localRepository = name.removeSuffix("/").takeIf { it in repositoriesNames }
         val remoteClient = when {
-            repositoriesNames.contains(host) ->
+            localRepository != null ->
                 RepositoryLoopbackClient(
                     authenticationFacade = authenticationFacade,
                     repositoryService = repositoryService,
-                    repositoryName = host
+                    repositoryName = localRepository
                 )
             else ->
                 configurationSource.httpProxy
@@ -108,7 +105,7 @@ internal class RepositoryFactory(
                     ?: remoteClientProvider.defaultClient
         }
 
-        return MirrorHost(host, configurationSource, remoteClient)
+        return MirrorHost(localRepository ?: name, configurationSource, remoteClient)
     }
 
 }

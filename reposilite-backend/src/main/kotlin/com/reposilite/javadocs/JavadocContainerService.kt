@@ -184,7 +184,7 @@ internal class JavadocContainerService(
         val javadocContainerPath =
             javadocFolder
                 .resolve(repository.name)
-                .resolve(jarLocation.getParent().toPath())
+                .resolve(jarLocation.locationBeforeLast("/").toPath())
                 .resolve(".cache")
 
         return JavadocContainer(

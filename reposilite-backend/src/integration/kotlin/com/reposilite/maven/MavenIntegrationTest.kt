@@ -24,6 +24,7 @@ import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.maven.application.MavenSettings
+import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
@@ -108,6 +109,21 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
     }
 
     @Test
+    fun `should decode the HTTP artifact path once`() {
+        // given: two distinct files in storage
+        useDocument("releases", "group", "release 2.jar", "space", store = true)
+        useDocument("releases", "group", "release%202.jar", "percent", store = true)
+
+        // when: each file is requested by its encoded URL
+        val space = get("$base/releases/group/release%202.jar").asString()
+        val percent = get("$base/releases/group/release%25202.jar").asString()
+
+        // then: each URL resolves to its own logical name
+        assertThat(space.body).isEqualTo("space")
+        assertThat(percent.body).isEqualTo("percent")
+    }
+
+    @Test
     fun `should check write permission before looking up the repository`() {
         // given: a token with write permission for one unconfigured repository
         val (name, secret) = useAuth("writer", "secret", routes = mapOf("/planned/" to WRITE))
@@ -121,6 +137,27 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         assertThat(existing.status).isEqualTo(FORBIDDEN.code)
         assertThat(unknown.status).isEqualTo(FORBIDDEN.code)
         assertThat(permitted.status).isEqualTo(NOT_FOUND.code)
+    }
+
+    @Test
+    fun `should resolve a local mirror name before interpreting URL delimiters`() {
+        // given: a local repository and a mirror reference with a trailing slash
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+        settings.update { config ->
+            val releases = config.repositories.first { it.id == "releases" }
+            config.copy(repositories = listOf(
+                releases.copy(id = "build#1"),
+                releases.copy(proxied = listOf(MirroredRepositorySettings(reference = "build#1/")))
+            ))
+        }
+        useDocument("build#1", "group", "artifact.jar", "local content", store = true)
+
+        // when: the artifact is requested through the mirror
+        val response = get("$base/releases/group/artifact.jar").asString()
+
+        // then: the file is read from the local repository
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo("local content")
     }
 
     @Test
