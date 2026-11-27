@@ -88,9 +88,7 @@ internal class MirrorService(
             accessToken = accessToken,
             hosts = hosts,
             parallel = repository.parallelMetadataLookupEnabled && gav.getSimpleName() == METADATA_FILE,
-        ) { (host, config, client) ->
-            client.head("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-        }
+        ) { mirror -> mirror.head(gav) }
 
     fun findRemoteFile(
         repository: Repository,
@@ -144,11 +142,7 @@ internal class MirrorService(
         }
 
     private fun fetchFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<InputStream> =
-        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
-            client
-                .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-                .mapErr { error -> error.updateMessage { "$host: $it" } }
-        }.let { remote ->
+        searchInRemoteRepositories(repository, gav, accessToken, hosts) { mirror -> mirror.get(gav) }.let { remote ->
             when {
                 remote is MirrorResolution.Resolved && remote.mirror.configuration.store ->
                     storeFile(repository, gav, remote.value).fold(
@@ -160,11 +154,7 @@ internal class MirrorService(
         }
 
     private fun fetchAndStoreFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<Unit> =
-        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
-            client
-                .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-                .mapErr { error -> error.updateMessage { "$host: $it" } }
-        }.let { remote ->
+        searchInRemoteRepositories(repository, gav, accessToken, hosts) { mirror -> mirror.get(gav) }.let { remote ->
             when (remote) {
                 is MirrorResolution.Resolved -> repository.storageProvider.putFile(gav, remote.value).fold(
                     { MirrorResolution.Resolved(Unit, remote.mirror) },

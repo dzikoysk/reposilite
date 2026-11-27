@@ -18,6 +18,7 @@ package com.reposilite.frontend
 
 import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.NOT_FOUND
+import org.eclipse.jetty.util.StringUtil.sanitizeXmlString
 import org.intellij.lang.annotations.Language
 
 internal object ErrorPageTemplate {
@@ -29,7 +30,7 @@ internal object ErrorPageTemplate {
         val reason = HttpStatus.forStatus(status).message
         val heading = if (status == NOT_FOUND.code) "Resource not found" else reason
         val uri = originUri.replace(uriFormatter, "/")
-        val dashboardUrl = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
+        val dashboardUrl = sanitizeXmlString(basePath.trimEnd('/') + "/#" + uri)
 
         @Language("html")
         val response = """

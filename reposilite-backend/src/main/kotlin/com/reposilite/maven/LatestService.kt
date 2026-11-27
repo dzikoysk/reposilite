@@ -25,7 +25,6 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.shared.BadgeGenerator
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.Location
-import com.reposilite.storage.api.toLocation
 import panda.std.Result
 import panda.std.reactive.Reference
 
@@ -48,8 +47,10 @@ internal class LatestService(private val repositoryId: Reference<out String>) {
 
     fun <T> queryLatestArtifact(request: LatestArtifactQueryRequest, supplier: LatestVersionSupplier, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
         supplier.findLatestVersion(request.toVersionLookupRequest())
-            .map { (isSnapshot, version) -> createLatestArtifactLocation(request.query, isSnapshot, version) }
-            .flatMap { (version, fileLocation) -> matchLocation(request, supplier, handler, version, fileLocation) }
+            .flatMap { (isSnapshot, version) ->
+                createLatestArtifactLocation(request.query, isSnapshot, version)
+                    .flatMap { file -> matchLocation(request, supplier, handler, version, file) }
+            }
 
     private fun <T> matchLocation(request: LatestArtifactQueryRequest, supplier: LatestVersionSupplier, handler: MatchedVersionHandler<T>, version: String, fileLocation: Location) =
         handler
@@ -62,24 +63,18 @@ internal class LatestService(private val repositoryId: Reference<out String>) {
             }
 
     private fun <T> matchSnapshotLocation(request: LatestArtifactQueryRequest, supplier: LatestVersionSupplier, handler: MatchedVersionHandler<T>, version: String) =
-        queryLatestArtifact(
-            request = request.copy(
-                query = request.query.copy(
-                    gav = "${request.query.gav}/$version".toLocation()
-                )
-            ),
-            supplier = supplier,
-            handler = handler
-        )
+        request.query.gav.resolveChild(version).flatMap { directory ->
+            queryLatestArtifact(request.copy(query = request.query.copy(gav = directory)), supplier, handler)
+        }
 
-    private fun createLatestArtifactLocation(query: LatestArtifactQuery, isSnapshot: Boolean, version: String): Pair<String, Location> =
+    private fun createLatestArtifactLocation(query: LatestArtifactQuery, isSnapshot: Boolean, version: String): Result<Location, ErrorResponse> =
         with(query) {
             val suffix = version + (if (classifier != null) "-$classifier" else "") + (if (extension.isNotEmpty()) ".$extension" else "")
 
-            if (isSnapshot)
-                version to "$gav/${gav.locationBeforeLast("/", "").locationAfterLast("/", "")}-$suffix".toLocation()
-            else
-                version to "$gav/$version/${gav.locationAfterLast("/", "")}-$suffix".toLocation()
+            when {
+                isSnapshot -> gav.resolveChild("${gav.getParent().getSimpleName()}-$suffix")
+                else -> gav.resolveChild(version).flatMap { it.resolveChild("${gav.getSimpleName()}-$suffix") }
+            }
         }
 
 }

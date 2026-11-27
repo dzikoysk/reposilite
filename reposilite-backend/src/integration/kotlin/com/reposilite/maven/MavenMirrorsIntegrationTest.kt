@@ -20,12 +20,16 @@ package com.reposilite.maven
 
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.application.MavenSettings
+import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.storage.api.toLocation
 import io.javalin.http.HttpStatus.BAD_GATEWAY
 import io.javalin.http.HttpStatus.NOT_FOUND
 import java.util.concurrent.Callable
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -76,6 +80,40 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
             val response = get("$base/proxied/$gav").asString()
             // then: service responds with 404 status page as .file extension is not allowed
             assertThat(response.isSuccess).isFalse
+        }
+    }
+
+    @Test
+    fun `should preserve the upstream request target and skip blocked groups`() {
+        // given: a mirror that records every request and can serve either group
+        val requests = ConcurrentLinkedQueue<String>()
+        val upstream = startProxiedHost(blockedGroups = listOf("com.blocked")) { config ->
+            config.routes.before { ctx -> requests.add("${ctx.method()} ${ctx.req().requestURI}") }
+            config.routes.head("/releases/<gav>") { ctx -> ctx.contentType("application/java-archive") }
+            config.routes.get("/releases/<gav>") { ctx -> ctx.result(ctx.pathParam("gav")) }
+        }
+
+        try {
+            // when: an allowed artifact has a literal percent sequence in its name
+            val allowed = get("$base/proxied/com/example/notes%2520draft.jar").asString()
+
+            // then: HEAD and GET preserve the exact upstream path and return the intended artifact
+            assertThat(allowed.status).isEqualTo(200)
+            assertThat(allowed.body).isEqualTo("com/example/notes%20draft.jar")
+            assertThat(requests).containsExactly(
+                "HEAD /releases/com/example/notes%2520draft.jar",
+                "GET /releases/com/example/notes%2520draft.jar",
+            )
+
+            // when: the client requests an artifact from a blocked group
+            requests.clear()
+            val blocked = get("$base/proxied/com/blocked/notes.jar").asString()
+
+            // then: the request stops before it reaches the upstream
+            assertThat(blocked.status).isEqualTo(NOT_FOUND.code)
+            assertThat(requests).isEmpty()
+        } finally {
+            upstream.stop()
         }
     }
 
@@ -168,6 +206,27 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
         } finally {
             upstream.stop()
         }
+    }
+
+    @Test
+    fun `should resolve a local mirror name before interpreting URL delimiters`() {
+        // given: a local repository and a mirror reference with a trailing slash
+        val settings = useFacade<SharedConfigurationFacade>().getDomainSettings<MavenSettings>()
+        settings.update { config ->
+            val releases = config.repositories.first { it.id == "releases" }
+            config.copy(repositories = listOf(
+                releases.copy(id = "build#1"),
+                releases.copy(proxied = listOf(MirroredRepositorySettings(reference = "build#1/")))
+            ))
+        }
+        useDocument("build#1", "group", "artifact.jar", "local content", store = true)
+
+        // when: the artifact is requested through the mirror
+        val response = get("$base/releases/group/artifact.jar").asString()
+
+        // then: the file is read from the local repository
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo("local content")
     }
 
     @Test

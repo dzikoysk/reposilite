@@ -18,6 +18,7 @@ package com.reposilite.shared
 
 import com.reposilite.journalist.Logger
 import com.reposilite.shared.extensions.uri
+import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission
@@ -75,9 +76,9 @@ class ContextDsl<R>(
     /**
      * Request was created by valid access token and the token has access to the requested path
      */
-    fun authorized(to: String = ctx.uri(), init: AccessTokenDto.() -> Unit) {
+    fun authorized(repositoryName: String, gav: Location, init: AccessTokenDto.() -> Unit) {
         authenticated {
-            isAuthorized(to)
+            isAuthorized(repositoryName, gav)
                 .peek { init(this) }
                 .onError { response = it.asError() }
         }
@@ -106,19 +107,16 @@ class ContextDsl<R>(
     inline fun <reified T : Any> body() =
         ctx.bodyAsClass(T::class.java)
 
-    private fun isAuthorized(to: String): Result<Unit, ErrorResponse> {
+    private fun isAuthorized(repositoryName: String, gav: Location): Result<Unit, ErrorResponse> {
         val requiredPermission = METHOD_PERMISSIONS[ctx.method()]
             ?: return METHOD_NOT_ALLOWED.toErrorResult("Authorization is not supported for ${ctx.method()} requests")
 
-        return isManager()
-            .flatMapErr { _ ->
-                authenticationResult.value
-                    .filter(
-                        { accessTokenFacade.hasPermissionTo(it.identifier, to, requiredPermission) },
-                        { FORBIDDEN.toErrorResponse("This token is not authorized to access this path") }
-                    )
-                    .mapToUnit()
-            }
+        return authenticationResult.value
+            .filter(
+                { accessTokenFacade.hasPermissionTo(it.identifier, repositoryName, gav, requiredPermission) },
+                { FORBIDDEN.toErrorResponse("This token is not authorized to access this path") }
+            )
+            .mapToUnit()
     }
 
     fun isManager(): Result<Unit, ErrorResponse> =

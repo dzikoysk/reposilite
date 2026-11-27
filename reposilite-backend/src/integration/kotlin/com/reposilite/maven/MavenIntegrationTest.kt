@@ -31,6 +31,8 @@ import com.reposilite.shared.extensions.maxAge
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.s3.S3StorageProviderSettings
 import com.reposilite.token.RoutePermission.READ
+import com.reposilite.token.RoutePermission.WRITE
+import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import java.util.concurrent.CompletableFuture
@@ -185,6 +187,21 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
     }
 
     @Test
+    fun `should decode the HTTP artifact path once`() {
+        // given: two distinct files in storage
+        useDocument("releases", "group", "release 2.jar", "space", store = true)
+        useDocument("releases", "group", "release%202.jar", "percent", store = true)
+
+        // when: each file is requested by its encoded URL
+        val space = get("$base/releases/group/release%202.jar").asString()
+        val percent = get("$base/releases/group/release%25202.jar").asString()
+
+        // then: each URL resolves to its own logical name
+        assertThat(space.body).isEqualTo("space")
+        assertThat(percent.body).isEqualTo("percent")
+    }
+
+    @Test
     fun `should reject unauthorized deploy request`() {
         // given: a document to upload
         val (repository, gav, file, content) = useDocument("releases", "gav", "artifact.jar", "content")
@@ -233,6 +250,23 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
     }
 
     @Test
+    fun `should authorize artifact writes using the logical filename`() {
+        // given: a token scoped to one file with URL-sensitive characters
+        val (name, secret) = useAuth("writer", "secret", routes = mapOf("/releases/build #1.jar" to WRITE))
+        val url = "$base/releases/build%20%231.jar"
+
+        // when: the writer deploys and deletes that artifact
+        val deployment = put(url).basicAuth(name, secret).body("content").asEmpty()
+        val download = get(url).asString()
+        val deletion = delete(url).basicAuth(name, secret).asEmpty()
+
+        // then: the permission and both operations identify the same artifact
+        assertThat(deployment.isSuccess).isTrue
+        assertThat(download.body).isEqualTo("content")
+        assertThat(deletion.isSuccess).isTrue
+    }
+
+    @Test
     fun `should reject unauthorized delete request`() {
         // given: the details about an existing in repository file
         val (repository, gav, file) = useDocument("releases", "gav", "artifact.jar", "content", true)
@@ -246,6 +280,22 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // then: service rejects request and file still exists
         assertThat(response.isSuccess).isFalse
         assertThat(get(address).asEmpty().isSuccess).isTrue
+    }
+
+    @Test
+    fun `should check write permission before looking up the repository`() {
+        // given: a token with write permission for one unconfigured repository
+        val (name, secret) = useAuth("writer", "secret", routes = mapOf("/planned/" to WRITE))
+
+        // when: the token requests the same operation in each repository
+        val existing = delete("$base/releases/file.jar").basicAuth(name, secret).asEmpty()
+        val unknown = delete("$base/unknown/file.jar").basicAuth(name, secret).asEmpty()
+        val permitted = delete("$base/planned/file.jar").basicAuth(name, secret).asEmpty()
+
+        // then: only the permitted request reaches repository lookup
+        assertThat(existing.status).isEqualTo(FORBIDDEN.code)
+        assertThat(unknown.status).isEqualTo(FORBIDDEN.code)
+        assertThat(permitted.status).isEqualTo(NOT_FOUND.code)
     }
 
     @Test

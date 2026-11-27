@@ -42,8 +42,6 @@ import kotlin.io.path.inputStream
 import kotlin.io.path.notExists
 import kotlin.io.path.readLines
 
-private const val LATEST_PATTERN = "/latest"
-
 class JavadocFacade internal constructor(
     private val journalist: Journalist,
     val mavenFacade: MavenFacade,
@@ -69,7 +67,8 @@ class JavadocFacade internal constructor(
     fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> =
         with (request) {
             mavenFacade.canAccessResource(accessToken, repository, gav)
-                .flatMap { createPage(accessToken, repository, resolveGav(request)) }
+                .flatMap { resolveGav(request) }
+                .flatMap { resolved -> createPage(accessToken, repository, resolved) }
                 .onError { logger.error("Cannot extract javadoc: ${it.message} (${it.status})}") }
         }
 
@@ -77,7 +76,7 @@ class JavadocFacade internal constructor(
         with (request) {
             mavenFacade.canAccessResource(accessToken, repository, gav)
                 .flatMap { javadocContainerService.loadContainer(accessToken, repository, gav) }
-                .map { it.javadocUnpackPath.resolve(resource.toString()) }
+                .map { it.javadocUnpackPath.resolve(resource.toPath()) }
                 .filter({ it.exists() }, { notFound("Resource $resource not found") })
                 .map {
                     JavadocRawResponse(
@@ -115,7 +114,7 @@ class JavadocFacade internal constructor(
     private fun createPlainFile(javadocFolder: Path, repository: Repository, gav: Location): JavadocPlainFile? =
         javadocFolder
             .resolve(repository.name)
-            .resolve(gav.toString())
+            .resolve(gav.toPath())
             .let { targetPath -> targetPath to supportedExtensions[gav.getExtension()] }
             .takeIf { (_, contentType) -> contentType != null }
             ?.let { (targetPath, contentType) -> JavadocPlainFile(targetPath, gav.getExtension(), contentType!!) }
@@ -123,15 +122,21 @@ class JavadocFacade internal constructor(
     private fun readFile(indexFile: Path): String =
         indexFile.readLines().joinToString(separator = "\n")
 
-    private fun resolveGav(request: JavadocPageRequest): Location =
-        request.gav
-            .takeIf { it.contains("/latest") }
-            ?.let { request.gav.locationBeforeLast("/latest") }
-            ?.let { gavWithoutVersion -> VersionLookupRequest(request.accessToken, request.repository, gavWithoutVersion) }
-            ?.let { mavenFacade.findLatestVersion(it) }
-            ?.map { request.gav.replace(LATEST_PATTERN, "/%s".format(it.version)) }
-            ?.orNull()
-            ?: request.gav
+    private fun resolveGav(request: JavadocPageRequest): Result<Location, ErrorResponse> {
+        val segments = request.gav.toString().split('/')
+        val latestIndex = segments.indexOfLast { it == "latest" }
+        if (latestIndex < 0) {
+            return request.gav.asSuccess()
+        }
+
+        val parent = Location.of(segments.take(latestIndex).joinToString("/"))
+        val version = mavenFacade.findLatestVersion(VersionLookupRequest(request.accessToken, request.repository, parent))
+            .orNull() ?: return request.gav.asSuccess()
+
+        return parent.resolveChild(version.version)
+            .map { it.resolve(segments.drop(latestIndex + 1).joinToString("/")) }
+            .flatMap { gav -> mavenFacade.canAccessResource(request.accessToken, request.repository, gav).map { gav } }
+    }
 
     override fun getLogger(): Logger =
         journalist.logger

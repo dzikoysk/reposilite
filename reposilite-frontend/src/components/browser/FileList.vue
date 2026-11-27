@@ -16,9 +16,8 @@
 
 <script setup lang="jsx">
 import download from 'downloadjs'
-import { useRoute } from 'vue-router'
 import { createToast } from 'mosha-vue-toastify'
-import { createURL } from '../../store/client'
+import { createURL, encodeArtifactPath } from '../../store/client'
 import { useSession } from '../../store/session'
 import ListEntry from './DetailedListEntry.vue'
 import DeleteEntryModal from './DeleteEntryModal.vue'
@@ -44,11 +43,15 @@ const displayedEntries = computed(() =>
     : (props.files.list ?? [])
 )
 
-const route = useRoute()
+const entryPath = (name) =>
+  [props.qualifier.path.replace(/\/$/, ''), name].filter(Boolean).join('/')
+
+const entryUrl = (name) =>
+  '/' + encodeArtifactPath(entryPath(name))
 const { client } = useSession()
 
-const downloadHandler = (path, name) => {
-  client.value.maven.download(path.substring(1) + '/' + name)
+const downloadHandler = (name) => {
+  client.value.maven.download(entryPath(name))
     .then(response => download(response.data, name, response.headers['content-type']))
     .catch(error => createToast(`Cannot download file - ${error.response.status}: ${error.response.data.message}`, {
       type: 'danger'
@@ -75,9 +78,9 @@ const LinkEntry = ({ file }) => {
       aria-label={`Download ${file.name}`}
       onClick={(event) => {
         event.preventDefault()
-        downloadHandler(route.path, file.name, event)
+        downloadHandler(file.name)
       }}
-      href={createURL(route.path + '/' + file.name)} 
+      href={createURL(entryUrl(file.name))}
       target="_blank"
       rel="noopener noreferrer"
     >
@@ -85,15 +88,12 @@ const LinkEntry = ({ file }) => {
   )
 }
 
-const append = (path, pathToAppend) =>
-  path + (path.endsWith('/') ? '' : '/') + pathToAppend
-
 const RouterEntry = ({ file }) => {
   return (
     <router-link
       class="absolute inset-0 z-0 rounded-3xl <sm:rounded-xl"
       aria-label={`Open ${file.name} directory`}
-      to={append(route.path, file.name)}
+      to={entryUrl(file.name)}
     />
   )
 }
@@ -131,7 +131,7 @@ const RouterEntry = ({ file }) => {
           <ListEntry
             :file="entry"
             :qualifier="qualifier"
-            :url="createURL(`${$route.path}/${entry.name}`)"
+            :url="createURL(entryUrl(entry.name))"
             :openDeleteEntryModal="openDeleteModal"
             :compactMode="compactMode"
           />

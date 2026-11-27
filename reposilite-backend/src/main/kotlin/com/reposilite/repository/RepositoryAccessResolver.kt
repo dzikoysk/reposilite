@@ -60,9 +60,6 @@ internal class RepositoryAccessResolver(
     fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: RepositoryInfo, resourcePath: Location): Boolean =
         resourcePath.isCanonicalResourcePath() && hasPermissionTo(accessToken, repository, resourcePath, WRITE).isOk
 
-    private fun Location.isCanonicalResourcePath(): Boolean =
-        toString().split('/').none { it == "." }
-
     private fun hasPermissionTo(
         accessToken: AccessTokenIdentifier?,
         repository: RepositoryInfo,
@@ -72,7 +69,7 @@ internal class RepositoryAccessResolver(
         accessToken
             ?.let {
                 Result.`when`(
-                    accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$resourcePath", permission),
+                    accessTokenFacade.hasPermissionTo(accessToken, repository.name, resourcePath, permission),
                     { },
                     { FORBIDDEN.toErrorResponse("You must be the token owner or a manager to access this.") }
                 )

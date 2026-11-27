@@ -19,6 +19,9 @@ import usePlaceholders from "./placeholders"
 
 const { baseUrl } = usePlaceholders()
 
+const encodeArtifactPath = (path) =>
+  path.split("/").map(encodeURIComponent).join("/")
+
 const createURL = (endpoint) =>
   baseUrl + endpoint
 
@@ -95,19 +98,19 @@ const createClient = (defaultName, defaultSecret) => {
     },
     maven: {
       content(gav) {
-        return get(`/${gav}`)
+        return get(`/${encodeArtifactPath(gav)}`)
       },
       details(gav) {
-        return get(`/api/maven/details/${gav || ""}`)
+        return get(`/api/maven/details/${encodeArtifactPath(gav || "")}`)
       },
       download(gav) {
-        return get(`/${gav}`, {
+        return get(`/${encodeArtifactPath(gav)}`, {
           responseType: "blob",
           ...defaultAuthorization(),
         })
       },
       deploy(gav, file, generateChecksums) {
-        return axios.put(createURL(`/${gav}`), file, {
+        return axios.put(createURL(`/${encodeArtifactPath(gav)}`), file, {
           headers: {
             "Content-Type": "application/octet-stream",
             "X-Generate-Checksums": generateChecksums,
@@ -117,7 +120,7 @@ const createClient = (defaultName, defaultSecret) => {
       },
       generatePom(gav, groupId, artifactId, version) {
         return axios.post(
-          createURL(`/api/maven/generate/pom/${gav}/${artifactId}-${version}.pom`),
+          createURL(`/api/maven/generate/pom/${encodeArtifactPath(gav)}/${encodeURIComponent(artifactId)}-${encodeURIComponent(version)}.pom`),
           {
             groupId,
             artifactId,
@@ -131,7 +134,7 @@ const createClient = (defaultName, defaultSecret) => {
         )
       },
       delete(gav) {
-        return axios.delete(createURL(`/${gav}`), {
+        return axios.delete(createURL(`/${encodeArtifactPath(gav)}`), {
           ...defaultAuthorization(),
         })
       }
@@ -210,5 +213,6 @@ const createClient = (defaultName, defaultSecret) => {
 
 export {
   createURL,
+  encodeArtifactPath,
   createClient
 }

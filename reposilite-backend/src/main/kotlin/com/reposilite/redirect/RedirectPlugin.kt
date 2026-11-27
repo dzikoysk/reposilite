@@ -56,17 +56,15 @@ class RedirectPlugin : ReposilitePlugin() {
             ?.storageProvider
             ?.getFiles(Location.of("/"))
             ?.orNull()
-            ?.map {
-                logger.info("Redirecting /${it.getSimpleName()}/<gav> to /$redirectTo/${it.getSimpleName()}/<gav>")
+            ?.map { root ->
+                logger.info("Redirecting /${root.getSimpleName()}/<gav> to /$redirectTo/${root.getSimpleName()}/<gav>")
 
-                ReposiliteRoute<Unit>("/${it.getSimpleName()}/<gav>", HEAD, GET) {
+                ReposiliteRoute<Unit>("/${root.getSimpleName()}/<gav>", HEAD, GET) {
                     accessed {
-                        mavenEndpoints.findFile(
-                            ctx = ctx,
-                            identifier = this?.identifier,
-                            repository = redirectTo,
-                            gav = it.resolve(requireParameter("gav"))
-                        )
+                        val identifier = this?.identifier
+                        with(mavenEndpoints) {
+                            requireGav { gav -> findFile(ctx, identifier, redirectTo, root.resolve(gav)) }
+                        }
                     }
                 }
             }

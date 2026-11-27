@@ -20,6 +20,7 @@ import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.notFoundError
+import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
 import com.reposilite.token.AccessTokenType.PERSISTENT
@@ -163,10 +164,12 @@ class AccessTokenFacade internal constructor(
     fun hasPermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission): Boolean =
         identifier.type.getRepository().findAccessTokenPermissionsById(identifier).contains(permission)
 
-    fun hasPermissionTo(identifier: AccessTokenIdentifier, toPath: String, requiredPermission: RoutePermission): Boolean =
-        hasPermission(identifier, MANAGER) || identifier.type.getRepository()
+    fun hasPermissionTo(identifier: AccessTokenIdentifier, repositoryName: String, gav: Location, requiredPermission: RoutePermission): Boolean {
+        val path = "/$repositoryName/$gav"
+        return hasPermission(identifier, MANAGER) || identifier.type.getRepository()
             .findAccessTokenRoutesById(identifier)
-            .any { it.hasPermissionTo(toPath, requiredPermission) }
+            .any { it.hasPermissionTo(path, requiredPermission) }
+    }
 
     fun canSee(identifier: AccessTokenIdentifier, pathFragment: String): Boolean =
         hasPermission(identifier, MANAGER) || identifier.type.getRepository()

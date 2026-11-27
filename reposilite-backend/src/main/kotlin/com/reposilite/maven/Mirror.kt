@@ -30,7 +30,23 @@ data class MirrorHost(
     val host: String,
     val configuration: MirroredRepositorySettings,
     val client: RemoteClient
-)
+) {
+    internal fun head(gav: Location) =
+        client.head(uriFor(gav), configuration.authorization, configuration.connectTimeout, configuration.readTimeout)
+
+    internal fun get(gav: Location) =
+        client.get(uriFor(gav), configuration.authorization, configuration.connectTimeout, configuration.readTimeout)
+            .mapErr { error -> error.updateMessage { "$host: $it" } }
+
+    private fun uriFor(gav: Location): String {
+        if (client is RepositoryLoopbackClient) {
+            return "$host/$gav"
+        }
+
+        val base = host.substringBefore('?').substringBefore('#')
+        return "${base.removeSuffix("/")}/${gav.toUrlPath()}${host.removePrefix(base)}"
+    }
+}
 
 enum class StoragePolicy {
     PRIORITIZE_UPSTREAM_METADATA,

@@ -458,6 +458,20 @@ internal class MavenFacadeTest : MavenSpecification() {
         }
 
         @Test
+        fun `should preserve an artifact name in a loopback lookup`() {
+            // given: a stored artifact with URL-sensitive characters
+            val file = addFileToRepository(FileSpec("PROXIED", "/gav/release #1+100%.jar", "local content"))
+
+            // when: a local mirror reads the document
+            val result = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED).copy(repository = "PROXIED-LOOPBACK"))
+
+            // then: the mirror returns the stored name and content
+            val (details, stream) = assertOk(result)
+            assertThat(details.name).isEqualTo("release #1+100%.jar")
+            assertThat(stream.use { it.readBytes().decodeToString() }).isEqualTo("local content")
+        }
+
+        @Test
         fun `should not find remote file when repo is pull authenticated and no auth exists` () {
             // given: an artifact that is  both available and allowed
             val file = FileSpec("PROXIED-PULL-AUTHED", "/do/allow.jar", REMOTE_CONTENT)

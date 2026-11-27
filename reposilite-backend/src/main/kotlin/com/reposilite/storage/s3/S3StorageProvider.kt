@@ -164,12 +164,12 @@ class S3StorageProvider(
         listDirectory(
             location = location,
             onDirectory = {
-                Location.ofRequest(it.prefix().withoutKeyPrefix())
+                Location.parse(it.prefix().withoutKeyPrefix())
                     .orNull()
                     ?.let { prefix -> SimpleDirectoryInfo(name = prefix.getSimpleName()) }
             },
             onFile = {
-                Location.ofRequest(it.key().withoutKeyPrefix())
+                Location.parse(it.key().withoutKeyPrefix())
                     .orNull()
                     ?.toDocumentInfo(
                         contentLength = it.size(),
@@ -249,8 +249,8 @@ class S3StorageProvider(
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         listDirectory(
             location = location,
-            onDirectory = { Location.ofRequest(it.prefix().withoutKeyPrefix()).orNull() },
-            onFile = { Location.ofRequest(it.key().withoutKeyPrefix()).orNull() },
+            onDirectory = { Location.parse(it.prefix().withoutKeyPrefix()).orNull() },
+            onFile = { Location.parse(it.key().withoutKeyPrefix()).orNull() },
         )
 
     private fun <T> listDirectory(

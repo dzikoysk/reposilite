@@ -100,8 +100,8 @@ internal class JavadocContainerService(
                 version.contains("-SNAPSHOT") -> mavenFacade.findMetadata(repository, rootGav).orNull()
                 else -> null
             }
-        val candidates = suffixes.get().map { suffix ->
-            rootGav.resolve("${name}-${resolveSnapshotVersion(version, suffix, metadata)}${suffix}")
+        val candidates = suffixes.get().mapNotNull { suffix ->
+            rootGav.resolveChild("${name}-${resolveSnapshotVersion(version, suffix, metadata)}${suffix}").orNull()
         }
 
         return candidates
@@ -168,23 +168,20 @@ internal class JavadocContainerService(
                         .getAvailableFiles(request, directoryInfo)
                         .filter { it.type == FileType.DIRECTORY }
 
-                val dirsWithJavadoc = versionDirs.filter { versionDir ->
-                    val versionGav = request.gav.resolve(versionDir.name)
-                    val versionRequest = request.copy(gav = versionGav)
-
-                    val versionDetails = mavenFacade.findDetails(versionRequest).orNull()
-                    val versionFiles = (versionDetails as? DirectoryInfo)?.files ?: return@filter false
-
-                    versionFiles.any { file -> suffixes.get().any { file.name.endsWith(it) } }
+                versionDirs.filter { versionDir ->
+                    request.gav.resolveChild(versionDir.name)
+                        .flatMap { gav -> mavenFacade.findDetails(request.copy(gav = gav)) }
+                        .matches { details ->
+                            details is DirectoryInfo && details.files.any { isJavadocJar(it.name) }
+                        }
                 }
-                dirsWithJavadoc
             }
 
     internal fun createContainer(javadocFolder: Path, repository: Repository, jarLocation: Location): JavadocContainer {
         val javadocContainerPath =
             javadocFolder
                 .resolve(repository.name)
-                .resolve(jarLocation.locationBeforeLast("/").toString())
+                .resolve(jarLocation.locationBeforeLast("/").toPath())
                 .resolve(".cache")
 
         return JavadocContainer(
@@ -226,7 +223,7 @@ internal class JavadocContainerService(
             }
 
             // GHSA-frvj-cfq4-3228: treat archive file name as external path that can be malicious
-            val resolved = Location.ofRequest(file.name)
+            val resolved = Location.parse(file.name)
                 .map { javadocUnpackPath.resolve(it.toPath()) }
                 .onError {
                     val sanitizedName = file.name.filterNot(Char::isISOControl)

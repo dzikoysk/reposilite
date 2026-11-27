@@ -17,8 +17,11 @@
 package com.reposilite.storage.api
 
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
 import com.reposilite.storage.getExtension
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.nio.file.Paths
 import panda.std.Result
@@ -46,6 +49,9 @@ class Location private constructor(private val uri: String) {
 
         @JvmStatic
         fun ofRequest(uri: String): Result<Location, ErrorResponse> =
+            parse(uri).filter(Location::isCanonicalResourcePath) { badRequest("Resource path has to be canonical") }
+
+        internal fun parse(uri: String): Result<Location, ErrorResponse> =
             try {
                 of(uri).asSuccess()
             } catch (exception: UnsupportedLocationException) {
@@ -65,6 +71,18 @@ class Location private constructor(private val uri: String) {
             empty
 
     }
+
+    internal fun isCanonicalResourcePath(): Boolean =
+        uri.split('/').none { it == "." }
+
+    internal fun toUrlPath(): String =
+        uri.split('/').joinToString("/", transform = ::encodePathSegment)
+
+    internal fun resolveChild(name: String): Result<Location, ErrorResponse> =
+        when {
+            name.isEmpty() || '/' in name -> badRequestError("Expected one non-empty path segment")
+            else -> ofRequest(name).map { resolve(it) }
+        }
 
     fun toPath(): Path =
         Paths.get(uri).normalize()
@@ -119,6 +137,9 @@ class Location private constructor(private val uri: String) {
         uri
 
 }
+
+internal fun encodePathSegment(name: String): String =
+    URLEncoder.encode(name, UTF_8).replace("+", "%20")
 
 fun String?.toLocation(): Location =
     when {

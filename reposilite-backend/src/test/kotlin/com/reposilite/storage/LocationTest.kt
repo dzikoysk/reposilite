@@ -50,6 +50,17 @@ class LocationTest {
     }
 
     @Test
+    fun `should resolve one literal child name`() {
+        val group = Location.of("group")
+        val child = group.resolveChild("build #1+100%.jar").get()
+
+        assertThat(child.getSimpleName()).isEqualTo("build #1+100%.jar")
+        assertThat(child.toUrlPath()).isEqualTo("group/build%20%231%2B100%25.jar")
+        assertThat(group.resolveChild("other/name.jar").isErr).isTrue()
+        assertThat(group.resolveChild("").isErr).isTrue()
+    }
+
+    @Test
     fun `should reject paths with illegal characters or path operators`() {
         assertThatThrownBy { Location.of("group/../artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
         assertThatThrownBy { Location.of("..") }.isInstanceOf(UnsupportedLocationException::class.java)
@@ -70,6 +81,7 @@ class LocationTest {
 
     @Test
     fun `should reject untrusted requests with illegal characters or operators`() {
+        assertThat(Location.ofRequest("group/./artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/c:/artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/../../artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/<artifact").isErr).isTrue()
