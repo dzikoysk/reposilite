@@ -140,7 +140,6 @@ internal class MavenLatestApiEndpoints(
                             ctx.resultAttachment(
                                 name = it.document.name,
                                 contentType = it.document.contentType,
-                                contentLength = it.document.contentLength,
                                 lastTimeModified = it.document.lastModifiedTime,
                                 compressionStrategy = compressionStrategy,
                                 cache = it.cachable,

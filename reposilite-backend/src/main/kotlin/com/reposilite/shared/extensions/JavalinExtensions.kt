@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.stream.contentLength
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.HEAD
@@ -93,7 +94,6 @@ internal val maxAge = System.getProperty("reposilite.maven.maxAge", 1.hours.inWh
 internal fun Context.resultAttachment(
     name: String,
     contentType: ContentType,
-    contentLength: Long,
     lastTimeModified: Instant?,
     compressionStrategy: String,
     cache: Boolean,
@@ -102,7 +102,7 @@ internal fun Context.resultAttachment(
     attachmentHeaders(
         name = name,
         contentType = contentType,
-        contentLength = contentLength,
+        contentLength = data.contentLength,
         lastTimeModified = lastTimeModified,
         compressionStrategy = compressionStrategy,
         cache = cache,

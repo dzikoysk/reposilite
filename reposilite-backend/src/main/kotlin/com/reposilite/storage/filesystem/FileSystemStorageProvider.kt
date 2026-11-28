@@ -22,6 +22,7 @@ import com.reposilite.shared.badRequest
 import com.reposilite.shared.notFound
 import com.reposilite.shared.stream.BoundedInputStream
 import com.reposilite.shared.stream.BoundedInputStreamLimitExceededException
+import com.reposilite.shared.stream.SizedInputStream
 import com.reposilite.shared.toErrorResponse
 import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.FilesComparator
@@ -34,7 +35,7 @@ import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
-import com.reposilite.storage.inputStream
+import com.reposilite.storage.openReadChannel
 import com.reposilite.storage.type
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
@@ -46,6 +47,7 @@ import java.io.Closeable
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.nio.channels.Channels
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
@@ -207,9 +209,16 @@ abstract class FileSystemStorageProvider protected constructor(
             .flatMap { resource ->
                 val lock = acquireFileAccessLock(location, LockMode.READ)
 
-                resource.inputStream()
+                resource.openReadChannel()
                     .onError { lock.close() }
-                    .map { LockedFilterInputStream(it, lock) }
+                    .map { channel ->
+                        val stream = LockedFilterInputStream(Channels.newInputStream(channel), lock)
+                        try {
+                            SizedInputStream(stream, channel.size())
+                        } catch (_: IOException) {
+                            stream
+                        }
+                    }
             }
 
     override fun getFileDetails(location: Location): Result<out FileDetails, ErrorResponse> =

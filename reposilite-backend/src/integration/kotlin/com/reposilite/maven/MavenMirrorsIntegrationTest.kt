@@ -25,10 +25,12 @@ import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.storage.api.toLocation
 import io.javalin.http.HttpStatus.BAD_GATEWAY
 import io.javalin.http.HttpStatus.NOT_FOUND
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.zip.GZIPOutputStream
 import kong.unirest.core.HeaderNames.CONTENT_LENGTH
 import kong.unirest.core.HeaderNames.CONTENT_TYPE
 import kong.unirest.core.Unirest.get
@@ -76,6 +78,29 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
             val response = get("$base/proxied/$gav").asString()
             // then: service responds with 404 status page as .file extension is not allowed
             assertThat(response.isSuccess).isFalse
+        }
+    }
+
+    @Test
+    fun `should stream a decoded mirror response when HEAD describes different bytes`() {
+        val gav = "com/reposilite/encoded.pom"
+        val content = "<project/>".repeat(4096).toByteArray()
+        val encoded = ByteArrayOutputStream().use { output ->
+            GZIPOutputStream(output).use { it.write(content) }
+            output.toByteArray()
+        }
+        val upstream = startProxiedHost { config ->
+            config.routes.head("/releases/$gav") { ctx -> ctx.header(CONTENT_LENGTH, "3") }
+            config.routes.get("/releases/$gav") { ctx -> ctx.header("Content-Encoding", "x-gzip").result(encoded) }
+        }
+
+        try {
+            val response = get("$base/proxied/$gav").asBytes()
+            assertThat(response.status).isEqualTo(200)
+            assertThat(response.body).isEqualTo(content)
+            assertThat(response.headers.get(CONTENT_LENGTH)).allMatch { it == content.size.toString() }
+        } finally {
+            upstream.stop()
         }
     }
 
