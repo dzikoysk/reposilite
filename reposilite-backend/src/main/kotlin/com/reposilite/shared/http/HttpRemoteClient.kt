@@ -46,7 +46,8 @@ import java.util.Base64
 
 private val HttpResponse.bodyLength: Long
     get() = when {
-        // Some mirrors send a Content-Length even on chunked responses (#549).
+        // Nexus can send a misleading Content-Length on chunked responses.
+        // ~ https://github.com/dzikoysk/reposilite/issues/549
         getHeader("Transfer-Encoding") != null -> UNKNOWN_LENGTH
         contentEncoding.isNullOrBlank() || contentEncoding.equals("identity", ignoreCase = true) -> contentLength
         else -> UNKNOWN_LENGTH
